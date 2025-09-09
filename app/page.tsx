@@ -102,48 +102,7 @@ export default function Home() {
       <main className="relative z-10">
         {/* Hero Section */}
         <section className="container mx-auto py-20 px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-              <Badge className="mb-4 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-none">
-                <Terminal className="w-3 h-3 mr-1" /> DEV
-              </Badge>
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 glitch-stack">
-                <GlitchText text="Hamzah" className="text-white" />
-                <GlitchText text="Al-Ramli" className="text-emerald-500" />
-              </h1>
-              <p className="text-zinc-400 text-lg mb-8 border-l-2 border-emerald-500 pl-4">
-                A fresh graduate and lead front-end developer with hands-on experience in web services, passionate about
-                machine problem-solving, and continuously learns through mentorship, certifications, and practical
-                experiences.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button className="bg-emerald-500 hover:bg-emerald-600 text-black group relative overflow-hidden">
-                  <span className="relative z-10 flex items-center">
-                    View Projects <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                  <span className="absolute inset-0 bg-emerald-400 translate-y-full group-hover:translate-y-0 transition-transform duration-200"></span>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-zinc-700 hover:border-emerald-500 hover:text-emerald-500 group"
-                  asChild
-                >
-                  <Link href="/files/hamzah-al-ramli-resume.pdf" target="_blank">
-                    <span className="flex items-center">
-                      Download Resume{" "}
-                      <Download className="ml-2 h-4 w-4 group-hover:translate-y-1 transition-transform" />
-                    </span>
-                  </Link>
-                </Button>
-              </div>
-            </div>
-            <div className="relative hidden md:block">
-              <div className="absolute inset-0 bg-emerald-500/20 rounded-lg blur-3xl"></div>
-              <div className="relative bg-zinc-800/80 p-4 rounded-lg border border-emerald-500/30 backdrop-blur-sm">
-                <HackerTerminal />
-              </div>
-            </div>
-          </div>
+          <HackerTerminal />
         </section>
 
         {/* Arrow Indicator */}

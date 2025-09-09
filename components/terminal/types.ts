@@ -1,0 +1,195 @@
+// Terminal System Type Definitions
+
+export interface Command {
+  name: string;
+  aliases: string[];
+  description: string;
+  usage?: string;
+  hidden: boolean;
+  requiresAuth: boolean;
+  adminOnly: boolean;
+  cooldown?: number;
+  handler: (args: string[], context: TerminalContext) => Promise<CommandResult> | CommandResult;
+}
+
+export interface CommandResult {
+  output: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  clearScreen?: boolean;
+  playSound?: string;
+  triggerEffect?: string;
+  updateGameState?: Partial<GameState>;
+}
+
+export interface TerminalContext {
+  user: User;
+  session: Session;
+  behaviorTracker: BehaviorTracker;
+  gameState: GameState;
+  currentDirectory: string;
+  fileSystem: FileSystem;
+}
+
+export interface User {
+  username: string;
+  accessLevel: AccessLevel;
+  unlockedFeatures: string[];
+  ctfProgress: CTFProgress;
+  loginTime: Date;
+}
+
+export type AccessLevel = 'guest' | 'user' | 'admin' | 'root';
+
+export interface Session {
+  id: string;
+  startTime: Date;
+  commandHistory: HistoryEntry[];
+  currentStreak: number;
+  totalCommands: number;
+}
+
+export interface HistoryEntry {
+  type: 'input' | 'output';
+  content: string;
+  timestamp: Date;
+  command?: string;
+}
+
+export interface BehaviorTracker {
+  commandCounts: Map<string, number>;
+  patterns: UserPattern[];
+  lastCommandTime: Date;
+  consecutiveHelps: number;
+  discoveredSecrets: string[];
+}
+
+export interface UserPattern {
+  pattern: string;
+  count: number;
+  lastTriggered: Date;
+}
+
+export interface GameState {
+  level: number;
+  experience: number;
+  unlockedChallenges: string[];
+  completedChallenges: string[];
+  currentChallenge?: string;
+  flags: string[];
+  achievements: Achievement[];
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  unlockedAt: Date;
+}
+
+export interface CTFProgress {
+  totalFlags: number;
+  foundFlags: string[];
+  currentLevel: number;
+  hintsUsed: number;
+  timeSpent: number;
+}
+
+export interface FileSystem {
+  [path: string]: string[] | string;
+}
+
+export interface EasterEgg {
+  trigger: string;
+  response: string;
+  condition?: (context: TerminalContext) => boolean;
+  effect?: string;
+  sound?: string;
+  oneTime?: boolean;
+}
+
+export interface CTFChallenge {
+  id: string;
+  name: string;
+  description: string;
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
+  prerequisites: string[];
+  hints: string[];
+  solution: string;
+  flag: string;
+  reward: string;
+  unlocks: string[];
+  category: 'crypto' | 'web' | 'forensics' | 'reverse' | 'pwn' | 'misc';
+}
+
+export interface TerminalConfig {
+  commands: Command[];
+  easterEggs: EasterEgg[];
+  ctfChallenges: CTFChallenge[];
+  fileSystem: FileSystem;
+  themes: Theme[];
+  soundEffects: SoundEffect[];
+}
+
+export interface Theme {
+  name: string;
+  colors: {
+    background: string;
+    text: string;
+    prompt: string;
+    success: string;
+    error: string;
+    warning: string;
+  };
+  font: string;
+  effects: string[];
+}
+
+export interface SoundEffect {
+  name: string;
+  url: string;
+  volume: number;
+}
+
+export interface VisualEffect {
+  name: string;
+  trigger: string;
+  animation: string;
+  duration: number;
+  sound?: string;
+}
+
+// API Response Types
+export interface IPResponse {
+  ip: string;
+  country?: string;
+  region?: string;
+  city?: string;
+  isp?: string;
+}
+
+export interface GeolocationResponse {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+}
+
+// Command Handler Function Type
+export type CommandHandler = (args: string[], context: TerminalContext) => Promise<CommandResult> | CommandResult;
+
+// Event Types
+export interface TerminalEvent {
+  type: 'command_executed' | 'easter_egg_triggered' | 'challenge_completed' | 'level_up';
+  data: any;
+  timestamp: Date;
+}
+
+// Configuration Types
+export interface TerminalSettings {
+  soundEnabled: boolean;
+  effectsEnabled: boolean;
+  theme: string;
+  fontSize: number;
+  autoComplete: boolean;
+  showHints: boolean;
+}
