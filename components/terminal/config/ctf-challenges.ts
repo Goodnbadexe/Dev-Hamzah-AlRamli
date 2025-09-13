@@ -4,7 +4,7 @@ export const ctfChallenges: CTFChallenge[] = [
   {
     id: 'welcome',
     title: 'Welcome to the Matrix',
-    difficulty: 'Beginner',
+    difficulty: 'easy',
     points: 10,
     description: 'Your first step into the digital realm. Decode the welcome message.',
     content: `🎯 Challenge: Decode the Base64 message\n\nEncoded Message: SGVsbG8gSGFja2VyIQ==\n\n💡 Hint: This is a common encoding used in web development.\nUse online tools or your programming knowledge to decode it!`,
@@ -16,7 +16,7 @@ export const ctfChallenges: CTFChallenge[] = [
   {
     id: 'caesar',
     title: 'Caesar\'s Secret',
-    difficulty: 'Beginner',
+    difficulty: 'easy',
     points: 15,
     description: 'Julius Caesar used this cipher to protect his military communications.',
     content: `🏛️ Challenge: Decrypt Caesar\'s message\n\nCipher Text: FDHVDU FLSKHU LV HDV\n\n📜 Historical Note: Caesar used a shift of 3 in his original cipher.\nEach letter is shifted by a fixed number of positions in the alphabet.\n\nExample: A → D, B → E, C → F (shift of 3)`,
@@ -28,7 +28,7 @@ export const ctfChallenges: CTFChallenge[] = [
   {
     id: 'binary',
     title: 'Binary Basics',
-    difficulty: 'Beginner',
+    difficulty: 'easy',
     points: 20,
     description: 'Everything in computers is just 1s and 0s. Can you speak the machine language?',
     content: `🤖 Challenge: Convert binary to text\n\nBinary Message:\n01001000 01100001 01100011 01101011 01100101 01110010\n\n💻 Each group of 8 bits represents one ASCII character.\nFind the ASCII values and convert them to letters!\n\nExample: 01000001 = 65 in decimal = 'A' in ASCII`,
@@ -40,7 +40,7 @@ export const ctfChallenges: CTFChallenge[] = [
   {
     id: 'hash_crack',
     title: 'Hash Detective',
-    difficulty: 'Intermediate',
+    difficulty: 'medium',
     points: 30,
     description: 'A password hash has been intercepted. Can you crack it?',
     content: `🔐 Challenge: Crack the MD5 hash\n\nHash: 5d41402abc4b2a76b9719d911017c592\n\n🕵️ This is a common password. Try popular passwords or use online rainbow tables.\nMD5 is an old hashing algorithm that\'s vulnerable to rainbow table attacks.\n\n💡 Think simple - what\'s one of the most common passwords ever used?`,
@@ -52,7 +52,7 @@ export const ctfChallenges: CTFChallenge[] = [
   {
     id: 'steganography',
     title: 'Hidden in Plain Sight',
-    difficulty: 'Intermediate',
+    difficulty: 'medium',
     points: 35,
     description: 'Sometimes the most important information is hidden where you least expect it.',
     content: `🖼️ Challenge: Find the hidden message\n\nLook carefully at this ASCII art:\n\n ██╗  ██╗██╗██████╗ ██████╗ ███████╗███╗   ██╗\n ██║  ██║██║██╔══██╗██╔══██╗██╔════╝████╗  ██║\n ███████║██║██║  ██║██║  ██║█████╗  ██╔██╗ ██║\n ██╔══██║██║██║  ██║██║  ██║██╔══╝  ██║╚██╗██║\n ██║  ██║██║██████╔╝██████╔╝███████╗██║ ╚████║\n ╚═╝  ╚═╝╚═╝╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝\n\n🔍 The message isn\'t in the art itself...\nLook at the FIRST letter of each line of this challenge description!`,
@@ -64,7 +64,7 @@ export const ctfChallenges: CTFChallenge[] = [
   {
     id: 'sql_injection',
     title: 'Database Infiltration',
-    difficulty: 'Intermediate',
+    difficulty: 'medium',
     points: 40,
     description: 'A poorly secured login form awaits. Can you bypass the authentication?',
     content: `💾 Challenge: SQL Injection Simulation\n\nLogin Form Query (simulated):\nSELECT * FROM users WHERE username = \'[INPUT]\' AND password = \'[PASSWORD]\'\n\n🎯 Goal: Bypass login without knowing the real password\n\n💡 What if you could make the query always return true?\nThink about SQL logic operators...\n\nExample: What happens if username = \'admin\' OR \'1\'=\'1\'--\'?`,
@@ -76,7 +76,7 @@ export const ctfChallenges: CTFChallenge[] = [
   {
     id: 'reverse_engineering',
     title: 'Code Archaeology',
-    difficulty: 'Advanced',
+    difficulty: 'hard',
     points: 50,
     description: 'Reverse engineer this obfuscated JavaScript function to find the secret.',
     content: `🔍 Challenge: Deobfuscate the code\n\nObfuscated Function:\nfunction _0x1234(){var _0xa=['secret','flag','is','cyber'];return _0xa[0]+_0xa[2]+_0xa[3];}\n\n🧩 This function returns a string. What does it return?\nAnalyze the array and the return statement.\n\n💻 Trace through the code step by step:\n1. What\'s in the array _0xa?\n2. What indices are being accessed?\n3. What\'s the final concatenated result?`,
@@ -88,7 +88,7 @@ export const ctfChallenges: CTFChallenge[] = [
   {
     id: 'network_forensics',
     title: 'Packet Detective',
-    difficulty: 'Advanced',
+    difficulty: 'hard',
     points: 60,
     description: 'Analyze this network traffic log to find the exfiltrated data.',
     content: `📡 Challenge: Network Traffic Analysis\n\nHTTP Request Log:\n192.168.1.100 -> 10.0.0.5\nGET /search?q=dGVzdA== HTTP/1.1\nHost: evil-server.com\nUser-Agent: DataExfiltrator/1.0\n\n🕵️ Suspicious activity detected!\nThe query parameter \'q\' contains base64 encoded data.\nWhat information is being exfiltrated?\n\n🔍 Decode the base64 to reveal the stolen data!`,
@@ -100,7 +100,7 @@ export const ctfChallenges: CTFChallenge[] = [
   {
     id: 'cryptography_rsa',
     title: 'RSA Rookie',
-    difficulty: 'Advanced',
+    difficulty: 'hard',
     points: 75,
     description: 'Break this simple RSA implementation. Sometimes small keys lead to big problems.',
     content: `🔐 Challenge: RSA Cryptanalysis\n\nRSA Parameters:\nn = 77 (public modulus)\ne = 7 (public exponent)\nEncrypted message: 23\n\n🧮 RSA Security relies on the difficulty of factoring large numbers.\nBut n=77 is quite small...\n\n💡 Steps:\n1. Factor n = 77 into p × q\n2. Calculate φ(n) = (p-1)(q-1)\n3. Find d where e × d ≡ 1 (mod φ(n))\n4. Decrypt: message = 23^d mod n`,
@@ -112,7 +112,7 @@ export const ctfChallenges: CTFChallenge[] = [
   {
     id: 'final_boss',
     title: 'The Final Challenge',
-    difficulty: 'Expert',
+    difficulty: 'expert',
     points: 100,
     description: 'Combine all your skills for the ultimate test. Multiple layers of security await.',
     content: `👑 FINAL BOSS CHALLENGE 👑\n\nMulti-layered Security System:\n\nLayer 1 - Steganography:\nMessage: \'The First letter Of each Word Reveals Everything Needed\'\n\nLayer 2 - Caesar Cipher (shift 13/ROT13):\nPYRNE GRKG: \'SVANY PUNYYRATR\'\n\nLayer 3 - Binary:\n01000110 01001100 01000001 01000111\n\nLayer 4 - Reverse:\nGALF (reverse this)\n\n🎯 Combine all decoded parts in order to form the final flag!`,
@@ -129,7 +129,7 @@ export function getChallengesByDifficulty(difficulty: string): CTFChallenge[] {
 
 // Helper function to calculate total possible points
 export function getTotalPossiblePoints(): number {
-  return ctfChallenges.reduce((total, challenge) => total + challenge.points, 0);
+  return ctfChallenges.reduce((total, challenge) => total + (challenge.points || 0), 0);
 }
 
 // Helper function to get next challenge based on current progress
@@ -151,10 +151,17 @@ export function getDifficultyProgression(solvedChallenges: string[]): { [key: st
     'Expert': 0
   };
   
+  const difficultyMap: { [key: string]: keyof typeof progression } = {
+    'easy': 'Beginner',
+    'medium': 'Intermediate',
+    'hard': 'Advanced',
+    'expert': 'Expert'
+  };
+  
   solvedChallenges.forEach(challengeId => {
     const challenge = ctfChallenges.find(c => c.id === challengeId);
-    if (challenge) {
-      progression[challenge.difficulty]++;
+    if (challenge && difficultyMap[challenge.difficulty]) {
+      progression[difficultyMap[challenge.difficulty]]++;
     }
   });
   

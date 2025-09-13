@@ -117,11 +117,12 @@ export class GameStateManager {
       this.gameState.bestStreak = this.gameState.currentStreak;
     }
 
-    const expGained = this.addExperience(challenge.points);
-    this.addScore(challenge.points);
+    const points = challenge.points || 0;
+    const expGained = this.addExperience(points);
+    this.addScore(points);
 
     // Unlock rewards
-    if (challenge.rewards.commands) {
+    if (challenge.rewards && challenge.rewards.commands) {
       challenge.rewards.commands.forEach(cmd => {
         if (!this.gameState.unlockedCommands.includes(cmd)) {
           this.gameState.unlockedCommands.push(cmd);
@@ -135,12 +136,12 @@ export class GameStateManager {
     return {
       success: true,
       reward: {
-        points: challenge.points,
-        experience: challenge.points,
+        points: points,
+        experience: points,
         levelUp: expGained.levelUp,
         newLevel: expGained.newLevel,
-        unlockedCommands: challenge.rewards.commands || [],
-        message: challenge.rewards.message
+        unlockedCommands: challenge.rewards?.commands || [],
+        message: challenge.rewards?.message
       }
     };
   }
@@ -161,12 +162,13 @@ export class GameStateManager {
       id: achievementId,
       name: this.getAchievementName(achievementId),
       description: this.getAchievementDescription(achievementId),
+      icon: this.getAchievementIcon(achievementId),
       unlockedAt: new Date(),
       points: this.getAchievementPoints(achievementId)
     };
 
     this.gameState.achievements.push(achievement);
-    this.addScore(achievement.points);
+    this.addScore(achievement.points || 0);
     this.saveGameState();
 
     return achievement;
@@ -346,5 +348,20 @@ export class GameStateManager {
       persistent: 75
     };
     return points[id as keyof typeof points] || 0;
+  }
+
+  private getAchievementIcon(id: string): string {
+    const icons = {
+      first_command: '🚀',
+      command_master: '👑',
+      first_challenge: '🏁',
+      challenge_master: '🏆',
+      easter_hunter: '🥚',
+      level_up: '⬆️',
+      high_scorer: '💯',
+      streak_master: '🔥',
+      persistent: '💪'
+    };
+    return icons[id as keyof typeof icons] || '🎖️';
   }
 }

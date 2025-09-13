@@ -35,20 +35,38 @@ export interface TerminalContext {
 
 export interface User {
   username: string;
-  accessLevel: AccessLevel;
-  unlockedFeatures: string[];
-  ctfProgress: CTFProgress;
-  loginTime: Date;
+  password: string;
+  role: string;
+  permissions: string[];
+  createdAt: Date;
+  lastLogin: Date | null;
+  isLocked: boolean;
+  accessLevel?: AccessLevel;
+  unlockedFeatures?: string[];
+  ctfProgress?: CTFProgress;
+  loginTime?: Date;
 }
 
 export type AccessLevel = 'guest' | 'user' | 'admin' | 'root';
 
 export interface Session {
   id: string;
+  userId: string;
+  username?: string;
+  permissions: string[];
   startTime: Date;
-  commandHistory: HistoryEntry[];
-  currentStreak: number;
-  totalCommands: number;
+  lastActivity: Date;
+  isActive: boolean;
+  commandHistory?: HistoryEntry[];
+  currentStreak?: number;
+  totalCommands?: number;
+}
+
+export interface AuthResult {
+  success: boolean;
+  message: string;
+  user: User | null;
+  session: Session | null;
 }
 
 export interface HistoryEntry {
@@ -75,11 +93,29 @@ export interface UserPattern {
 export interface GameState {
   level: number;
   experience: number;
-  unlockedChallenges: string[];
-  completedChallenges: string[];
+  score: number;
+  unlockedChallenges?: string[];
+  completedChallenges?: string[];
+  solvedChallenges: string[];
+  unlockedCommands: string[];
   currentChallenge?: string;
-  flags: string[];
+  flags?: string[];
   achievements: Achievement[];
+  stats: {
+    commandsExecuted: number;
+    challengesSolved: number;
+    easterEgsFound: number;
+    loginAttempts: number;
+    timeSpent: number;
+  };
+  startTime: Date;
+  lastActivity: Date;
+  currentStreak: number;
+  bestStreak: number;
+  hints: {
+    used: number;
+    available: number;
+  };
 }
 
 export interface Achievement {
@@ -88,6 +124,7 @@ export interface Achievement {
   description: string;
   icon: string;
   unlockedAt: Date;
+  points?: number;
 }
 
 export interface CTFProgress {
@@ -113,16 +150,24 @@ export interface EasterEgg {
 
 export interface CTFChallenge {
   id: string;
-  name: string;
+  name?: string;
+  title?: string;
   description: string;
+  content?: string;
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
-  prerequisites: string[];
-  hints: string[];
-  solution: string;
+  prerequisites?: string[];
+  hints?: string[];
+  hint?: string;
+  solution?: string;
   flag: string;
   reward: string;
-  unlocks: string[];
-  category: 'crypto' | 'web' | 'forensics' | 'reverse' | 'pwn' | 'misc';
+  rewards?: {
+    commands?: string[];
+    message?: string;
+  };
+  points?: number;
+  unlocks?: string[];
+  category?: 'crypto' | 'web' | 'forensics' | 'reverse' | 'pwn' | 'misc';
 }
 
 export interface TerminalConfig {

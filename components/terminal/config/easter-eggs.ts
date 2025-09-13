@@ -36,7 +36,7 @@ export const easterEggs: EasterEgg[] = [
   
   {
     trigger: 'clear',
-    response: `🧹 Cleaning obsession detected!\n\nYou've cleared the screen ${context => context.behaviorTracker.commandCounts.get('clear') || 0} times.\n\nMaybe it's time to make some mess? Try exploring other commands! 😄`,
+    response: `🧹 Cleaning obsession detected!\n\nYou've cleared the screen multiple times.\n\nMaybe it's time to make some mess? Try exploring other commands! 😄`,
     condition: (context: TerminalContext) => (context.behaviorTracker.commandCounts.get('clear') || 0) > 10
   },
   

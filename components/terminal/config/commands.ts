@@ -1,6 +1,6 @@
-import { Command, CommandResult, TerminalContext } from '../types';
+import { Command, CommandResult, TerminalContext, AccessLevel } from '../types';
 import { getPublicIP, generateFakeHash, simulateNetworkScan } from '../utils/network';
-import { asciiArt } from '../utils/ascii-art';
+import { asciiArt, createAnimatedText, createProgressBar, createLoadingAnimation } from '../utils/ascii-art';
 import { ctfChallenges } from './ctf-challenges';
 
 // Standard Commands
@@ -8,6 +8,9 @@ const helpCommand: Command = {
   name: 'help',
   description: 'Display available commands',
   aliases: ['h', '?'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
   usage: 'help [command]',
   handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
     // Award XP for first help command and track stats
@@ -26,7 +29,7 @@ const helpCommand: Command = {
         
         // Check for new achievements
         const currentAchievements = gameManager.getGameState().achievements;
-        const newAchievements = currentAchievements.filter(a => 
+        const newAchievements = currentAchievements.filter((a: any) => 
           Date.now() - a.unlockedAt.getTime() < 1000
         );
         achievements.push(...newAchievements);
@@ -81,7 +84,7 @@ const helpCommand: Command = {
     
     const availableCommands = commandRegistry.filter(cmd => {
       if (cmd.hidden && context.user.accessLevel !== 'root') return false;
-      if (cmd.adminOnly && !['admin', 'root'].includes(context.user.accessLevel)) return false;
+      if (cmd.adminOnly && !['admin', 'root'].includes(context.user.accessLevel || '')) return false;
       if (cmd.requiresAuth && context.user.accessLevel === 'guest') return false;
       return true;
     });
@@ -108,6 +111,9 @@ const clearCommand: Command = {
   name: 'clear',
   description: 'Clear the terminal screen',
   aliases: ['cls', 'c'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
   handler: async (): Promise<CommandResult> => {
     return { output: '', type: 'clear' };
   }
@@ -117,6 +123,9 @@ const fullscreenCommand: Command = {
   name: 'fullscreen',
   description: 'Enter fullscreen terminal mode',
   aliases: ['fs', 'full'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
   handler: async (): Promise<CommandResult> => {
     return {
       output: '🖥️ Entering fullscreen mode...',
@@ -130,6 +139,9 @@ const ipCommand: Command = {
   name: 'ip',
   description: 'Display your public IP address',
   aliases: ['myip', 'whatismyip'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
   handler: async (): Promise<CommandResult> => {
     try {
       const ip = await getPublicIP();
@@ -150,6 +162,9 @@ const loginCommand: Command = {
   name: 'login',
   description: 'Authenticate to access advanced features',
   aliases: ['auth', 'signin'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
   usage: 'login [username] [password]',
   handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
     if (context.user.accessLevel !== 'guest') {
@@ -168,7 +183,24 @@ const loginCommand: Command = {
     
     const [username, password] = args;
     
-    // Check credentials
+    // Use AuthManager for proper authentication
+     if (context.gameManager && context.gameManager.authManager) {
+       const authResult = context.gameManager.authManager.login(username, password);
+       if (authResult.success && authResult.user) {
+         // Update context user from auth result
+         context.user.username = username;
+         context.user.accessLevel = authResult.user.role as AccessLevel || 'user';
+       }
+       return {
+         output: authResult.message,
+         type: authResult.success ? 'success' : 'error',
+         playSound: authResult.success ? 'login' : undefined,
+         triggerEffect: authResult.success && username === 'admin' ? 'matrix_rain' : 
+                       authResult.success && username === 'root' ? 'screen_glitch' : undefined
+       };
+     }
+    
+    // Fallback for backward compatibility
     if (username === 'user' && password === 'password') {
       context.user.username = username;
       context.user.accessLevel = 'user';
@@ -212,9 +244,25 @@ const logoutCommand: Command = {
   name: 'logout',
   description: 'End current session',
   aliases: ['exit', 'quit'],
+  hidden: false,
   requiresAuth: true,
+  adminOnly: false,
   handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
     const previousLevel = context.user.accessLevel;
+    
+    // Use AuthManager for proper logout
+    if (context.gameManager && context.gameManager.authManager) {
+      const logoutResult = context.gameManager.authManager.logout();
+      // Update context user
+      context.user.username = 'guest';
+      context.user.accessLevel = 'guest';
+      return {
+        output: logoutResult.message,
+        type: 'info'
+      };
+    }
+    
+    // Fallback for backward compatibility
     context.user.username = 'guest';
     context.user.accessLevel = 'guest';
     
@@ -229,6 +277,9 @@ const whoamiCommand: Command = {
   name: 'whoami',
   description: 'Display current user information',
   aliases: ['who'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
   handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
     const { user, session } = context;
     
@@ -249,6 +300,9 @@ const treeCommand: Command = {
   name: 'tree',
   description: 'Display directory structure',
   aliases: ['ls', 'dir'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
   handler: async (): Promise<CommandResult> => {
     const funnyTrees = [
       '🌳 Branches of knowledge growing...\n\n📁 /wisdom\n├── 📄 curiosity.txt\n├── 📄 persistence.log\n└── 📁 hidden_secrets/\n    └── 🔒 [ACCESS DENIED]',
@@ -269,6 +323,8 @@ const motivateCommand: Command = {
   description: 'Get some hacker motivation',
   aliases: ['inspire', 'quote'],
   hidden: true,
+  requiresAuth: false,
+  adminOnly: false,
   handler: async (): Promise<CommandResult> => {
     const quotes = [
       '"The best way to predict the future is to invent it." - Alan Kay',
@@ -292,13 +348,42 @@ const scanCommand: Command = {
   name: 'scan',
   description: 'Perform network reconnaissance',
   aliases: ['nmap', 'recon'],
+  hidden: false,
   requiresAuth: true,
+  adminOnly: false,
   cooldown: 10000, // 10 seconds
   handler: async (args: string[]): Promise<CommandResult> => {
     const target = args[0] || 'localhost';
     
+    const scanResults = [
+      `🎯 ${createAnimatedText('NETWORK RECONNAISSANCE INITIATED', 'matrix')}`,
+      `📡 Target: ${target}`,
+      '',
+      `${createLoadingAnimation(0)} Initializing port scanner...`,
+      `${createLoadingAnimation(1)} Resolving hostname... ${createProgressBar(20)}`,
+      `${createLoadingAnimation(2)} Scanning TCP ports... ${createProgressBar(45)}`,
+      `${createLoadingAnimation(0)} Checking UDP services... ${createProgressBar(70)}`,
+      `${createLoadingAnimation(1)} Analyzing responses... ${createProgressBar(90)}`,
+      `${createLoadingAnimation(2)} Generating report... ${createProgressBar(100)}`,
+      '',
+      createAnimatedText('SCAN COMPLETE', 'glitch'),
+      '',
+      '🔍 Open Ports Found:',
+      '  • 22/tcp   SSH     OpenSSH 8.0',
+      '  • 80/tcp   HTTP    nginx 1.18.0',
+      '  • 443/tcp  HTTPS   nginx 1.18.0',
+      '  • 3000/tcp HTTP    Node.js Express',
+      '',
+      '🛡️ Security Assessment:',
+      '  ⚠️  SSH service detected - potential entry point',
+      '  ✅ HTTPS enabled - encrypted traffic',
+      '  🔍 Development server running - investigate further',
+      '',
+      await simulateNetworkScan(target)
+    ];
+    
     return {
-      output: await simulateNetworkScan(target),
+      output: scanResults.join('\n'),
       type: 'success',
       playSound: 'scan'
     };
@@ -309,7 +394,9 @@ const hashCommand: Command = {
   name: 'hash',
   description: 'Generate or crack password hashes',
   aliases: ['md5', 'sha1', 'crack'],
+  hidden: false,
   requiresAuth: true,
+  adminOnly: false,
   usage: 'hash <text> [algorithm]',
   handler: async (args: string[]): Promise<CommandResult> => {
     if (args.length === 0) {
@@ -335,20 +422,29 @@ const hackCommand: Command = {
   name: 'hack',
   description: 'Start hacking simulation',
   aliases: ['h4ck', 'pwn'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
   usage: 'hack [target]',
   handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
     const target = args[0] || 'localhost';
+    
     const hackingSteps = [
-      `🎯 Target acquired: ${target}`,
-      '🔍 Scanning for vulnerabilities...',
-      '⚡ Exploiting buffer overflow...',
-      '🔓 Bypassing firewall...',
-      '💾 Accessing mainframe...',
-      '🚀 Root access obtained!'
+      `🎯 ${createAnimatedText('Target acquired: ' + target, 'glitch')}`,
+      `🔍 Scanning for vulnerabilities... ${createProgressBar(25)}`,
+      `⚡ Exploiting buffer overflow... ${createProgressBar(50)}`,
+      `🔓 Bypassing firewall... ${createProgressBar(75)}`,
+      `💾 Accessing mainframe... ${createProgressBar(90)}`,
+      `🚀 Root access obtained! ${createProgressBar(100)}`,
+      '',
+      createAnimatedText('SYSTEM BREACH SUCCESSFUL', 'matrix'),
+      createLoadingAnimation(0) + ' Extracting sensitive data...',
+      createLoadingAnimation(1) + ' Planting backdoor...',
+      createLoadingAnimation(2) + ' Covering tracks...'
     ];
     
     return {
-      output: hackingSteps.join('\n') + `\n\n🏆 Successfully hacked ${target}!\n\n💀 HACKER MODE ACTIVATED 💀`,
+      output: hackingSteps.join('\n') + `\n\n🏆 Successfully hacked ${target}!\n\n💀 HACKER MODE ACTIVATED 💀\n\n${asciiArt.skull}`,
       type: 'success',
       triggerEffect: 'screen_glitch'
     };
@@ -360,9 +456,25 @@ const matrixCommand: Command = {
   description: 'Enter the Matrix',
   aliases: ['neo'],
   hidden: true,
+  requiresAuth: false,
+  adminOnly: false,
   handler: async (): Promise<CommandResult> => {
+    const matrixText = [
+      createAnimatedText('ENTERING THE MATRIX...', 'matrix'),
+      '',
+      asciiArt.matrix,
+      '',
+      createAnimatedText('"There is no spoon." - Neo', 'glitch'),
+      '',
+      '🔴 Take the red pill, or 🔵 take the blue pill?',
+      '',
+      createLoadingAnimation(0) + ' Reality.exe loading...',
+      createLoadingAnimation(1) + ' Consciousness.dll initialized...',
+      createLoadingAnimation(2) + ' Welcome to the real world.'
+    ];
+    
     return {
-      output: asciiArt.matrix + '\n\n"There is no spoon." - Neo\n\n🔴 Take the red pill, or 🔵 take the blue pill?',
+      output: matrixText.join('\n'),
       type: 'success',
       triggerEffect: 'matrix_rain',
       playSound: 'matrix'
@@ -375,7 +487,9 @@ const ctfCommand: Command = {
   name: 'ctf',
   description: 'Access Capture The Flag challenges',
   aliases: ['challenge', 'puzzle'],
+  hidden: false,
   requiresAuth: true,
+  adminOnly: false,
   usage: 'ctf [list|start <id>|hint <id>|submit <id> <flag>]',
   handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
     if (args.length === 0 || args[0] === 'list') {
@@ -443,7 +557,7 @@ const ctfCommand: Command = {
             
             // Check for new achievements
             const currentAchievements = gameManager.getGameState().achievements;
-            const newAchievements = currentAchievements.filter(a => 
+            const newAchievements = currentAchievements.filter((a: any) => 
               Date.now() - a.unlockedAt.getTime() < 1000 // Recently unlocked (within 1 second)
             );
             
@@ -486,6 +600,9 @@ const rootCommand: Command = {
   name: 'root',
   description: 'Attempt to gain root access',
   aliases: ['admin', 'superuser'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
   usage: 'root',
   handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
     const responses = [
@@ -509,6 +626,8 @@ const suCommand: Command = {
   name: 'su',
   description: 'Switch user (admin only)',
   aliases: ['sudo'],
+  hidden: false,
+  requiresAuth: true,
   adminOnly: true,
   usage: 'su <username>',
   handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
@@ -518,6 +637,22 @@ const suCommand: Command = {
     
     const targetUser = args[0];
     
+    // Use AuthManager for proper user switching
+     if (context.gameManager && context.gameManager.authManager) {
+       const switchResult = context.gameManager.authManager.switchUser(targetUser, 'toor');
+       if (switchResult.success) {
+         // Update context user
+         context.user.username = targetUser;
+         context.user.accessLevel = switchResult.user?.role as AccessLevel || 'user';
+       }
+       return {
+         output: switchResult.message,
+         type: switchResult.success ? 'success' : 'error',
+         triggerEffect: switchResult.success && targetUser === 'root' ? 'screen_glitch' : undefined
+       };
+     }
+    
+    // Fallback for backward compatibility
     if (targetUser === 'root') {
       context.user.username = 'root';
       context.user.accessLevel = 'root';
@@ -539,6 +674,9 @@ const statsCommand: Command = {
   name: 'stats',
   description: 'Display your game statistics and achievements',
   aliases: ['status', 'profile'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
   handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
     const gameManager = context.gameManager;
     if (!gameManager) {
@@ -551,19 +689,19 @@ const statsCommand: Command = {
     const gameState = gameManager.getGameState();
     const stats = gameManager.getStats();
     
-    let output = '📊 Your Hacker Profile:\n\n';
+    let output = `📊 ${createAnimatedText('YOUR HACKER PROFILE', 'matrix')}\n\n`;
     
     // Basic stats
-    output += `🎯 Level: ${gameState.level}\n`;
-    output += `⚡ Experience: ${gameState.experience} XP\n`;
+    output += `🎯 Level: ${gameState.level} ${createProgressBar((gameState.level / 10) * 100, 15)}\n`;
+    output += `⚡ Experience: ${gameState.experience} XP ${createProgressBar((gameState.experience % 100), 20)}\n`;
     output += `🏆 Score: ${gameState.score}\n`;
     output += `🔥 Current Streak: ${gameState.currentStreak}\n`;
     output += `🌟 Best Streak: ${gameState.bestStreak}\n\n`;
     
     // Achievements
     if (gameState.achievements.length > 0) {
-      output += '🏅 Achievements Unlocked:\n';
-      gameState.achievements.forEach(achievement => {
+      output += `🏅 ${createAnimatedText('ACHIEVEMENTS UNLOCKED', 'glitch')}:\n`;
+      gameState.achievements.forEach((achievement: any) => {
         output += `  🏆 ${achievement.name} - ${achievement.description}\n`;
       });
       output += '\n';
@@ -572,8 +710,8 @@ const statsCommand: Command = {
     }
     
     // Activity stats
-    output += '📈 Activity Stats:\n';
-    stats.forEach(stat => {
+    output += `📈 ${createAnimatedText('ACTIVITY STATS', 'matrix')}:\n`;
+    stats.forEach((stat: string) => {
       output += `  ${stat}\n`;
     });
     
@@ -582,6 +720,63 @@ const statsCommand: Command = {
     return {
       output,
       type: 'info'
+    };
+  }
+};
+
+const artCommand: Command = {
+  name: 'art',
+  description: 'Display ASCII art gallery with effects',
+  aliases: ['gallery', 'ascii'],
+  hidden: false,
+  requiresAuth: false,
+  adminOnly: false,
+  usage: 'art [random|list|<name>]',
+  handler: async (args: string[]): Promise<CommandResult> => {
+    const artNames = Object.keys(asciiArt);
+    
+    if (args[0] === 'list') {
+      return {
+        output: `🎨 ${createAnimatedText('ASCII ART GALLERY', 'matrix')}\n\n` +
+                `Available art pieces:\n` +
+                artNames.map(name => `  • ${name}`).join('\n') +
+                `\n\n💡 Use 'art <name>' to display specific art or 'art random' for surprise!`,
+        type: 'success'
+      };
+    }
+    
+    let selectedArt: string;
+    let artName: string;
+    
+    if (args[0] === 'random' || !args[0]) {
+      artName = artNames[Math.floor(Math.random() * artNames.length)];
+      selectedArt = asciiArt[artName as keyof typeof asciiArt];
+    } else {
+      artName = args[0].toLowerCase();
+      if (artNames.includes(artName)) {
+        selectedArt = asciiArt[artName as keyof typeof asciiArt];
+      } else {
+        return {
+          output: `❌ Art piece '${artName}' not found. Use 'art list' to see available options.`,
+          type: 'error'
+        };
+      }
+    }
+    
+    const effects = [
+      createAnimatedText(`Displaying: ${artName.toUpperCase()}`, 'glitch'),
+      '',
+      selectedArt,
+      '',
+      createLoadingAnimation(0) + ' Rendering pixels...',
+      createLoadingAnimation(1) + ' Applying effects...',
+      createLoadingAnimation(2) + ' Art display complete!'
+    ];
+    
+    return {
+      output: effects.join('\n'),
+      type: 'success',
+      triggerEffect: 'screen_glitch'
     };
   }
 }
@@ -604,5 +799,6 @@ export const commandRegistry: Command[] = [
   ctfCommand,
   rootCommand,
   suCommand,
-  statsCommand
+  statsCommand,
+  artCommand
 ];

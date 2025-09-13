@@ -54,11 +54,11 @@ export function ParticleAnimation() {
     }
 
     let config = getResponsiveConfig()
-    let currentTextIndex = 0
+    let currentTextIndex: number = 0
     let nextTextTimeout: NodeJS.Timeout
-    let textCoordinates: { x: number; y: number }[] = []
+    let textCoordinates: Array<{ x: number; y: number }> = []
 
-    const mouse = {
+    const mouse: { x: number; y: number; radius: number } = {
       x: -500,
       y: -500,
       radius: config.mouseRadius,
@@ -74,7 +74,7 @@ export function ParticleAnimation() {
     }> = []
 
     // Initialize particles array
-    const initializeParticles = () => {
+    const initializeParticles = (): void => {
       particles.length = 0
       for (let i = 0; i < config.particleCount; i++) {
         particles.push({ x: 0, y: 0, baseX: 0, baseY: 0, vx: 0, vy: 0 })
@@ -116,7 +116,7 @@ export function ParticleAnimation() {
       }
     `
 
-    function createShader(gl: WebGLRenderingContext, type: number, source: string) {
+    function createShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader | null {
       const shader = gl.createShader(type)
       if (!shader) return null
       gl.shaderSource(shader, source)
@@ -129,7 +129,7 @@ export function ParticleAnimation() {
       return shader
     }
 
-    function createProgram(gl: WebGLRenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader) {
+    function createProgram(gl: WebGLRenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader): WebGLProgram | null {
       const program = gl.createProgram()
       if (!program) return null
       gl.attachShader(program, vertexShader)
@@ -158,15 +158,20 @@ export function ParticleAnimation() {
     const positionBuffer = gl.createBuffer()
     const hueBuffer = gl.createBuffer()
     const saturationBuffer = gl.createBuffer()
+    
+    if (!positionBuffer || !hueBuffer || !saturationBuffer) {
+      console.error('Failed to create WebGL buffers')
+      return
+    }
 
-    let positions = new Float32Array(config.particleCount * 2)
-    let hues = new Float32Array(config.particleCount)
-    let saturations = new Float32Array(config.particleCount)
+    let positions: Float32Array = new Float32Array(config.particleCount * 2)
+    let hues: Float32Array = new Float32Array(config.particleCount)
+    let saturations: Float32Array = new Float32Array(config.particleCount)
 
-    function getTextCoordinates(text: string) {
+    function getTextCoordinates(text: string): Array<{x: number, y: number}> {
       // Safety check for canvas dimensions
-      if (canvas.width <= 0 || canvas.height <= 0) {
-        console.warn("Canvas dimensions are invalid:", canvas.width, canvas.height)
+      if (canvas!.width <= 0 || canvas!.height <= 0) {
+        console.warn("Canvas dimensions are invalid:", canvas!.width, canvas!.height)
         return []
       }
 
@@ -174,8 +179,8 @@ export function ParticleAnimation() {
       if (!ctx) return []
 
       // Set proper canvas dimensions
-      ctx.canvas.width = canvas.width
-      ctx.canvas.height = canvas.height
+      ctx.canvas.width = canvas!.width
+      ctx.canvas.height = canvas!.height
 
       // Safety check for context canvas dimensions
       if (ctx.canvas.width <= 0 || ctx.canvas.height <= 0) {
@@ -196,7 +201,7 @@ export function ParticleAnimation() {
       // Draw text in the center
       ctx.fillText(text, ctx.canvas.width / 2, ctx.canvas.height / 2)
 
-      let imageData
+      let imageData: ImageData
       try {
         imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
       } catch (error) {
@@ -205,7 +210,7 @@ export function ParticleAnimation() {
       }
 
       const data = imageData.data
-      const coordinates = []
+      const coordinates: Array<{x: number, y: number}> = []
 
       // Sample pixels with proper spacing for performance
       const spacing = config.fontSpacing
@@ -226,7 +231,7 @@ export function ParticleAnimation() {
       return coordinates
     }
 
-    function createParticles() {
+    function createParticles(): void {
       textCoordinates = getTextCoordinates(config.textArray[currentTextIndex])
 
       // Ensure we have coordinates before proceeding
@@ -243,7 +248,7 @@ export function ParticleAnimation() {
       }
     }
 
-    function updateParticles() {
+    function updateParticles(): void {
       for (let i = 0; i < config.particleCount; i++) {
         const particle = particles[i]
         const dx = mouse.x - particle.x
@@ -294,51 +299,51 @@ export function ParticleAnimation() {
         positions[i * 2 + 1] = particle.y
       }
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-      gl.bufferData(gl.ARRAY_BUFFER, positions, gl.DYNAMIC_DRAW)
-      gl.bindBuffer(gl.ARRAY_BUFFER, hueBuffer)
-      gl.bufferData(gl.ARRAY_BUFFER, hues, gl.DYNAMIC_DRAW)
-      gl.bindBuffer(gl.ARRAY_BUFFER, saturationBuffer)
-      gl.bufferData(gl.ARRAY_BUFFER, saturations, gl.DYNAMIC_DRAW)
+      gl!.bindBuffer(gl!.ARRAY_BUFFER, positionBuffer)
+      gl!.bufferData(gl!.ARRAY_BUFFER, positions, gl!.DYNAMIC_DRAW)
+      gl!.bindBuffer(gl!.ARRAY_BUFFER, hueBuffer)
+      gl!.bufferData(gl!.ARRAY_BUFFER, hues, gl!.DYNAMIC_DRAW)
+      gl!.bindBuffer(gl!.ARRAY_BUFFER, saturationBuffer)
+      gl!.bufferData(gl!.ARRAY_BUFFER, saturations, gl!.DYNAMIC_DRAW)
     }
 
-    function draw() {
-      gl.clearColor(0, 0, 0, 0)
-      gl.clear(gl.COLOR_BUFFER_BIT)
+    function draw(): void {
+      gl!.clearColor(0, 0, 0, 0)
+      gl!.clear(gl!.COLOR_BUFFER_BIT)
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-      gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0)
-      gl.enableVertexAttribArray(positionAttributeLocation)
+      gl!.bindBuffer(gl!.ARRAY_BUFFER, positionBuffer)
+      gl!.vertexAttribPointer(positionAttributeLocation, 2, gl!.FLOAT, false, 0, 0)
+      gl!.enableVertexAttribArray(positionAttributeLocation)
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, hueBuffer)
-      gl.vertexAttribPointer(hueAttributeLocation, 1, gl.FLOAT, false, 0, 0)
-      gl.enableVertexAttribArray(hueAttributeLocation)
+      gl!.bindBuffer(gl!.ARRAY_BUFFER, hueBuffer)
+      gl!.vertexAttribPointer(hueAttributeLocation, 1, gl!.FLOAT, false, 0, 0)
+      gl!.enableVertexAttribArray(hueAttributeLocation)
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, saturationBuffer)
-      gl.vertexAttribPointer(saturationAttributeLocation, 1, gl.FLOAT, false, 0, 0)
-      gl.enableVertexAttribArray(saturationAttributeLocation)
+      gl!.bindBuffer(gl!.ARRAY_BUFFER, saturationBuffer)
+      gl!.vertexAttribPointer(saturationAttributeLocation, 1, gl!.FLOAT, false, 0, 0)
+      gl!.enableVertexAttribArray(saturationAttributeLocation)
 
-      gl.drawArrays(gl.POINTS, 0, config.particleCount)
+      gl!.drawArrays(gl!.POINTS, 0, config.particleCount)
     }
 
-    function animate() {
+    function animate(): void {
       updateParticles()
       draw()
       requestAnimationFrame(animate)
     }
 
-    const handleMouseMove = (event: MouseEvent) => {
+    const handleMouseMove = (event: MouseEvent): void => {
       const rect = canvas.getBoundingClientRect()
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
       mouse.y = ((event.clientY - rect.top) / rect.height) * -2 + 1
     }
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = (): void => {
       mouse.x = -500
       mouse.y = -500
     }
 
-    const handleResize = () => {
+    const handleResize = (): void => {
       setCanvasSize()
 
       // Update config for new screen size
@@ -357,7 +362,7 @@ export function ParticleAnimation() {
       createParticles()
     }
 
-    function changeText() {
+    function changeText(): void {
       currentTextIndex = (currentTextIndex + 1) % config.textArray.length
       const newCoordinates = getTextCoordinates(config.textArray[currentTextIndex])
 
@@ -381,11 +386,11 @@ export function ParticleAnimation() {
     window.addEventListener("resize", handleResize)
 
     // Enable blending for transparency
-    gl.enable(gl.BLEND)
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+    gl!.enable(gl!.BLEND)
+    gl!.blendFunc(gl!.SRC_ALPHA, gl!.ONE_MINUS_SRC_ALPHA)
 
-    gl.clearColor(0, 0, 0, 0) // Transparent background
-    gl.useProgram(program)
+    gl!.clearColor(0, 0, 0, 0) // Transparent background
+    gl!.useProgram(program)
 
     // Initial setup with delay to ensure canvas is ready
     setTimeout(() => {
@@ -400,11 +405,6 @@ export function ParticleAnimation() {
       window.removeEventListener("resize", handleResize)
       clearTimeout(nextTextTimeout)
     }
-
-    gl.enable(gl.BLEND)
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-    gl.clearColor(0, 0, 0, 0) // Transparent background
-    gl.useProgram(program)
   }, [])
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-auto" style={{ zIndex: 2 }} />

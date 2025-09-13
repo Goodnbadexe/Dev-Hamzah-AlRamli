@@ -146,11 +146,22 @@ export function HackerTerminal() {
     }
 
     // Create terminal context
+    const currentUser = authManager.getCurrentUser();
+    const currentSession = authManager.getCurrentSession();
+    
+    if (!currentUser || !currentSession) {
+      setHistory(prev => [
+        ...prev,
+        { type: "input", content: getPrompt() + command },
+        { type: "output", content: "Error: No active session. Please restart the terminal." }
+      ]);
+      setCurrentInput("");
+      return;
+    }
+
     const context: TerminalContext = {
-      currentDirectory,
-      fileSystem,
-      user: authManager.getCurrentUser(),
-      session: authManager.getCurrentSession(),
+      user: currentUser,
+      session: currentSession,
       behaviorTracker: {
         commandCounts: new Map<string, number>(),
         patterns: [],
@@ -159,6 +170,8 @@ export function HackerTerminal() {
         discoveredSecrets: []
       },
       gameState: gameManager.getGameState(),
+      currentDirectory,
+      fileSystem,
       gameManager: gameManager
     }
 
@@ -330,9 +343,7 @@ export function HackerTerminal() {
           </span>
         </h1>
         <p className="text-zinc-400 text-lg mb-8 border-l-2 border-emerald-500 pl-4">
-          A fresh graduate and lead front-end developer with hands-on experience in web services, passionate about
-          machine problem-solving, and continuously learns through mentorship, certifications, and practical
-          experiences.
+          Professional overthinker, part-time button masher, full-time Goodnbad.exe. Cybersecurity engineer who turns coffee into code and transforms digital chaos into secure solutions.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-black group relative overflow-hidden">

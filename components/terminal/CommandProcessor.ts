@@ -155,7 +155,7 @@ export class CommandProcessor {
       };
     }
     
-    if (command.adminOnly && !['admin', 'root'].includes(user.accessLevel)) {
+    if (command.adminOnly && !['admin', 'root'].includes(user.accessLevel || '')) {
       return {
         output: 'Insufficient privileges. Admin access required.',
         type: 'error'
@@ -211,14 +211,14 @@ export class CommandProcessor {
     const inputLower = input.toLowerCase();
     
     // Find commands with similar names
-    for (const [commandName] of this.commands) {
+    for (const commandName of Array.from(this.commands.keys())) {
       if (this.calculateSimilarity(inputLower, commandName) > 0.6) {
         suggestions.push(commandName);
       }
     }
     
     // Check aliases too
-    for (const [alias] of this.aliases) {
+    for (const alias of Array.from(this.aliases.keys())) {
       if (this.calculateSimilarity(inputLower, alias) > 0.6) {
         suggestions.push(alias);
       }
@@ -291,7 +291,7 @@ export class CommandProcessor {
         return false;
       }
       
-      if (command.adminOnly && !['admin', 'root'].includes(context.user.accessLevel)) {
+      if (command.adminOnly && !['admin', 'root'].includes(context.user.accessLevel || '')) {
         return false;
       }
       
