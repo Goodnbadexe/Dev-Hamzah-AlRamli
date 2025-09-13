@@ -95,7 +95,7 @@ export default function Home() {
               className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400 hidden md:flex"
               asChild
             >
-              <Link href="/files/hamzah-al-ramli-resume.pdf" target="_blank">
+              <Link href="/files/hamzah-al-ramli-resume.pdf" target="_blank" download="Hamzah-Al-Ramli-Resume.pdf">
                 <FileText className="mr-2 h-4 w-4" /> Resume
               </Link>
             </Button>
@@ -140,11 +140,7 @@ export default function Home() {
                 <GlitchText text="Fresh Graduate & Developer" />
               </h2>
               <p className="text-zinc-400">
-                A fresh graduate and lead front-end developer with hands-on experience in web services, passionate about
-                machine problem-solving, and continuously learns through mentorship, certifications, and practical
-                experiences. Thriving in teamwork environments and open communication, focusing on finding real-impact
-                solutions. Approach challenges with an adaptive mindset, balance hard work with optimism, and believe
-                that setbacks are part of the bigger plan.
+                Analytical and adaptive junior cybersecurity engineer with a foundation in computer science. Skilled in system security, vulnerability management, and threat analysis, with hands-on exposure to SIEM tools, network monitoring, and risk assessment.
               </p>
             </div>
 
@@ -759,6 +755,16 @@ export default function Home() {
             <div className="relative border-l-2 border-emerald-500/30 ml-3 md:ml-6 pl-6 md:pl-10 mt-12 space-y-12">
               {[
                 {
+                  role: "IT Support Specialist",
+                  company: "Calma.sa",
+                  location: "Riyadh, Saudi Arabia",
+                  description: [
+                    "Configured and maintained IT systems, ensuring security and operational continuity.",
+                    "Provided system support and troubleshooting, reducing downtime for employees.",
+                    "Managed Zoho applications and company website security patches.",
+                  ],
+                },
+                {
                   role: "Head of Technology",
                   company: "Masarat Events",
                   location: "Riyadh, Saudi Arabia",
@@ -870,14 +876,6 @@ export default function Home() {
                   credentialId: "WLGB18GSHLCT",
                   url: "https://coursera.org/verify/WLGB18GSHLCT",
                   skills: ["Generative AI", "Artificial Intelligence (AI)"],
-                },
-                {
-                  title: "Google Analytics Certification",
-                  issuer: "Google Digital Academy (Skillshop)",
-                  date: "May 2025",
-                  credentialId: "143306854",
-                  url: "https://skillshop.credential.net/f6dd7dc8-877d-434b-b6e0-618f9ff96b5a",
-                  skills: ["Google Analytics", "Digital Marketing", "Data Analysis"],
                 },
                 {
                   title: "Taylor's University Award 2024",
@@ -1029,10 +1027,10 @@ export default function Home() {
                       language: "HTML/CSS",
                     },
                     {
-                      title: "Personal Projects",
-                      url: "https://github.com/goodnbadexe",
-                      description: "Collection of various personal projects and coding experiments.",
-                      language: "Multiple",
+                      title: "Windows Maintenance",
+                      url: "https://github.com/Goodnbadexe/WindowsMaintenance",
+                      description: "Comprehensive PowerShell-based automation script for Windows system maintenance, repair, and optimization.",
+                      language: "PowerShell",
                     },
                   ].map((repo, index) => (
                     <Card
@@ -1241,7 +1239,7 @@ export default function Home() {
                     className="w-full bg-emerald-500 hover:bg-emerald-600 text-black group relative overflow-hidden"
                     asChild
                   >
-                    <Link href="/files/hamzah-al-ramli-resume.pdf" target="_blank">
+                    <Link href="/files/hamzah-al-ramli-resume.pdf" target="_blank" download="Hamzah-Al-Ramli-Resume.pdf">
                       <span className="relative z-10 flex items-center justify-center">
                         Download Resume{" "}
                         <Download className="ml-2 h-4 w-4 group-hover:translate-y-1 transition-transform" />

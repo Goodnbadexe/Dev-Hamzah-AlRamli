@@ -14,11 +14,13 @@ export interface Command {
 
 export interface CommandResult {
   output: string;
-  type: 'success' | 'error' | 'info' | 'warning';
+  type: 'success' | 'error' | 'info' | 'warning' | 'clear';
   clearScreen?: boolean;
   playSound?: string;
   triggerEffect?: string;
   updateGameState?: Partial<GameState>;
+  achievements?: Achievement[];
+  experienceGained?: number;
 }
 
 export interface TerminalContext {
@@ -28,6 +30,7 @@ export interface TerminalContext {
   gameState: GameState;
   currentDirectory: string;
   fileSystem: FileSystem;
+  gameManager?: any; // GameStateManager instance
 }
 
 export interface User {

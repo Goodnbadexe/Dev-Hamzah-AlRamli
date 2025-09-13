@@ -10,56 +10,97 @@ const helpCommand: Command = {
   aliases: ['h', '?'],
   usage: 'help [command]',
   handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
-    const { behaviorTracker } = context;
+    // Award XP for first help command and track stats
+    const gameManager = context.gameManager;
+    let achievements: any[] = [];
+    let experienceGained = 0;
     
-    // Easter egg for excessive help usage
-    if (behaviorTracker.consecutiveHelps > 3) {
+    if (gameManager) {
+      gameManager.incrementStat('commandsExecuted');
+      
+      // Award XP for first help command
+      const commandCount = context.behaviorTracker.commandCounts.get('help') || 0;
+      if (commandCount === 0) {
+        const expResult = gameManager.addExperience(5);
+        experienceGained = 5;
+        
+        // Check for new achievements
+        const currentAchievements = gameManager.getGameState().achievements;
+        const newAchievements = currentAchievements.filter(a => 
+          Date.now() - a.unlockedAt.getTime() < 1000
+        );
+        achievements.push(...newAchievements);
+      }
+    }
+
+    // Check for help spam behavior
+    if (context.behaviorTracker.consecutiveHelps >= 3) {
       return {
-        output: 'Stop, could you find something else to do? 🤔\n\nMaybe try exploring some commands instead of asking for help all the time!',
+        output: '🤖 Stop, could you find something else to do? Maybe try "hack" or "matrix" for some fun! 😄',
         type: 'warning'
       };
     }
-    
+
     if (args.length > 0) {
-      // Show help for specific command
-      const targetCommand = commandRegistry.find(cmd => 
-        cmd.name === args[0] || cmd.aliases.includes(args[0])
+      const commandName = args[0].toLowerCase();
+      const command = commandRegistry.find(cmd => 
+        cmd.name === commandName || cmd.aliases.includes(commandName)
       );
       
-      if (targetCommand) {
-        let helpText = `📖 ${targetCommand.name.toUpperCase()}\n\n`;
-        helpText += `Description: ${targetCommand.description}\n`;
-        if (targetCommand.usage) {
-          helpText += `Usage: ${targetCommand.usage}\n`;
+      if (command) {
+        let output = `📖 Help for "${command.name}":\n\n`;
+        output += `Description: ${command.description}\n`;
+        if (command.usage) {
+          output += `Usage: ${command.usage}\n`;
         }
-        if (targetCommand.aliases.length > 0) {
-          helpText += `Aliases: ${targetCommand.aliases.join(', ')}\n`;
+        if (command.aliases.length > 0) {
+          output += `Aliases: ${command.aliases.join(', ')}\n`;
         }
-        return { output: helpText, type: 'info' };
+        if (command.requiresAuth) {
+          output += `⚠️  Requires authentication\n`;
+        }
+        if (command.adminOnly) {
+          output += `🔒 Admin only\n`;
+        }
+        return { 
+          output, 
+          type: 'info',
+          achievements: achievements.length > 0 ? achievements : undefined,
+          experienceGained: experienceGained > 0 ? experienceGained : undefined
+        };
       } else {
-        return { output: `No help available for '${args[0]}'`, type: 'error' };
+        return {
+          output: `Command "${commandName}" not found. Use "help" to see all available commands.`,
+          type: 'error'
+        };
       }
     }
-    
-    // Show general help
+
+    // Show all available commands
     let output = '🚀 Available Commands:\n\n';
     
-    // Filter commands based on user permissions
     const availableCommands = commandRegistry.filter(cmd => {
-      if (cmd.hidden) return false;
-      if (cmd.adminOnly && context.user.accessLevel !== 'admin' && context.user.accessLevel !== 'root') return false;
+      if (cmd.hidden && context.user.accessLevel !== 'root') return false;
+      if (cmd.adminOnly && !['admin', 'root'].includes(context.user.accessLevel)) return false;
       if (cmd.requiresAuth && context.user.accessLevel === 'guest') return false;
       return true;
     });
-    
+
     availableCommands.forEach(cmd => {
-      output += `  ${cmd.name.padEnd(12)} - ${cmd.description}\n`;
+      const authIcon = cmd.requiresAuth ? '🔐 ' : '';
+      const adminIcon = cmd.adminOnly ? '👑 ' : '';
+      output += `  ${authIcon}${adminIcon}${cmd.name.padEnd(12)} - ${cmd.description}\n`;
     });
+
+    output += '\n💡 Use "help <command>" for detailed information about a specific command.';
+    output += '\n🎯 Try "hack", "matrix", or "ctf" for some fun!';
     
-    output += '\n💡 Tip: Type "help <command>" for detailed usage information.';
-    output += '\n🔍 Pro tip: Some commands have hidden features. Try exploring!';
-    
-    return { output, type: 'info' };
+    return { 
+      output, 
+      type: 'info',
+      achievements: achievements.length > 0 ? achievements : undefined,
+      experienceGained: experienceGained > 0 ? experienceGained : undefined
+    };
   }
 };
 
@@ -385,15 +426,45 @@ const ctfCommand: Command = {
       
       const flag = args[2];
       if (flag === challenge.flag) {
-        if (!context.gameState.solvedChallenges.includes(challengeId)) {
-          context.gameState.solvedChallenges.push(challengeId);
-          context.gameState.totalPoints += challenge.points;
+        // Check if already solved
+        if (context.gameState.solvedChallenges?.includes(challengeId)) {
+          return {
+            output: '✅ You have already solved this challenge!',
+            type: 'info'
+          };
+        }
+
+        // Use GameStateManager to handle the solution
+        const gameManager = context.gameManager;
+        if (gameManager) {
+          const result = gameManager.solveChallenge(challengeId);
+          if (result.success) {
+            const achievements = [];
+            
+            // Check for new achievements
+            const currentAchievements = gameManager.getGameState().achievements;
+            const newAchievements = currentAchievements.filter(a => 
+              Date.now() - a.unlockedAt.getTime() < 1000 // Recently unlocked (within 1 second)
+            );
+            
+            achievements.push(...newAchievements);
+            
+            return {
+              output: `🎉 Correct! Flag accepted!\n\nPoints earned: ${challenge.points}\nExperience gained: ${challenge.points}\n${result.reward.levelUp ? `\n🎊 LEVEL UP! You are now level ${result.reward.newLevel}!` : ''}\n\n${challenge.reward || 'Great job, hacker!'}`,
+              type: 'success',
+              playSound: 'victory',
+              achievements: achievements,
+              experienceGained: challenge.points
+            };
+          }
         }
         
+        // Fallback if GameStateManager is not available
         return {
-          output: `🎉 Correct! Flag accepted!\n\nPoints earned: ${challenge.points}\nTotal points: ${context.gameState.totalPoints}\n\n${challenge.reward || 'Great job, hacker!'}`,
+          output: `🎉 Correct! Flag accepted!\n\nPoints earned: ${challenge.points}\n\n${challenge.reward || 'Great job, hacker!'}`,
           type: 'success',
-          playSound: 'victory'
+          playSound: 'victory',
+          experienceGained: challenge.points
         };
       } else {
         return {
@@ -462,6 +533,57 @@ const suCommand: Command = {
       type: 'error'
     };
   }
+};
+
+const statsCommand: Command = {
+  name: 'stats',
+  description: 'Display your game statistics and achievements',
+  aliases: ['status', 'profile'],
+  handler: async (args: string[], context: TerminalContext): Promise<CommandResult> => {
+    const gameManager = context.gameManager;
+    if (!gameManager) {
+      return {
+        output: 'Game system not initialized.',
+        type: 'error'
+      };
+    }
+
+    const gameState = gameManager.getGameState();
+    const stats = gameManager.getStats();
+    
+    let output = '📊 Your Hacker Profile:\n\n';
+    
+    // Basic stats
+    output += `🎯 Level: ${gameState.level}\n`;
+    output += `⚡ Experience: ${gameState.experience} XP\n`;
+    output += `🏆 Score: ${gameState.score}\n`;
+    output += `🔥 Current Streak: ${gameState.currentStreak}\n`;
+    output += `🌟 Best Streak: ${gameState.bestStreak}\n\n`;
+    
+    // Achievements
+    if (gameState.achievements.length > 0) {
+      output += '🏅 Achievements Unlocked:\n';
+      gameState.achievements.forEach(achievement => {
+        output += `  🏆 ${achievement.name} - ${achievement.description}\n`;
+      });
+      output += '\n';
+    } else {
+      output += '🏅 No achievements yet. Try completing some challenges!\n\n';
+    }
+    
+    // Activity stats
+    output += '📈 Activity Stats:\n';
+    stats.forEach(stat => {
+      output += `  ${stat}\n`;
+    });
+    
+    output += '\n💡 Tip: Complete CTF challenges to gain more XP and unlock achievements!';
+    
+    return {
+      output,
+      type: 'info'
+    };
+  }
 }
 
 // Export command registry
@@ -481,5 +603,6 @@ export const commandRegistry: Command[] = [
   matrixCommand,
   ctfCommand,
   rootCommand,
-  suCommand
+  suCommand,
+  statsCommand
 ];

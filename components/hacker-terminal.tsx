@@ -158,7 +158,8 @@ export function HackerTerminal() {
         consecutiveHelps: 0,
         discoveredSecrets: []
       },
-      gameState: gameManager.getGameState()
+      gameState: gameManager.getGameState(),
+      gameManager: gameManager
     }
 
     try {
@@ -196,60 +197,73 @@ export function HackerTerminal() {
       }
 
       // Add command and result to history
-      setHistory((prev) => [
-        ...prev,
-        { type: "input", content: getPrompt() + command },
-        ...(result.output ? [{ type: "output", content: result.output }] : []),
-      ])
+      // Combine all history updates into a single array
+      const newHistoryEntries: HistoryEntry[] = [
+        { type: "input", content: getPrompt() + command }
+      ];
 
-      // Handle achievements
-      if (result.achievements && result.achievements.length > 0) {
-        result.achievements.forEach(achievement => {
-          setHistory((prev) => [
-            ...prev,
-            { type: "output", content: `🏆 Achievement Unlocked: ${achievement.name} - ${achievement.description}` }
-          ])
-        })
+      if (result.output) {
+        newHistoryEntries.push({ type: "output", content: result.output });
       }
 
-      // Handle experience gain
-      if (result.experienceGained && result.experienceGained > 0) {
-        // Add to history
-        setHistory((prev) => [
-          ...prev,
-          { type: "output", content: `+${result.experienceGained} XP` }
-        ])
-        
-        // Create floating XP notification
+      // Add achievement entries if any
+      // Add achievements to history if any exist
+      if (result.achievements && Array.isArray(result.achievements) && result.achievements.length > 0) {
+        for (const achievement of result.achievements) {
+          if (achievement?.name && achievement?.description) {
+            newHistoryEntries.push({
+              type: "output",
+              content: `🏆 Achievement Unlocked: ${achievement.name} - ${achievement.description}`
+            });
+          }
+        }
+      }
+
+      // Handle XP gains and notifications
+      if (typeof result.experienceGained === 'number' && result.experienceGained > 0) {
+        newHistoryEntries.push({
+          type: "output", 
+          content: `+${result.experienceGained} XP`
+        });
+
+        // Create unique XP notification object
         const newXP = {
-          id: Date.now() + Math.random(),
-          amount: result.experienceGained,
+          id: Date.now() + Math.random(), // Ensure unique ID
+          amount: Math.floor(result.experienceGained), // Ensure integer
           timestamp: Date.now()
         };
+
         setFloatingXP(prev => [...prev, newXP]);
-        
-        // Remove floating XP after 5 seconds
+
+        // Cleanup floating XP after animation
         setTimeout(() => {
           setFloatingXP(prev => prev.filter(xp => xp.id !== newXP.id));
         }, 5000);
       }
 
+      // Update history with all new entries at once
+      setHistory(prev => [...prev, ...newHistoryEntries]);
+
     } catch (error) {
-      setHistory((prev) => [
+      setHistory(prev => [
         ...prev,
         { type: "input", content: getPrompt() + command },
-        { type: "output", content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` }
-      ])
+        { 
+          type: "error", 
+          content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          isError: true
+        }
+      ]);
     }
 
-    setCurrentInput("")
+    setCurrentInput("");
   }
 
-  const handleKeyDown = async (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      await handleCommand(currentInput)
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && currentInput.trim()) {
+      await handleCommand(currentInput.trim());
     } else if (e.key === "Escape" && isExpanded) {
-      setIsExpanded(false)
+      setIsExpanded(false);
     }
   }
 
