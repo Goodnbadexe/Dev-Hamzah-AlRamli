@@ -1,5 +1,8 @@
+'use client';
+
 import Link from "next/link"
 import Image from "next/image"
+import { useState } from "react"
 import {
   ArrowRight,
   Code,
@@ -31,11 +34,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { HackerTerminal } from "@/components/hacker-terminal"
 import { SocialButton } from "@/components/social-button"
 import { MobileNav } from "@/components/mobile-nav"
+import { MobileTerminal } from "@/components/mobile-terminal"
 import { GlitchText } from "@/components/glitch-text"
 import { MatrixBackground } from "@/components/matrix-background"
 import { ParticleAnimation } from "@/components/particle-animation"
 
 export default function Home() {
+  const [showMobileTerminal, setShowMobileTerminal] = useState(false)
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white relative overflow-hidden">
       <MatrixBackground />
@@ -94,7 +100,10 @@ export default function Home() {
               </Link>
             </Button>
 
-            <MobileNav />
+            <MobileNav 
+              showTerminal={showMobileTerminal}
+              onToggleTerminal={() => setShowMobileTerminal(!showMobileTerminal)}
+            />
           </div>
         </nav>
       </header>
@@ -1269,6 +1278,12 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      
+      {/* Mobile Terminal */}
+      <MobileTerminal 
+        isOpen={showMobileTerminal} 
+        onClose={() => setShowMobileTerminal(false)} 
+      />
     </div>
   )
 }

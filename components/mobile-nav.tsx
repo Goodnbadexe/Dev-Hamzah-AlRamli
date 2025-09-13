@@ -5,10 +5,15 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, X, FileText } from "lucide-react"
+import { Menu, X, FileText, Terminal } from "lucide-react"
 import { GlitchText } from "@/components/glitch-text"
 
-export function MobileNav() {
+interface MobileNavProps {
+  showTerminal: boolean
+  onToggleTerminal: () => void
+}
+
+export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -63,7 +68,17 @@ export function MobileNav() {
               ))}
             </ul>
 
-            <div className="mt-8 pt-8 border-t border-zinc-800">
+            <div className="mt-8 pt-8 border-t border-zinc-800 space-y-3">
+              <Button 
+                className="w-full bg-zinc-700 hover:bg-zinc-600 text-emerald-400 border border-emerald-500/30" 
+                onClick={() => {
+                   onToggleTerminal()
+                   setOpen(false)
+                 }}
+              >
+                <Terminal className="mr-2 h-4 w-4" /> 
+                {showTerminal ? 'Hide Terminal' : 'Open Terminal'}
+              </Button>
               <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-black" asChild>
                 <Link href="/files/hamzah-al-ramli-resume.pdf" target="_blank" onClick={() => setOpen(false)}>
                   <FileText className="mr-2 h-4 w-4" /> Download Resume

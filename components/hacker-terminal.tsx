@@ -9,10 +9,9 @@ import { asciiArt } from './terminal/utils/ascii-art';
 import { cn } from "@/lib/utils"
 
 interface HistoryEntry {
-  command: string;
-  output: string;
-  timestamp: string;
-  type?: 'command' | 'system' | 'error' | 'success';
+  content: string;
+  type: 'input' | 'output' | 'system' | 'error' | 'success';
+  isError?: boolean;
 }
 
 export function HackerTerminal() {
@@ -113,6 +112,19 @@ export function HackerTerminal() {
       return
     }
 
+    // Easter egg for common typos
+    const lowerCommand = command.toLowerCase().trim()
+    if (lowerCommand.includes('too many config') || lowerCommand.includes('2 many config') || 
+        lowerCommand.includes('many configuration') || lowerCommand.includes('configurations')) {
+      setHistory((prev) => [
+        ...prev,
+        { type: "input", content: getPrompt() + command },
+        { type: "output", content: "🤖 Ah, I see you're experiencing configuration overload! Don't worry, even the best hackers get lost in config files sometimes. Try 'help' to find your way back to sanity! 😄" }
+      ])
+      setCurrentInput("")
+      return
+    }
+
     // Track interactions and enable expansion after 2+ interactions
     setInteractionCount(prev => {
       const newCount = prev + 1;
@@ -154,9 +166,11 @@ export function HackerTerminal() {
       const result = await commandProcessor.executeCommand(command, context)
       
       // Handle special commands
-      if (result.command === 'clear') {
-        // Complete terminal reset - back to initial state
+      if (result.type === 'clear') {
+        // Complete terminal reset - back to initial state with fun message
         const welcomeMessage = [
+          "✨ Look now it's clean! Have you found any keys or passwords? Something funny? 🔍",
+          "",
           asciiArt.banner,
           "",
           "🚀 Welcome to Goodnbad.exe Terminal v2.0.0 - Advanced Hacker Edition",
