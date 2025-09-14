@@ -8,6 +8,51 @@ import { TerminalContext, CommandResult } from './terminal/types';
 import { asciiArt } from './terminal/utils/ascii-art';
 import { cn } from "@/lib/utils"
 
+// Add CSS animations
+const styles = `
+  @keyframes floatUp {
+    0% {
+      opacity: 1;
+      transform: translateY(0px);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+  }
+  
+  @keyframes ctf-flare {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.5) rotate(-10deg);
+    }
+    10% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.2) rotate(5deg);
+    }
+    20% {
+      transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    }
+    80% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.8) rotate(10deg);
+    }
+  }
+  
+  @keyframes terminal-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px #00ff00;
+    }
+    50% {
+      box-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00;
+    }
+  }
+`
+
 interface HistoryEntry {
   content: string;
   type: 'input' | 'output' | 'system' | 'error' | 'success';
@@ -23,6 +68,13 @@ export function HackerTerminal() {
   const [isInitialized, setIsInitialized] = useState(false)
   const terminalRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  
+  // Command history for arrow key navigation
+  const [commandHistory, setCommandHistory] = useState<string[]>([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
+  
+  // CTF completion notifications
+  const [ctfNotifications, setCTFNotifications] = useState<{id: number, message: string, timestamp: number}[]>([])
   
   // Core system managers - initialize only on client side
   const [commandProcessor, setCommandProcessor] = useState<CommandProcessor | null>(null)
@@ -109,8 +161,17 @@ export function HackerTerminal() {
         { type: "input", content: getPrompt() + command },
       ])
       setCurrentInput("")
+      setHistoryIndex(-1)
       return
     }
+    
+    // Add command to history (avoid duplicates)
+    const trimmedCommand = command.trim()
+    setCommandHistory(prev => {
+      const filtered = prev.filter(cmd => cmd !== trimmedCommand)
+      return [trimmedCommand, ...filtered].slice(0, 50) // Keep last 50 commands
+    })
+    setHistoryIndex(-1)
 
     // Easter egg for common typos
     const lowerCommand = command.toLowerCase().trim()
@@ -215,6 +276,49 @@ export function HackerTerminal() {
         { type: "input", content: getPrompt() + command }
       ];
 
+      // Handle animated loading for scan command
+      if (command.trim().startsWith('scan') && result.triggerEffect === 'scan_animation') {
+        // Add initial loading message
+        newHistoryEntries.push({ type: "output", content: "🎯 NETWORK RECONNAISSANCE INITIATED\n📡 Target: " + (command.split(' ')[1] || 'localhost') + "\n" });
+        
+        // Update history with initial state
+        setHistory(prev => [...prev, ...newHistoryEntries]);
+        setCurrentInput("");
+        
+        // Animate loading steps
+        const loadingSteps = [
+          "🔄 Initializing port scanner...",
+          "🔍 Resolving hostname... ████░░░░░░ 20%",
+          "⚡ Scanning TCP ports... ████████░░ 45%",
+          "🛡️ Checking UDP services... ███████░░░ 70%",
+          "📊 Analyzing responses... █████████░ 90%",
+          "📋 Generating report... ██████████ 100%",
+          "\n✅ SCAN COMPLETE\n\n🔍 Open Ports Found:\n  • 22/tcp   SSH     OpenSSH 8.0\n  • 80/tcp   HTTP    nginx 1.18.0\n  • 443/tcp  HTTPS   nginx 1.18.0\n  • 3000/tcp HTTP    Node.js Express\n\n🛡️ Security Assessment:\n  ⚠️  SSH service detected - potential entry point\n  ✅ HTTPS enabled - encrypted traffic\n  🔍 Development server running - investigate further"
+        ];
+        
+        // Animate each step with delays
+        loadingSteps.forEach((step, index) => {
+          setTimeout(() => {
+            setHistory(prev => {
+              const newHistory = [...prev];
+              if (newHistory.length > 0) {
+                // Update the last output entry with the new loading step
+                const lastIndex = newHistory.length - 1;
+                if (newHistory[lastIndex].type === 'output') {
+                  newHistory[lastIndex] = {
+                    ...newHistory[lastIndex],
+                    content: "🎯 NETWORK RECONNAISSANCE INITIATED\n📡 Target: " + (command.split(' ')[1] || 'localhost') + "\n\n" + step
+                  };
+                }
+              }
+              return newHistory;
+            });
+          }, (index + 1) * 800); // 800ms delay between each step
+        });
+        
+        return;
+      }
+
       if (result.output) {
         newHistoryEntries.push({ type: "output", content: result.output });
       }
@@ -225,11 +329,39 @@ export function HackerTerminal() {
         for (const achievement of result.achievements) {
           if (achievement?.name && achievement?.description) {
             newHistoryEntries.push({
-              type: "output",
+              type: "success",
               content: `🏆 Achievement Unlocked: ${achievement.name} - ${achievement.description}`
             });
+            
+            // Add CTF completion notification with flare animation
+            const notificationId = Date.now() + Math.random();
+            setCTFNotifications(prev => [...prev, {
+              id: notificationId,
+              message: `🎉 FLAG CAPTURED! ${achievement.name}`,
+              timestamp: Date.now()
+            }]);
+            
+            // Remove notification after 5 seconds
+            setTimeout(() => {
+              setCTFNotifications(prev => prev.filter(n => n.id !== notificationId));
+            }, 5000);
           }
         }
+      }
+      
+      // Check if this was a CTF flag submission success
+      if (result.type === 'success' && result.playSound === 'victory') {
+        const notificationId = Date.now() + Math.random();
+        setCTFNotifications(prev => [...prev, {
+          id: notificationId,
+          message: '🚩 FLAG COMPLETED! Great job, hacker!',
+          timestamp: Date.now()
+        }]);
+        
+        // Remove notification after 5 seconds
+        setTimeout(() => {
+          setCTFNotifications(prev => prev.filter(n => n.id !== notificationId));
+        }, 5000);
       }
 
       // Handle XP gains and notifications
@@ -277,6 +409,23 @@ export function HackerTerminal() {
       await handleCommand(currentInput.trim());
     } else if (e.key === "Escape" && isExpanded) {
       setIsExpanded(false);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (commandHistory.length > 0) {
+        const newIndex = Math.min(historyIndex + 1, commandHistory.length - 1);
+        setHistoryIndex(newIndex);
+        setCurrentInput(commandHistory[newIndex] || '');
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        setCurrentInput(commandHistory[newIndex] || '');
+      } else if (historyIndex === 0) {
+        setHistoryIndex(-1);
+        setCurrentInput('');
+      }
     }
   }
 
@@ -297,6 +446,11 @@ export function HackerTerminal() {
   // Initialize terminal systems and show welcome message
   useEffect(() => {
     if (!isInitialized && commandProcessor && authManager && gameManager) {
+      // Inject CSS animations
+      const styleElement = document.createElement('style')
+      styleElement.textContent = styles
+      document.head.appendChild(styleElement)
+      
       // Show enhanced welcome message with ASCII art
       const welcomeMessage = [
         asciiArt.banner,
@@ -476,6 +630,44 @@ export function HackerTerminal() {
                 <span className="text-lg">⚡</span>
                 <span className="font-bold text-lg">+{xp.amount} XP</span>
               </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {/* CTF Completion Notifications with Flare Animation */}
+      <div className="fixed inset-0 z-50 pointer-events-none">
+        {ctfNotifications.map((notification) => (
+          <div
+            key={notification.id}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            style={{
+              animation: 'ctf-flare 5s ease-out forwards'
+            }}
+          >
+            <div className="bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 text-white px-8 py-4 rounded-lg shadow-2xl border-4 border-yellow-300 text-center">
+              <div className="text-2xl font-bold mb-2 animate-pulse">
+                {notification.message}
+              </div>
+              <div className="text-sm opacity-80">
+                🎯 Challenge Completed! 🎯
+              </div>
+            </div>
+            
+            {/* Sparkle effects */}
+            <div className="absolute inset-0 pointer-events-none">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-2 h-2 bg-yellow-300 rounded-full animate-ping"
+                  style={{
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    animationDelay: `${i * 0.2}s`,
+                    animationDuration: '1s'
+                  }}
+                />
+              ))}
             </div>
           </div>
         ))}

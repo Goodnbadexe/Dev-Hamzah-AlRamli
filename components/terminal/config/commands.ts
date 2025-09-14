@@ -355,7 +355,8 @@ const scanCommand: Command = {
   handler: async (args: string[]): Promise<CommandResult> => {
     const target = args[0] || 'localhost';
     
-    const scanResults = [
+    // Simulate animated loading with delays
+    const loadingSteps = [
       `🎯 ${createAnimatedText('NETWORK RECONNAISSANCE INITIATED', 'matrix')}`,
       `📡 Target: ${target}`,
       '',
@@ -383,9 +384,10 @@ const scanCommand: Command = {
     ];
     
     return {
-      output: scanResults.join('\n'),
+      output: loadingSteps.join('\n'),
       type: 'success',
-      playSound: 'scan'
+      playSound: 'scan',
+      triggerEffect: 'scan_animation'
     };
   }
 };
@@ -509,9 +511,19 @@ const ctfCommand: Command = {
     const challengeId = args[1];
     
     if (action === 'start' && challengeId) {
-      const challenge = ctfChallenges.find(c => c.id === challengeId);
+      // Support both numeric IDs (1, 2, 3...) and string IDs
+      let challenge;
+      if (/^\d+$/.test(challengeId)) {
+        // Numeric ID - convert to array index
+        const index = parseInt(challengeId) - 1;
+        challenge = ctfChallenges[index];
+      } else {
+        // String ID - find by id
+        challenge = ctfChallenges.find(c => c.id === challengeId);
+      }
+      
       if (!challenge) {
-        return { output: 'Challenge not found!', type: 'error' };
+        return { output: `❌ Challenge not found! Use 'ctf list' to see available challenges.`, type: 'error' };
       }
       
       return {
@@ -521,9 +533,19 @@ const ctfCommand: Command = {
     }
     
     if (action === 'hint' && challengeId) {
-      const challenge = ctfChallenges.find(c => c.id === challengeId);
+      // Support both numeric IDs (1, 2, 3...) and string IDs
+      let challenge;
+      if (/^\d+$/.test(challengeId)) {
+        // Numeric ID - convert to array index
+        const index = parseInt(challengeId) - 1;
+        challenge = ctfChallenges[index];
+      } else {
+        // String ID - find by id
+        challenge = ctfChallenges.find(c => c.id === challengeId);
+      }
+      
       if (!challenge) {
-        return { output: 'Challenge not found!', type: 'error' };
+        return { output: `❌ Challenge not found! Use 'ctf list' to see available challenges.`, type: 'error' };
       }
       
       return {
@@ -533,9 +555,19 @@ const ctfCommand: Command = {
     }
     
     if (action === 'submit' && challengeId && args[2]) {
-      const challenge = ctfChallenges.find(c => c.id === challengeId);
+      // Support both numeric IDs (1, 2, 3...) and string IDs
+      let challenge;
+      if (/^\d+$/.test(challengeId)) {
+        // Numeric ID - convert to array index
+        const index = parseInt(challengeId) - 1;
+        challenge = ctfChallenges[index];
+      } else {
+        // String ID - find by id
+        challenge = ctfChallenges.find(c => c.id === challengeId);
+      }
+      
       if (!challenge) {
-        return { output: 'Challenge not found!', type: 'error' };
+        return { output: `❌ Challenge not found! Use 'ctf list' to see available challenges.`, type: 'error' };
       }
       
       const flag = args[2];
