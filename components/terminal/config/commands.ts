@@ -554,7 +554,7 @@ const ctfCommand: Command = {
       };
     }
     
-    if (action === 'submit' && challengeId && args[2]) {
+    if (action === 'submit' && challengeId && args.length > 2) {
       // Support both numeric IDs (1, 2, 3...) and string IDs
       let challenge;
       let actualChallengeId;
@@ -574,7 +574,8 @@ const ctfCommand: Command = {
         return { output: `❌ Challenge not found! Use 'ctf list' to see available challenges.`, type: 'error' };
       }
       
-      const flag = args[2];
+      // Join all remaining arguments to handle multi-word flags
+      const flag = args.slice(2).join(' ');
       if (flag === challenge.flag) {
         // Check if already solved using the actual challenge ID
         if (context.gameState.solvedChallenges?.includes(actualChallengeId)) {
