@@ -557,13 +557,17 @@ const ctfCommand: Command = {
     if (action === 'submit' && challengeId && args[2]) {
       // Support both numeric IDs (1, 2, 3...) and string IDs
       let challenge;
+      let actualChallengeId;
+      
       if (/^\d+$/.test(challengeId)) {
         // Numeric ID - convert to array index
         const index = parseInt(challengeId) - 1;
         challenge = ctfChallenges[index];
+        actualChallengeId = challenge?.id; // Use the actual challenge ID
       } else {
         // String ID - find by id
         challenge = ctfChallenges.find(c => c.id === challengeId);
+        actualChallengeId = challengeId;
       }
       
       if (!challenge) {
@@ -572,8 +576,8 @@ const ctfCommand: Command = {
       
       const flag = args[2];
       if (flag === challenge.flag) {
-        // Check if already solved
-        if (context.gameState.solvedChallenges?.includes(challengeId)) {
+        // Check if already solved using the actual challenge ID
+        if (context.gameState.solvedChallenges?.includes(actualChallengeId)) {
           return {
             output: '✅ You have already solved this challenge!',
             type: 'info'
@@ -583,7 +587,7 @@ const ctfCommand: Command = {
         // Use GameStateManager to handle the solution
         const gameManager = context.gameManager;
         if (gameManager) {
-          const result = gameManager.solveChallenge(challengeId);
+          const result = gameManager.solveChallenge(actualChallengeId);
           if (result.success) {
             const achievements = [];
             
@@ -795,18 +799,8 @@ const artCommand: Command = {
       }
     }
     
-    const effects = [
-      createAnimatedText(`Displaying: ${artName.toUpperCase()}`, 'glitch'),
-      '',
-      selectedArt,
-      '',
-      createLoadingAnimation(0) + ' Rendering pixels...',
-      createLoadingAnimation(1) + ' Applying effects...',
-      createLoadingAnimation(2) + ' Art display complete!'
-    ];
-    
     return {
-      output: effects.join('\n'),
+      output: `⚡ ${createAnimatedText(`DISPLAYING: ${artName.toUpperCase()}`, 'glitch')}\n\n${selectedArt}\n\n✨ Art display complete!`,
       type: 'success',
       triggerEffect: 'screen_glitch'
     };

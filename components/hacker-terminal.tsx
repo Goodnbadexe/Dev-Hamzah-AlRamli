@@ -5,7 +5,7 @@ import { CommandProcessor } from './terminal/CommandProcessor';
 import { AuthManager } from './terminal/auth/AuthManager';
 import { GameStateManager } from './terminal/game/GameStateManager';
 import { TerminalContext, CommandResult } from './terminal/types';
-import { asciiArt } from './terminal/utils/ascii-art';
+import { asciiArt, startURLAnimation, createMultiEmojiAnimation, createWaveAnimation } from './terminal/utils/ascii-art';
 import { cn } from "@/lib/utils"
 
 // Add CSS animations
@@ -76,6 +76,8 @@ export function HackerTerminal() {
   // CTF completion notifications
   const [ctfNotifications, setCTFNotifications] = useState<{id: number, message: string, timestamp: number}[]>([])
   
+  // URL Animation cleanup functions
+  const [urlAnimationCleanup, setUrlAnimationCleanup] = useState<(() => void) | null>(null)
   // Core system managers - initialize only on client side
   const [commandProcessor, setCommandProcessor] = useState<CommandProcessor | null>(null)
   const [authManager, setAuthManager] = useState<AuthManager | null>(null)
@@ -278,6 +280,13 @@ export function HackerTerminal() {
 
       // Handle animated loading for scan command
       if (command.trim().startsWith('scan') && result.triggerEffect === 'scan_animation') {
+        // Start URL animation during scan
+        if (urlAnimationCleanup) {
+          urlAnimationCleanup();
+        }
+        const cleanup = startURLAnimation('loading');
+        setUrlAnimationCleanup(() => cleanup);
+        
         // Add initial loading message
         newHistoryEntries.push({ type: "output", content: "🎯 NETWORK RECONNAISSANCE INITIATED\n📡 Target: " + (command.split(' ')[1] || 'localhost') + "\n" });
         
@@ -293,7 +302,7 @@ export function HackerTerminal() {
           "🛡️ Checking UDP services... ███████░░░ 70%",
           "📊 Analyzing responses... █████████░ 90%",
           "📋 Generating report... ██████████ 100%",
-          "\n✅ SCAN COMPLETE\n\n🔍 Open Ports Found:\n  • 22/tcp   SSH     OpenSSH 8.0\n  • 80/tcp   HTTP    nginx 1.18.0\n  • 443/tcp  HTTPS   nginx 1.18.0\n  • 3000/tcp HTTP    Node.js Express\n\n🛡️ Security Assessment:\n  ⚠️  SSH service detected - potential entry point\n  ✅ HTTPS enabled - encrypted traffic\n  🔍 Development server running - investigate further"
+          "\n✅ SCAN COMPLETE\n\n🔍 Open Ports Found:\n  • 22/tcp   SSH     OpenSSH 8.0\n  • 80/tcp   HTTP    nginx 1.18.0\n  • 443/tcp  HTTPS   nginx 1.18.0\n  • 3000/tcp HTTP    Node.js Express\n\n🛡️ Security Assessment:\n  ⚠️  SSH service detected - potential entry point\n  ✅ HTTPS properly configured\n  ⚠️  Development server running on port 3000\n\n💡 Recommendations:\n  • Disable unnecessary services\n  • Update SSH configuration\n  • Secure development environment"
         ];
         
         // Animate each step with delays
@@ -307,16 +316,60 @@ export function HackerTerminal() {
                 if (newHistory[lastIndex].type === 'output') {
                   newHistory[lastIndex] = {
                     ...newHistory[lastIndex],
-                    content: "🎯 NETWORK RECONNAISSANCE INITIATED\n📡 Target: " + (command.split(' ')[1] || 'localhost') + "\n\n" + step
+                    content: newHistory[lastIndex].content + step + (index < loadingSteps.length - 1 ? '\n' : '')
                   };
                 }
               }
               return newHistory;
             });
-          }, (index + 1) * 800); // 800ms delay between each step
+            
+            // Stop URL animation when scan is complete
+            if (index === loadingSteps.length - 1) {
+              setTimeout(() => {
+                if (urlAnimationCleanup) {
+                  urlAnimationCleanup();
+                  setUrlAnimationCleanup(null);
+                }
+              }, 1000);
+            }
+          }, index * 800);
         });
         
         return;
+      }
+
+      // Handle matrix effect with URL animation
+      if (result.triggerEffect === 'matrix_rain') {
+        if (urlAnimationCleanup) {
+          urlAnimationCleanup();
+        }
+        const cleanup = createMultiEmojiAnimation(['🟢', '🔴', '🟡', '🔵', '🟣', '🟠'], 15);
+        setUrlAnimationCleanup(() => cleanup);
+        
+        // Stop animation after 10 seconds
+        setTimeout(() => {
+          if (cleanup) {
+            cleanup();
+            setUrlAnimationCleanup(null);
+          }
+        }, 10000);
+      }
+
+      // Handle hack command with glitch animation
+      if (result.triggerEffect === 'screen_glitch') {
+        if (urlAnimationCleanup) {
+          urlAnimationCleanup();
+        }
+        const cleanup = createWaveAnimation();
+        setUrlAnimationCleanup(() => cleanup);
+        
+        // Stop animation after 8 seconds
+        setTimeout(() => {
+          if (cleanup) {
+            cleanup();
+            setUrlAnimationCleanup(null);
+          }
+        }, 8000);
       }
 
       if (result.output) {
