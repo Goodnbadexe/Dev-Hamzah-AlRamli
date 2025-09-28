@@ -38,13 +38,13 @@ const CTFTester: React.FC = () => {
         expected: `Started challenge: ${challenge.title}`,
         actual: `Challenge started successfully`,
         passed: true,
-        points: challenge.points,
+        points: challenge.points || 0,
         difficulty: challenge.difficulty
       };
       
       results.push(startResult);
       if (startResult.passed) {
-        currentScore += challenge.points;
+        currentScore += challenge.points || 0;
       }
       
       // Simulate delay

@@ -439,10 +439,7 @@ const hackCommand: Command = {
       `💾 Accessing mainframe... ${createProgressBar(90)}`,
       `🚀 Root access obtained! ${createProgressBar(100)}`,
       '',
-      createAnimatedText('SYSTEM BREACH SUCCESSFUL', 'matrix'),
-      createLoadingAnimation(0) + ' Extracting sensitive data...',
-      createLoadingAnimation(1) + ' Planting backdoor...',
-      createLoadingAnimation(2) + ' Covering tracks...'
+      createAnimatedText('SYSTEM BREACH SUCCESSFUL', 'matrix')
     ];
     
     return {

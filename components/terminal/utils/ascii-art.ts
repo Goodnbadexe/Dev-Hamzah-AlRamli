@@ -291,7 +291,10 @@ export function createLoadingAnimation(step: number): string {
   return frames[step % frames.length];
 }
 
-export function startURLAnimation(type: 'moon' | 'clock' | 'matrix' | 'loading' = 'moon'): () => void {
+export function startURLAnimation(
+  type: 'moon' | 'clock' | 'matrix' | 'loading' = 'moon', 
+  speed: number = 500
+): () => void {
   let step = 0;
   let intervalId: NodeJS.Timeout;
 
@@ -320,7 +323,7 @@ export function startURLAnimation(type: 'moon' | 'clock' | 'matrix' | 'loading' 
     step++;
   };
 
-  intervalId = setInterval(animate, 500);
+  intervalId = setInterval(animate, speed);
   animate(); // Run immediately
 
   return () => {

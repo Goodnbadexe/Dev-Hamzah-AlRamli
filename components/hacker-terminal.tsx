@@ -5,7 +5,7 @@ import { CommandProcessor } from './terminal/CommandProcessor';
 import { AuthManager } from './terminal/auth/AuthManager';
 import { GameStateManager } from './terminal/game/GameStateManager';
 import { TerminalContext, CommandResult } from './terminal/types';
-import { asciiArt, startURLAnimation, createMultiEmojiAnimation, createWaveAnimation } from './terminal/utils/ascii-art';
+import { asciiArt, startURLAnimation, createMultiEmojiAnimation, createWaveAnimation, createLoadingAnimation } from './terminal/utils/ascii-art';
 import { cn } from "@/lib/utils"
 
 // Add CSS animations
@@ -284,7 +284,7 @@ export function HackerTerminal() {
         if (urlAnimationCleanup) {
           urlAnimationCleanup();
         }
-        const cleanup = startURLAnimation('loading');
+        const cleanup = startURLAnimation('loading', 150);
         setUrlAnimationCleanup(() => cleanup);
         
         // Add initial loading message
@@ -355,7 +355,7 @@ export function HackerTerminal() {
         }, 10000);
       }
 
-      // Handle hack command with glitch animation
+      // Handle hack command with animated loading sequence
       if (result.triggerEffect === 'screen_glitch') {
         if (urlAnimationCleanup) {
           urlAnimationCleanup();
@@ -363,13 +363,108 @@ export function HackerTerminal() {
         const cleanup = createWaveAnimation();
         setUrlAnimationCleanup(() => cleanup);
         
-        // Stop animation after 8 seconds
+        // Add initial hack output without the loading lines
+        const initialOutput = result.output?.split('\n').filter(line => 
+          !line.includes('Extracting sensitive data') && 
+          !line.includes('Planting backdoor') && 
+          !line.includes('Covering tracks')
+        ).join('\n') || '';
+        
+        newHistoryEntries.push({ type: "output", content: initialOutput });
+        
+        // Update history with initial state
+        setHistory(prev => [...prev, ...newHistoryEntries]);
+        setCurrentInput("");
+        
+        // Animate the loading steps with dynamic spinner
+        const loadingMessages = [
+          'Extracting sensitive data...',
+          'Planting backdoor...',
+          'Covering tracks...'
+        ];
+        
+        loadingMessages.forEach((message, index) => {
+          // Start each loading message after a delay
+          setTimeout(() => {
+            let spinnerStep = 0;
+            const messageInterval = setInterval(() => {
+              const spinner = createLoadingAnimation(spinnerStep);
+              const loadingLine = `${spinner} ${message}`;
+              
+              setHistory(prev => {
+                const newHistory = [...prev];
+                const lastIndex = newHistory.length - 1;
+                
+                // Find or create the loading section
+                if (newHistory[lastIndex] && newHistory[lastIndex].type === 'output') {
+                  const lines = newHistory[lastIndex].content.split('\n');
+                  const loadingStartIndex = lines.findIndex(line => line.includes('Extracting') || line.includes('Planting') || line.includes('Covering'));
+                  
+                  if (loadingStartIndex === -1) {
+                    // First loading message
+                    lines.push('', loadingLine);
+                  } else {
+                    // Update existing loading messages
+                    const loadingLines = lines.slice(loadingStartIndex);
+                    const currentMessageIndex = loadingLines.findIndex(line => line.includes(message.split('...')[0]));
+                    
+                    if (currentMessageIndex === -1) {
+                      // Add new loading message
+                      lines.push(loadingLine);
+                    } else {
+                      // Update existing message
+                      lines[loadingStartIndex + currentMessageIndex] = loadingLine;
+                    }
+                  }
+                  
+                  newHistory[lastIndex] = {
+                    ...newHistory[lastIndex],
+                    content: lines.join('\n')
+                  };
+                }
+                
+                return newHistory;
+              });
+              
+              spinnerStep++;
+              
+              // Stop this message's animation after 3 seconds
+              if (spinnerStep >= 20) { // About 3 seconds at 150ms intervals
+                clearInterval(messageInterval);
+                
+                // Replace spinner with checkmark
+                setHistory(prev => {
+                  const newHistory = [...prev];
+                  const lastIndex = newHistory.length - 1;
+                  
+                  if (newHistory[lastIndex] && newHistory[lastIndex].type === 'output') {
+                    const content = newHistory[lastIndex].content.replace(
+                      new RegExp(`[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏] ${message.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+                      `✅ ${message.replace('...', ' - Complete!')}`
+                    );
+                    
+                    newHistory[lastIndex] = {
+                      ...newHistory[lastIndex],
+                      content: content
+                    };
+                  }
+                  
+                  return newHistory;
+                });
+              }
+            }, 150);
+          }, index * 1000); // Stagger each message by 1 second
+        });
+        
+        // Stop URL animation after all loading is complete
         setTimeout(() => {
           if (cleanup) {
             cleanup();
             setUrlAnimationCleanup(null);
           }
         }, 8000);
+        
+        return;
       }
 
       if (result.output) {
