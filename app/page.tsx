@@ -1,3 +1,13 @@
+// === METADATA ===
+// Purpose: Portfolio landing page UI with Education section icon behavior
+// Author: @Goodnbad.exe
+// Inputs: N/A
+// Outputs: Rendered Next.js page; hover swaps for Taylor's icons
+// Assumptions: TailwindCSS configured; images exist in /public/images
+// Tests: Manual UI check at `http://localhost:3000/` Education section
+// Security: No secrets; static assets only; client-side rendering
+// Complexity: O(N) rendering where N = elements on page
+// === END METADATA ===
 'use client';
 
 import Link from "next/link"
@@ -26,6 +36,9 @@ import {
   FileText,
   Download,
   ChevronDown,
+  Shield,
+  AlertTriangle,
+  Bug,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -57,6 +70,7 @@ export default function Home() {
                 width={96}
                 height={96}
                 className="rounded-full"
+                priority
               />
             </div>
             <GlitchText text="Goodnbad.exe" className="font-bold text-xl" />
@@ -112,6 +126,15 @@ export default function Home() {
         {/* Hero Section */}
         <section className="container mx-auto py-20 px-4">
           <HackerTerminal />
+          {/* Cybersecurity badge and tagline */}
+          <div className="mt-6 text-center">
+            <Badge className="mb-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <Shield className="w-3 h-3 mr-1" /> Cybersecurity
+            </Badge>
+            <p className="text-sm text-zinc-300">
+              Threat Analysis • Vulnerability Management • Incident Response
+            </p>
+          </div>
         </section>
 
         {/* Arrow Indicator */}
@@ -142,6 +165,18 @@ export default function Home() {
               <p className="text-zinc-400">
                 Analytical and adaptive junior cybersecurity engineer with a foundation in computer science. Skilled in system security, vulnerability management, and threat analysis, with hands-on exposure to SIEM tools, network monitoring, and risk assessment.
               </p>
+              {/* Bullet strengths */}
+              <div className="mt-6 flex items-center justify-center gap-6 text-sm text-zinc-300">
+                <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-emerald-500" /> Threat Analysis</span>
+                <span className="flex items-center gap-2"><Bug className="w-4 h-4 text-emerald-500" /> Vulnerability Management</span>
+                <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-emerald-500" /> Incident Response</span>
+              </div>
+              {/* Cert ribbon */}
+              <div className="mt-4 flex flex-wrap justify-center gap-3">
+                <Badge className="bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700/50 animate-pulse">Google Cybersecurity</Badge>
+                <Badge className="bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700/50 animate-pulse">IBM Cybersecurity Assessment</Badge>
+                <Badge className="bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700/50 animate-pulse">Google Analytics</Badge>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
@@ -153,14 +188,72 @@ export default function Home() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
-                    <li className="flex flex-col">
-                      <span className="font-medium">Bachelor's in Computer Science</span>
-                      <span className="text-sm text-zinc-400">Taylor's University, Malaysia (2019-2025)</span>
+                  <ul className="space-y-4">
+                    {/* Item 1 */}
+                    <li className="flex flex-col group relative overflow-hidden pt-3 pb-3 transition-all duration-300 group-hover:pb-28">
+                      {/* Large centered overlay logo appears below content on hover; no reserved space by default */}
+                      <div className="absolute inset-x-0 bottom-3 z-40 pointer-events-none transition-all duration-300 h-0 group-hover:h-28">
+                        <div className="relative w-full h-full flex items-center justify-center">
+                          <Image
+                            src="/images/Taylors-University-Logo-Vector.svg-.png"
+                            alt="Taylor's University Logo"
+                            fill
+                            priority
+                            className="object-contain glitch-img transition-opacity transition-transform duration-300 opacity-0 group-hover:opacity-100 group-hover:scale-110 group-hover:translate-y-[1px]"
+                          />
+                        </div>
+                      </div>
+                      <span className="font-medium flex items-center gap-2 transition-colors duration-300 relative z-50 group-hover:text-emerald-400">
+                        {/* Icon container with overlayed large logo constrained */}
+                        <span className="relative inline-flex items-center justify-center w-[22px] h-[22px]">
+                          {/* Default small T icon (no border) */}
+                          <Image
+                            src="/images/taylors-small.png"
+                            alt="Taylor's University Icon"
+                            width={22}
+                            height={22}
+                            className="transition-opacity duration-300 opacity-100 group-hover:opacity-0"
+                          />
+                        </span>
+                        Bachelor's in Computer Science
+                      </span>
+                      {/* Subline: university/date remains visible; no duplicate degree on hover */}
+                      <span className="relative z-50 mt-2 text-sm text-zinc-400">
+                        Taylor's University, Malaysia (2019-2025)
+                      </span>
                     </li>
-                    <li className="flex flex-col">
-                      <span className="font-medium">Bachelor's in Creative Multimedia Design</span>
-                      <span className="text-sm text-zinc-400">Taylor's University, Malaysia (2022-2025)</span>
+                    {/* Item 2 */}
+                    <li className="flex flex-col group relative overflow-hidden pt-3 pb-3 transition-all duration-300 group-hover:pb-28">
+                      {/* Large centered overlay logo appears below content on hover; no reserved space by default */}
+                      <div className="absolute inset-x-0 bottom-3 z-40 pointer-events-none transition-all duration-300 h-0 group-hover:h-28">
+                        <div className="relative w-full h-full flex items-center justify-center">
+                          <Image
+                            src="/images/Taylors-University-Logo-Vector.svg-.png"
+                            alt="Taylor's University Logo"
+                            fill
+                            priority
+                            className="object-contain glitch-img transition-opacity transition-transform duration-300 opacity-0 group-hover:opacity-100 group-hover:scale-110 group-hover:translate-y-[1px]"
+                          />
+                        </div>
+                      </div>
+                      <span className="font-medium flex items-center gap-2 transition-colors duration-300 relative z-50 group-hover:text-emerald-400">
+                        {/* Icon container with overlayed large logo constrained */}
+                        <span className="relative inline-flex items-center justify-center w-[22px] h-[22px]">
+                          {/* Default small T icon (no border) */}
+                          <Image
+                            src="/images/taylors-small.png"
+                            alt="Taylor's University Icon"
+                            width={22}
+                            height={22}
+                            className="transition-opacity duration-300 opacity-100 group-hover:opacity-0"
+                          />
+                        </span>
+                        Bachelor's in Creative Multimedia Design
+                      </span>
+                      {/* Subline: university/date remains visible; no duplicate degree on hover */}
+                      <span className="relative z-50 mt-2 text-sm text-zinc-400">
+                        Taylor's University, Malaysia (2022-2025)
+                      </span>
                     </li>
                   </ul>
                 </CardContent>

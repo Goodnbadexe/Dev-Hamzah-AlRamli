@@ -1,4 +1,14 @@
 
+/* === METADATA ===
+Purpose: Add glitchy hover effect for Taylor's logo overlay image
+Author: @Goodnbad.exe
+Inputs: N/A
+Outputs: CSS class `.glitch-img` for animated glitch on hover
+Assumptions: Next.js app imports this file in app/layout.tsx; TailwindCSS available
+Tests: Visual validation via http://localhost:3000/ Education section
+Security: No sensitive data; purely UI styles
+Complexity: O(1) styling
+=== END METADATA === */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -217,4 +227,53 @@
 
 .glitch-border:hover {
   animation: glitch-border 2s infinite;
+}
+
+/* Glitch effect for images stacked on hover */
+.glitch-img {
+  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.35));
+  transition: opacity 300ms ease, transform 300ms ease, filter 300ms ease;
+  will-change: transform;
+}
+
+.group:hover .glitch-img,
+.glitch-img:hover {
+  animation: glitch-soft 1.6s infinite ease-in-out;
+  filter: drop-shadow(-1px 0 #10b981) drop-shadow(1px 0 #f43f5e);
+}
+
+/* Taylor's University only outline and scratch glitch */
+.taylors-outline {
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.55))
+          drop-shadow(0 0 2px rgba(16, 185, 129, 0.4));
+  transition: filter 300ms ease;
+}
+.group:hover .taylors-outline,
+.taylors-outline:hover {
+  animation: glitch-soft 1.6s infinite ease-in-out;
+  filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.65))
+          drop-shadow(0 0 3px rgba(16, 185, 129, 0.5));
+}
+
+/* Softer glitch keyframes for cleaner animation */
+@keyframes glitch-soft {
+  0% { transform: none; opacity: 1; }
+  12% { transform: translateX(0.5px) skewX(0.5deg); opacity: 0.98; }
+  25% { transform: translateX(-0.8px) skewY(0.4deg); opacity: 0.97; }
+  37% { transform: translateY(0.6px) skewX(-0.4deg); opacity: 0.98; }
+  50% { transform: translateX(0.4px) translateY(-0.4px); opacity: 1; }
+  62% { transform: translateX(-0.6px) skewY(-0.4deg); opacity: 0.98; }
+  75% { transform: translateY(0.5px) skewX(0.3deg); opacity: 0.99; }
+  87% { transform: translateX(0.3px) translateY(-0.3px); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .glitch-img,
+  .taylors-outline {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }

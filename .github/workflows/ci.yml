@@ -1,0 +1,36 @@
+# === METADATA ===
+# Purpose: CI workflow to run lint and tests on push/PR
+# Author: @Goodnbad.exe
+# Inputs: None
+# Outputs: GitHub Actions CI runs for lint and tests
+# Tests: Trigger on push; expect Vitest and Next lint to pass
+# Security: No secrets; uses default GitHub runner
+# === END METADATA ===
+name: CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test

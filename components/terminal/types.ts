@@ -1,3 +1,13 @@
+// === METADATA ===
+// Purpose: Core terminal type definitions; fix stats typo for easter egg count
+// Author: @Goodnbad.exe
+// Inputs: Imported across terminal modules; defines interfaces used by terminal
+// Outputs: TypeScript interfaces; no runtime side effects
+// Assumptions: Existing code expects stats.easterEggsFound; align names consistently
+// Tests: npm test -- -t GameStateManager stats
+// Security: Types only; no security impact
+// Complexity: O(1) definitions
+// === END METADATA ===
 // Terminal System Type Definitions
 
 export interface Command {
@@ -104,7 +114,7 @@ export interface GameState {
   stats: {
     commandsExecuted: number;
     challengesSolved: number;
-    easterEgsFound: number;
+    easterEggsFound: number;
     loginAttempts: number;
     timeSpent: number;
   };

@@ -1,3 +1,13 @@
+// === METADATA ===
+// Purpose: Manage CTF game state, stats, achievements; fix easter eggs stat name
+// Author: @Goodnbad.exe
+// Inputs: Uses localStorage in browser; interacts with ctfChallenges
+// Outputs: GameState mutations, achievement unlocks, stats updates
+// Assumptions: Browser environment for persistence; Node tests mock storage
+// Tests: npm test -- -t GameStateManager
+// Security: No secrets; safe localStorage usage with try-catch
+// Complexity: O(1) per operation; some list traversals O(n) for achievements
+// === END METADATA ===
 // Game state management for CTF challenges and achievements
 
 import { GameState, Achievement, CTFChallenge } from '../types';
@@ -47,7 +57,7 @@ export class GameStateManager {
       stats: {
         commandsExecuted: 0,
         challengesSolved: 0,
-        easterEgsFound: 0,
+        easterEggsFound: 0,
         loginAttempts: 0,
         timeSpent: 0
       },
@@ -207,7 +217,7 @@ export class GameStateManager {
       `Score: ${this.gameState.score}`,
       `Commands Executed: ${stats.commandsExecuted}`,
       `Challenges Solved: ${stats.challengesSolved}`,
-      `Easter Eggs Found: ${stats.easterEgsFound}`,
+      `Easter Eggs Found: ${stats.easterEggsFound}`,
       `Current Streak: ${this.gameState.currentStreak}`,
       `Best Streak: ${this.gameState.bestStreak}`,
       `Time Spent: ${timeSpent} minutes`,
@@ -291,7 +301,7 @@ export class GameStateManager {
       { id: 'command_master', condition: () => this.gameState.stats.commandsExecuted >= 100 },
       { id: 'first_challenge', condition: () => this.gameState.stats.challengesSolved >= 1 },
       { id: 'challenge_master', condition: () => this.gameState.stats.challengesSolved >= 10 },
-      { id: 'easter_hunter', condition: () => this.gameState.stats.easterEgsFound >= 5 },
+      { id: 'easter_hunter', condition: () => this.gameState.stats.easterEggsFound >= 5 },
       { id: 'level_up', condition: () => this.gameState.level >= 5 },
       { id: 'high_scorer', condition: () => this.gameState.score >= 1000 },
       { id: 'streak_master', condition: () => this.gameState.bestStreak >= 5 },

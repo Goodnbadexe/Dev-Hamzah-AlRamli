@@ -1,5 +1,16 @@
 'use client';
 
+// === METADATA ===
+// Purpose: Interactive terminal UI with commands, auth, game stats, and effects.
+// Author: @Goodnbad.exe
+// Inputs: User keyboard input, internal state from managers
+// Outputs: Terminal-like UI interactions, history, and animations
+// Assumptions: Client-side rendering; relies on managers initialized in browser
+// Tests: `npm run test` (includes GameStateManager tests) ; manual UI via dev server
+// Security: No secrets; sanitizes command input; local-only state
+// Complexity: Event-driven; per interaction O(k) based on history entries
+// === END METADATA ===
+
 import React, { useState, useEffect, useRef } from 'react';
 import { CommandProcessor } from './terminal/CommandProcessor';
 import { AuthManager } from './terminal/auth/AuthManager';
@@ -603,7 +614,7 @@ export function HackerTerminal() {
       const welcomeMessage = [
         asciiArt.banner,
         "",
-        "🚀 Welcome to Goodnbad.exe Terminal v2.0.0 - Advanced Hacker Edition",
+        "🚀 Welcome to Goodnbad.exe Terminal v2.0.1 - Advanced Hacker Edition",
         "Last login: " + new Date().toLocaleString() + " on ttys001",
         "",
         "💡 Type 'help' to see available commands",
@@ -647,7 +658,7 @@ export function HackerTerminal() {
         <p className="text-zinc-400 text-lg mb-8 border-l-2 border-emerald-500 pl-4">
           Professional overthinker, part-time button masher, full-time Goodnbad.exe. Cybersecurity engineer who turns coffee into code and transforms digital chaos into secure solutions.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 flex-wrap sm:flex-nowrap">
           <button 
             onClick={() => {
               const projectsSection = document.getElementById('projects');
@@ -655,7 +666,7 @@ export function HackerTerminal() {
                 projectsSection.scrollIntoView({ behavior: 'smooth' });
               }
             }}
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-black group relative overflow-hidden"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-black group relative overflow-hidden min-w-[180px] sm:min-w-[200px]"
           >
             <span className="relative z-10 flex items-center">
               View Projects
@@ -666,7 +677,7 @@ export function HackerTerminal() {
             </span>
             <span className="absolute inset-0 bg-emerald-400 translate-y-full group-hover:translate-y-0 transition-transform duration-200"></span>
           </button>
-          <a target="_blank" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-background hover:bg-accent h-10 px-4 py-2 border-zinc-700 hover:border-emerald-500 hover:text-emerald-500 group" href="/files/hamzah-al-ramli-resume.pdf">
+          <a target="_blank" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-background hover:bg-accent h-10 px-4 py-2 border-zinc-700 hover:border-emerald-500 hover:text-emerald-500 group min-w-[180px] sm:min-w-[200px]" href="/files/hamzah-al-ramli-resume.pdf">
             <span className="flex items-center">
               Download Resume
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 h-4 w-4 group-hover:translate-y-1 transition-transform">

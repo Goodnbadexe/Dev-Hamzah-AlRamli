@@ -1,8 +1,23 @@
 "use client"
 
+// === METADATA ===
+// Purpose: WebGL particle animation with text morphing and responsive config.
+// Author: @Goodnbad.exe
+// Inputs: None (reads canvas size from DOM, mouse from window events)
+// Outputs: Renders animated particles on a canvas element
+// Assumptions: Browser environment with WebGL support; canvas rendered client-side
+// Tests: `npm run test` (validates responsive config via unit tests)
+// Security: No external network; guarded against invalid canvas dimensions
+// Complexity: O(N) per frame where N = particleCount; setup O(N)
+// === END METADATA ===
+
 import { useEffect, useRef } from "react"
+import { getParticleConfig } from "@/lib/responsive"
 
 export function ParticleAnimation() {
+  // Hidden explanation: This component initializes WebGL shaders and buffers,
+  // computes text pixel coordinates, and animates particles toward those points
+  // with mouse interaction forces. It relies on getParticleConfig for sizing.
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -29,31 +44,8 @@ export function ParticleAnimation() {
 
     setCanvasSize()
 
-    // Responsive configuration based on screen size
-    const getResponsiveConfig = () => {
-      const width = canvas.width
-      const height = canvas.height
-      const isMobile = width < 768
-      const isTablet = width >= 768 && width < 1024
-
-      return {
-        particleCount: isMobile ? 2000 : isTablet ? 3500 : 5000,
-        textArray: ["Stay curious.", "Break limits.", "Build meaning."],
-        mouseRadius: isMobile ? 0.15 : 0.1,
-        particleSize: isMobile ? 1.5 : 2,
-        forceMultiplier: 0.001,
-        returnSpeed: 0.005,
-        velocityDamping: 0.95,
-        colorMultiplier: 40000,
-        saturationMultiplier: 1000,
-        textChangeInterval: 10000,
-        rotationForceMultiplier: 0.5,
-        fontSize: Math.min(width * 0.15, height * 0.25, 180), // Increased font size for better fit
-        fontSpacing: isMobile ? 2 : 3, // Tighter spacing for better text coverage
-      }
-    }
-
-    let config = getResponsiveConfig()
+    // Responsive configuration via shared utility
+    let config = getParticleConfig(canvas.width, canvas.height)
     let currentTextIndex: number = 0
     let nextTextTimeout: NodeJS.Timeout
     let textCoordinates: Array<{ x: number; y: number }> = []
@@ -346,8 +338,8 @@ export function ParticleAnimation() {
     const handleResize = (): void => {
       setCanvasSize()
 
-      // Update config for new screen size
-      config = getResponsiveConfig()
+      // Update config for new screen size via shared utility
+      config = getParticleConfig(canvas.width, canvas.height)
       mouse.radius = config.mouseRadius
 
       // Reinitialize particles array if count changed
