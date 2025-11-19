@@ -85,6 +85,27 @@ export const casesAttacks = {
       mitigations: ['Timely patching', 'Input validation', 'Threat monitoring'],
       sourceLabel: 'Source', source: 'https://en.wikipedia.org/wiki/Equifax_data_breach'
     },
+    {
+      title: 'WannaCry Ransomware', type: 'Ransomware', date: '2017-05-12',
+      summary: 'Global ransomware leveraging EternalBlue to exploit SMBv1, encrypting files across organizations.',
+      lessons: ['Patch SMBv1', 'Segmentation', 'Tested backups'],
+      mitigations: ['MS17-010', 'Network segmentation', 'Offline backups'],
+      sourceLabel: 'Source', source: 'https://en.wikipedia.org/wiki/WannaCry_ransomware_attack'
+    },
+    {
+      title: 'NotPetya', type: 'Wiper/Ransomware', date: '2017-06-27',
+      summary: 'Destructive malware disguised as ransomware; spread via supply chain updates.',
+      lessons: ['Validate updates', 'Allowlisting', 'Rapid isolation'],
+      mitigations: ['Code signing verification', 'Application allowlisting', 'Isolate infected hosts'],
+      sourceLabel: 'Source', source: 'https://en.wikipedia.org/wiki/Petya_(malware)#NotPetya'
+    },
+    {
+      title: 'Mirai Botnet', type: 'DDoS', date: '2016-10-21',
+      summary: 'IoT devices formed a botnet that launched massive DDoS attacks, impacting DNS providers.',
+      lessons: ['Secure IoT defaults', 'Rate limiting and scrubbing'],
+      mitigations: ['Strong credentials', 'DDoS protection services', 'IoT isolation'],
+      sourceLabel: 'Source', source: 'https://en.wikipedia.org/wiki/Mirai_(botnet)'
+    },
   ] as SecurityCase[],
   ar: [
     {
@@ -108,6 +129,27 @@ export const casesAttacks = {
       mitigations: ['تحديثات في الوقت المناسب', 'التحقق من المدخلات', 'مراقبة التهديدات'],
       sourceLabel: 'المصدر', source: 'https://en.wikipedia.org/wiki/Equifax_data_breach'
     },
+    {
+      title: 'واناكراي', type: 'فدية', date: '2017-05-12',
+      summary: 'برمجية فدية استغلت SMBv1 لتشفير الملفات على نطاق واسع.',
+      lessons: ['ترقيع SMBv1', 'تجزئة الشبكة', 'نسخ احتياطي مُختَبَر'],
+      mitigations: ['MS17-010', 'تجزئة الشبكة', 'نسخ احتياطي دون اتصال'],
+      sourceLabel: 'المصدر', source: 'https://ar.wikipedia.org/wiki/واناكراي'
+    },
+    {
+      title: 'نوت بيتيا', type: 'ماسح/فدية', date: '2017-06-27',
+      summary: 'برمجية مدمّرة متخفية كفدية انتشرت عبر تحديثات سلسلة التوريد.',
+      lessons: ['تحقق من نزاهة التحديثات', 'القوائم البيضاء', 'عزل سريع'],
+      mitigations: ['التحقق من التوقيع', 'قوائم السماح للتطبيقات', 'عزل الأجهزة المصابة'],
+      sourceLabel: 'المصدر', source: 'https://en.wikipedia.org/wiki/Petya_(malware)#NotPetya'
+    },
+    {
+      title: 'ميراي بوتنت', type: 'حجب خدمة', date: '2016-10-21',
+      summary: 'أجهزة إنترنت الأشياء شكّلت شبكة لشن هجمات حجب خدمة ضخمة أثّرت على مزوّدي DNS.',
+      lessons: ['تأمين إعدادات الأجهزة', 'تحديد المعدلات والتنظيف'],
+      mitigations: ['كلمات مرور قوية', 'خدمات حماية DDoS', 'عزل شبكات IoT'],
+      sourceLabel: 'المصدر', source: 'https://en.wikipedia.org/wiki/Mirai_(botnet)'
+    },
   ] as SecurityCase[],
 }
 
@@ -127,6 +169,20 @@ export const casesHackers = {
       mitigations: ['Number matching', 'Conditional access', 'Monitoring'],
       sourceLabel: 'Source', source: 'https://en.wikipedia.org/wiki/Uber#2022_data_breach'
     }
+    {
+      title: 'Lapsus$', type: 'Extortion/Source Code Theft', date: '2022-03-23',
+      summary: 'Group compromised companies via social engineering and MFA fatigue, leaking source code.',
+      lessons: ['Strong identity protections', 'Vendor access reviews'],
+      mitigations: ['MFA number matching', 'Just‑in‑time access', 'Audit trails'],
+      sourceLabel: 'Source', source: 'https://en.wikipedia.org/wiki/Lapsus$'
+    },
+    {
+      title: 'Anonymous Ops', type: 'Hacktivism', date: '2022-03-01',
+      summary: 'Coordinated DDoS/defacement campaigns tied to geopolitical events.',
+      lessons: ['DDoS resilience', 'Rapid takedown procedures'],
+      mitigations: ['Scrubbing centers', 'CSP/WAF hardening'],
+      sourceLabel: 'Source', source: 'https://en.wikipedia.org/wiki/Anonymous_(hacker_group)'
+    }
   ] as SecurityCase[],
   ar: [
     {
@@ -143,5 +199,26 @@ export const casesHackers = {
       mitigations: ['مطابقة الأرقام', 'وصول شرطي', 'مراقبة'],
       sourceLabel: 'المصدر', source: 'https://en.wikipedia.org/wiki/Uber#2022_data_breach'
     }
+    {
+      title: 'Lapsus$', type: 'ابتزاز/سرقة الشفرة', date: '2022-03-23',
+      summary: 'استهداف الشركات بالهندسة الاجتماعية وإرهاق MFA وتسريب الشفرات.',
+      lessons: ['حماية الهوية القوية', 'مراجعة وصول المورّدين'],
+      mitigations: ['مطابقة الأرقام في MFA', 'وصول في الوقت المناسب', 'سجلات تدقيق'],
+      sourceLabel: 'المصدر', source: 'https://en.wikipedia.org/wiki/Lapsus$'
+    },
+    {
+      title: 'عمليات أنونيموس', type: 'نشاط إلكتروني', date: '2022-03-01',
+      summary: 'حملات منسقة لحجب الخدمة وتشويه الصفحات مرتبطة بأحداث سياسية.',
+      lessons: ['مرونة ضد حجب الخدمة', 'إجراءات إيقاف سريعة'],
+      mitigations: ['مراكز تنظيف الحركة', 'تقوية WAF/CSP'],
+      sourceLabel: 'المصدر', source: 'https://en.wikipedia.org/wiki/Anonymous_(hacker_group)'
+    }
   ] as SecurityCase[],
+}
+
+export const i18nFallbacks = {
+  attacks: (lang: string) => (attacks as any)[lang] || (attacks as any)['en'],
+  hackers: (lang: string) => (hackers as any)[lang] || (hackers as any)['en'],
+  casesAttacks: (lang: string) => (casesAttacks as any)[lang] || (casesAttacks as any)['en'],
+  casesHackers: (lang: string) => (casesHackers as any)[lang] || (casesHackers as any)['en'],
 }

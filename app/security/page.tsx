@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { attacks as attacksI18n, hackers as hackersI18n, casesAttacks, casesHackers } from '@/lib/i18n/security-content'
+import { attacks as attacksI18n, hackers as hackersI18n, casesAttacks, casesHackers, i18nFallbacks } from '@/lib/i18n/security-content'
 import { strings } from '@/lib/i18n/security'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -20,8 +20,8 @@ export default function SecurityPage() {
   }, [])
 
   const s = strings[lang]
-  const attacks = attacksI18n[lang]
-  const hackers = hackersI18n[lang]
+  const attacks = i18nFallbacks.attacks(lang)
+  const hackers = i18nFallbacks.hackers(lang)
   const [activeTab, setActiveTab] = useState<'attacks'|'hackers'>('attacks')
 
   useEffect(() => {
@@ -46,7 +46,19 @@ export default function SecurityPage() {
                 <CardTitle className="group-hover:text-emerald-400 transition-colors flex items-center justify-between">
                   <span>{it.title}</span>
                   <span aria-hidden>
-                    {it.title.includes('Malware') ? '🦠' : it.title.includes('Phishing') ? '🎣' : it.title.includes('Ransomware') ? '🔐' : it.title.includes('Password') ? '🔑' : it.title.includes('DDoS') ? '🌊' : it.title.includes('SQL') ? '🧩' : it.title.includes('XSS') ? '💬' : '🔎'}
+                    <img src={
+                      it.title.toLowerCase().includes('malware') ? '/icons/attacks/malware.svg' :
+                      it.title.toLowerCase().includes('phishing') ? '/icons/attacks/phishing.svg' :
+                      it.title.toLowerCase().includes('ransom') ? '/icons/attacks/ransomware.svg' :
+                      it.title.toLowerCase().includes('ddos') ? '/icons/attacks/ddos.svg' :
+                      it.title.toLowerCase().includes('sql') ? '/icons/attacks/sqli.svg' :
+                      it.title.toLowerCase().includes('xss') ? '/icons/attacks/xss.svg' :
+                      it.title.toLowerCase().includes('white') ? '/icons/hats/white.svg' :
+                      it.title.toLowerCase().includes('black') ? '/icons/hats/black.svg' :
+                      it.title.toLowerCase().includes('gray') ? '/icons/hats/gray.svg' :
+                      it.title.toLowerCase().includes('red') ? '/icons/hats/red.svg' :
+                      it.title.toLowerCase().includes('blue') ? '/icons/hats/blue.svg' : '/favicon.svg'
+                    } alt="icon" width={24} height={24} />
                   </span>
                 </CardTitle>
               </CardHeader>
@@ -61,6 +73,9 @@ export default function SecurityPage() {
             </Card>
           </Dialog.Trigger>
           <Dialog.Content className="fixed inset-0 flex items-center justify-center">
+            <Dialog.Close asChild>
+              <div className="fixed inset-0 bg-black/50" />
+            </Dialog.Close>
             <div className="bg-zinc-900 border border-emerald-500/30 rounded p-6 max-w-lg mx-4">
               <h3 className="text-xl font-semibold mb-2">{it.title}</h3>
               <p className={`text-zinc-300 mb-3 ${lang==='ar'?'text-right':''}`}>{it.summary}</p>
@@ -124,7 +139,7 @@ export default function SecurityPage() {
         <div className="mt-12">
           <h2 className="text-2xl font-semibold mb-6">{s.casesTitle}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {([... (activeTab==='attacks' ? casesAttacks[lang] : casesHackers[lang])]
+            {([... (activeTab==='attacks' ? i18nFallbacks.casesAttacks(lang) : i18nFallbacks.casesHackers(lang))]
               .sort((a,b)=> new Date(b.date).getTime()-new Date(a.date).getTime()))
               .map((c) => (
                 <Dialog.Root key={`${c.title}-${c.date}`}>
