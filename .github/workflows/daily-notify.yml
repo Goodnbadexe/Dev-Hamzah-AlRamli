@@ -1,0 +1,20 @@
+name: Daily CV Update Notification
+
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post update webhook (dry-run recommended)
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK_URL" ]; then
+            echo "WEBHOOK_URL secret not set" && exit 1
+          fi
+          payload='{ "title": "Daily CV Check", "message": "Automated daily check performed.", "source": "github-actions" }'
+          curl -sS -X POST -H 'Content-Type: application/json' -d "$payload" "$WEBHOOK_URL"

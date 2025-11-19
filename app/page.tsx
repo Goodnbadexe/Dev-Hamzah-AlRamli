@@ -58,6 +58,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white relative overflow-hidden">
       <MatrixBackground />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: 'Hamzah Al-Ramli',
+        url: 'https://www.goodnbad.info',
+        jobTitle: 'IT Systems & Support Administrator',
+        address: { '@type': 'PostalAddress', addressLocality: 'Riyadh', addressCountry: 'SA' }
+      }) }} />
 
       {/* Navigation */}
       <header className="container mx-auto py-6 relative z-10">
@@ -111,6 +119,11 @@ export default function Home() {
             >
               <Link href="/files/hamzah-al-ramli-resume.pdf" target="_blank" download="Hamzah-Al-Ramli-Resume.pdf">
                 <FileText className="mr-2 h-4 w-4" /> Resume
+              </Link>
+            </Button>
+            <Button variant="outline" className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400 hidden md:flex" asChild>
+              <Link href="/security">
+                <Shield className="mr-2 h-4 w-4" /> Security Atlas
               </Link>
             </Button>
 
@@ -302,6 +315,10 @@ export default function Home() {
                       <span className="text-sm text-zinc-400">React, Node.js, Mobile Development</span>
                     </li>
                     <li className="flex flex-col">
+                      <span className="font-medium">Systems & Infrastructure</span>
+                      <span className="text-sm text-zinc-400">Server-side integration, ERPs/finance, Windows Server 2012/2016, Linux ops</span>
+                    </li>
+                    <li className="flex flex-col">
                       <span className="font-medium">Leadership & Collaboration</span>
                       <span className="text-sm text-zinc-400">Project Management, Team Leadership</span>
                     </li>
@@ -484,6 +501,16 @@ export default function Home() {
                         name: "Node.js",
                         icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original-wordmark.svg",
                         url: "https://nodejs.org",
+                      },
+                      {
+                        name: "Windows Server",
+                        icon: "https://www.svgrepo.com/show/303229/microsoft-sql-server-logo.svg",
+                        url: "https://learn.microsoft.com/en-us/windows-server/",
+                      },
+                      {
+                        name: "Linux Servers",
+                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg",
+                        url: "https://www.linux.org/",
                       },
                       {
                         name: "MySQL",
@@ -848,6 +875,16 @@ export default function Home() {
             <div className="relative border-l-2 border-emerald-500/30 ml-3 md:ml-6 pl-6 md:pl-10 mt-12 space-y-12">
               {[
                 {
+                  role: "IT Systems & Support Administrator",
+                  company: "Calma.sa",
+                  location: "Riyadh, Saudi Arabia",
+                  description: [
+                    "Provide end-to-end IT support and systems administration",
+                    "Manage daily help desk operations and core infrastructure",
+                    "Oversee business applications and routine maintenance",
+                  ],
+                },
+                {
                   role: "IT Support Specialist",
                   company: "Calma.sa",
                   location: "Riyadh, Saudi Arabia",
@@ -1048,6 +1085,12 @@ export default function Home() {
               <TabsContent value="websites" className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {[
+                    {
+                      title: "Calma | كالما",
+                      url: "https://calma.sa",
+                      description: "Real estate agency website: content management, performance, and secure integrations.",
+                      icon: <Globe />,
+                    },
                     {
                       title: "Magic Browser",
                       url: "https://goodnbadexe.github.io/MagicB/",

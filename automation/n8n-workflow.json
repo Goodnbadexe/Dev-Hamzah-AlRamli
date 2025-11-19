@@ -1,0 +1,61 @@
+{
+  "name": "Daily CV Update Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 7,
+              "minutes": 0
+            }
+          ]
+        }
+      },
+      "id": "schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.WEBHOOK_URL}}",
+        "options": {},
+        "queryParameters": [],
+        "jsonParameters": true,
+        "responseFormat": "json",
+        "options": {
+          "redirect": {
+            "redirect": "follow"
+          }
+        },
+        "bodyParametersJson": "={\n  \"title\": \"Daily CV Check\",\n  \"message\": \"Automated daily check performed.\",\n  \"source\": \"n8n\"\n}"
+      },
+      "id": "http",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        540,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -94,6 +94,7 @@ export function HackerTerminal() {
   const [authManager, setAuthManager] = useState<AuthManager | null>(null)
   const [gameManager, setGameManager] = useState<GameStateManager | null>(null)
   const [floatingXP, setFloatingXP] = useState<{id: number, amount: number, timestamp: number}[]>([])
+  const [breachEffect, setBreachEffect] = useState<{id: number} | null>(null)
 
   // Initialize managers on client side only
   useEffect(() => {
@@ -521,6 +522,12 @@ export function HackerTerminal() {
         setTimeout(() => {
           setCTFNotifications(prev => prev.filter(n => n.id !== notificationId));
         }, 5000);
+
+        // Trigger breach visual effect overlay briefly
+        setBreachEffect({ id: notificationId });
+        setTimeout(() => {
+          setBreachEffect(null);
+        }, 5000);
       }
 
       // Handle XP gains and notifications
@@ -839,6 +846,24 @@ export function HackerTerminal() {
           </div>
         ))}
       </div>
+
+      {breachEffect && (
+        <div className="fixed inset-0 z-40 pointer-events-none">
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,0,0,0.07) 0 2px, transparent 2px 4px)'
+          }} />
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(600px 300px at 50% 50%, rgba(16,185,129,0.15), transparent)'
+          }} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-red-400 text-2xl font-bold animate-pulse">BREACH SEQUENCE</div>
+              <div className="mt-2 text-emerald-400 text-sm">elevating privileges… decrypting payload… securing trace…</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
