@@ -95,6 +95,7 @@ export function HackerTerminal() {
   const [gameManager, setGameManager] = useState<GameStateManager | null>(null)
   const [floatingXP, setFloatingXP] = useState<{id: number, amount: number, timestamp: number}[]>([])
   const [breachEffect, setBreachEffect] = useState<{id: number} | null>(null)
+  const [gameSnapshot, setGameSnapshot] = useState<{ level: number; experience: number } | null>(null)
 
   // Initialize managers on client side only
   useEffect(() => {
@@ -512,16 +513,9 @@ export function HackerTerminal() {
       // Check if this was a CTF flag submission success
       if (result.type === 'success' && result.playSound === 'victory') {
         const notificationId = Date.now() + Math.random();
-        setCTFNotifications(prev => [...prev, {
-          id: notificationId,
-          message: '🚩 FLAG COMPLETED! Great job, hacker!',
-          timestamp: Date.now()
-        }]);
-        
-        // Remove notification after 5 seconds
-        setTimeout(() => {
-          setCTFNotifications(prev => prev.filter(n => n.id !== notificationId));
-        }, 5000);
+        setCTFNotifications([{ id: notificationId, message: '🚩 FLAG COMPLETED! Great job, hacker!', timestamp: Date.now() }]);
+        setTimeout(() => { setCTFNotifications([]); }, 5000);
+        setIsExpanded(true);
 
         // Trigger breach visual effect overlay briefly
         setBreachEffect({ id: notificationId });
@@ -554,6 +548,12 @@ export function HackerTerminal() {
 
       // Update history with all new entries at once
       setHistory(prev => [...prev, ...newHistoryEntries]);
+
+      // Update XP snapshot panel
+      try {
+        const snap = gameManager.getGameState();
+        setGameSnapshot({ level: snap.level, experience: snap.experience });
+      } catch {}
 
     } catch (error) {
       setHistory(prev => [
@@ -862,6 +862,16 @@ export function HackerTerminal() {
               <div className="mt-2 text-emerald-400 text-sm">elevating privileges… decrypting payload… securing trace…</div>
             </div>
           </div>
+        </div>
+      )}
+
+      {gameSnapshot && (
+        <div className="fixed top-4 right-4 z-50 bg-zinc-900/80 border border-emerald-500/40 rounded-lg px-4 py-3 shadow-lg">
+          <div className="text-emerald-400 text-sm font-semibold">Level {gameSnapshot.level}</div>
+          <div className="mt-1 w-48 bg-zinc-700 rounded h-2 overflow-hidden">
+            <div className="h-2 rounded bg-gradient-to-r from-yellow-400 via-emerald-400 to-green-500" style={{ width: `${gameSnapshot.experience % 100}%` }}></div>
+          </div>
+          <div className="mt-1 text-xs text-zinc-400">XP: {gameSnapshot.experience % 100}/100</div>
         </div>
       )}
     </div>

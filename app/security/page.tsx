@@ -39,19 +39,44 @@ export default function SecurityPage() {
   const renderGrid = (items: { title: string; summary: string; tags: string[] }[]) => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {items.map((it) => (
-        <Card key={it.title} className="bg-zinc-800/50 border-zinc-700 hover:border-emerald-500/50 transition-all">
-          <CardHeader>
-            <CardTitle className="group-hover:text-emerald-400 transition-colors">{it.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-zinc-300 mb-3">{it.summary}</p>
-            <div className="flex flex-wrap gap-2">
-              {it.tags.map((t) => (
-                <Badge key={t} className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">{t}</Badge>
-              ))}
+        <Dialog.Root key={it.title}>
+          <Dialog.Trigger asChild>
+            <Card className="bg-zinc-800/50 border-zinc-700 hover:border-emerald-500/50 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <CardHeader>
+                <CardTitle className="group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                  <span>{it.title}</span>
+                  <span aria-hidden>
+                    {it.title.includes('Malware') ? '🦠' : it.title.includes('Phishing') ? '🎣' : it.title.includes('Ransomware') ? '🔐' : it.title.includes('Password') ? '🔑' : it.title.includes('DDoS') ? '🌊' : it.title.includes('SQL') ? '🧩' : it.title.includes('XSS') ? '💬' : '🔎'}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className={`text-zinc-300 mb-3 ${lang==='ar'?'text-right':''}`}>{it.summary}</p>
+                <div className={`flex flex-wrap gap-2 ${lang==='ar'?'justify-end':''}`}>
+                  {it.tags.map((t) => (
+                    <Badge key={t} className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">{t}</Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </Dialog.Trigger>
+          <Dialog.Content className="fixed inset-0 flex items-center justify-center">
+            <div className="bg-zinc-900 border border-emerald-500/30 rounded p-6 max-w-lg mx-4">
+              <h3 className="text-xl font-semibold mb-2">{it.title}</h3>
+              <p className={`text-zinc-300 mb-3 ${lang==='ar'?'text-right':''}`}>{it.summary}</p>
+              <div className={`flex flex-wrap gap-2 mb-3 ${lang==='ar'?'justify-end':''}`}>
+                {it.tags.map((t) => (
+                  <Badge key={t} className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">{t}</Badge>
+                ))}
+              </div>
+              <div className="mt-4 text-right">
+                <Dialog.Close asChild>
+                  <button className="border border-zinc-700 px-3 py-1 rounded">{lang==='ar'?'إغلاق':'Close'}</button>
+                </Dialog.Close>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </Dialog.Content>
+        </Dialog.Root>
       ))}
     </div>
   )
