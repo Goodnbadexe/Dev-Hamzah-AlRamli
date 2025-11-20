@@ -106,7 +106,7 @@ export default function SecurityPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <img src="/images/logo-green.png" alt="Goodnbad.exe" width={40} height={40} className="rounded-full" />
-            <img src="/placeholder-user.jpg" alt="Hamzah" width={40} height={40} className="rounded-full" />
+            <img src="/images/hacker-avatar.svg" alt="Hamzah" width={40} height={40} className="rounded-full" />
           </div>
           <Link href="/" className="text-emerald-400">{lang==='ar'?'الصفحة الرئيسية':'Home'}</Link>
         </div>

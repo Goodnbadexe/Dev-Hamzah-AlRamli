@@ -168,7 +168,7 @@ export const casesHackers = {
       lessons: ['MFA protections against push fatigue', 'Granular internal access'],
       mitigations: ['Number matching', 'Conditional access', 'Monitoring'],
       sourceLabel: 'Source', source: 'https://en.wikipedia.org/wiki/Uber#2022_data_breach'
-    }
+    },
     {
       title: 'Lapsus$', type: 'Extortion/Source Code Theft', date: '2022-03-23',
       summary: 'Group compromised companies via social engineering and MFA fatigue, leaking source code.',
@@ -182,7 +182,7 @@ export const casesHackers = {
       lessons: ['DDoS resilience', 'Rapid takedown procedures'],
       mitigations: ['Scrubbing centers', 'CSP/WAF hardening'],
       sourceLabel: 'Source', source: 'https://en.wikipedia.org/wiki/Anonymous_(hacker_group)'
-    }
+    },
   ] as SecurityCase[],
   ar: [
     {
@@ -198,7 +198,7 @@ export const casesHackers = {
       lessons: ['حماية MFA ضد إرهاق الدفع', 'وصول داخلي دقيق'],
       mitigations: ['مطابقة الأرقام', 'وصول شرطي', 'مراقبة'],
       sourceLabel: 'المصدر', source: 'https://en.wikipedia.org/wiki/Uber#2022_data_breach'
-    }
+    },
     {
       title: 'Lapsus$', type: 'ابتزاز/سرقة الشفرة', date: '2022-03-23',
       summary: 'استهداف الشركات بالهندسة الاجتماعية وإرهاق MFA وتسريب الشفرات.',
