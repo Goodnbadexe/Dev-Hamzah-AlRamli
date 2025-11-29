@@ -277,3 +277,115 @@ Complexity: O(1) styling
     transition: none !important;
   }
 }
+
+/* Arabic Typography Enhancements */
+[lang="ar"] {
+  font-family: 'Noto Kufi Arabic', system-ui, -apple-system, sans-serif;
+  line-height: 1.7;
+}
+
+[lang="ar"] .text-3xl,
+[lang="ar"] .text-4xl,
+[lang="ar"] .text-2xl,
+[lang="ar"] .text-xl {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+[lang="ar"] .font-bold {
+  font-weight: 700;
+}
+
+/* Enhanced animations for cards and interactive elements */
+@keyframes cardHover {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-8px); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.1); }
+  50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.2); }
+}
+
+@keyframes slideInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-card-hover {
+  transition: all 0.3s ease;
+}
+
+.animate-card-hover:hover {
+  animation: cardHover 0.3s ease forwards;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.6s ease-out;
+}
+
+/* Full screen support */
+.fullscreen-container {
+  min-height: 100vh;
+  width: 100vw;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+/* Enhanced matrix background animation */
+@keyframes matrixRain {
+  0% { transform: translateY(-100vh); opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+.matrix-char {
+  position: absolute;
+  color: #10b981;
+  font-family: monospace;
+  font-size: 14px;
+  animation: matrixRain linear infinite;
+  text-shadow: 0 0 5px #10b981;
+}
+
+/* Hacker terminal effects */
+@keyframes terminalBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.terminal-cursor {
+  animation: terminalBlink 1s infinite;
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.typewriter-effect {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typewriter 3s steps(40, end);
+}

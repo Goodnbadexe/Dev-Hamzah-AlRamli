@@ -1,10 +1,16 @@
 import type React from "react"
 import "@/app/globals.css"
 import { Inter } from "next/font/google"
+import { Noto_Kufi_Arabic } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
+import { FullscreenButton } from "@/components/fullscreen"
 import type { Metadata } from "next"
 
 const inter = Inter({ subsets: ["latin"] })
+const notoKufiArabic = Noto_Kufi_Arabic({ 
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700"]
+})
 
 export const metadata: Metadata = {
   title: "Hamzah Al‑Ramli — Cybersecurity Portfolio",
@@ -52,9 +58,10 @@ export default function RootLayout({
         />
         <link rel="canonical" href="https://www.goodnbad.info" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} ${notoKufiArabic.className}`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           {children}
+          <FullscreenButton />
         </ThemeProvider>
       </body>
     </html>
