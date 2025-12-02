@@ -369,6 +369,176 @@ Complexity: O(1) styling
   text-shadow: 0 0 5px #10b981;
 }
 
+/* Mobile Responsive Optimizations */
+@media (max-width: 640px) {
+  .text-3xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+  
+  .text-4xl {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+  
+  .text-xl {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  
+  .text-lg {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  
+  .text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+  
+  /* Reduce animation complexity on mobile */
+  .matrix-char {
+    font-size: 12px;
+    animation-duration: 8s;
+  }
+  
+  .glitch-img {
+    animation: none;
+  }
+  
+  .group:hover .glitch-img {
+    animation: glitch-soft 2s infinite ease-in-out;
+  }
+  
+  /* Optimize touch targets */
+  button, 
+  [role="button"],
+  .cursor-pointer {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve spacing on mobile */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .py-20 {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+  
+  .py-12 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  
+  .mb-12 {
+    margin-bottom: 2rem;
+  }
+  
+  .mt-12 {
+    margin-top: 2rem;
+  }
+  
+  /* Grid optimizations */
+  .grid-cols-1.md\\:grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .grid-cols-1.md\\:grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .grid-cols-4.sm\\:grid-cols-6.md\\:grid-cols-8 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  /* Card optimizations */
+  .card-hover {
+    transform: none !important;
+  }
+  
+  /* Terminal optimizations */
+  .font-mono.text-sm {
+    font-size: 0.75rem;
+  }
+  
+  /* Badge optimizations */
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  /* Navigation optimizations */
+  .nav-link {
+    font-size: 1rem;
+    padding: 0.75rem 0;
+  }
+  
+  /* Image optimizations */
+  .responsive-image {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Reduce motion for mobile performance */
+  @media (prefers-reduced-motion: no-preference) {
+    .animate-bounce {
+      animation-duration: 2s;
+    }
+    
+    .animate-pulse {
+      animation-duration: 3s;
+    }
+  }
+  
+  /* Prevent zoom on double tap */
+  * {
+    touch-action: manipulation;
+  }
+  
+  /* Smooth scrolling for mobile */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Improve tap highlight */
+  a, button, [role="button"] {
+    -webkit-tap-highlight-color: rgba(16, 185, 129, 0.1);
+  }
+  
+  /* Better text selection */
+  ::selection {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .text-4xl {
+    font-size: 2.5rem;
+    line-height: 1.2;
+  }
+  
+  .grid-cols-4.sm\\:grid-cols-6.md\\:grid-cols-8 {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  .py-20 {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+}
+
 /* Hacker terminal effects */
 @keyframes terminalBlink {
   0%, 50% { opacity: 1; }

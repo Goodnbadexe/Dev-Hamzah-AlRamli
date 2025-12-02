@@ -39,6 +39,8 @@ import {
   Shield,
   AlertTriangle,
   Bug,
+  Brain,
+  Bot,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -126,6 +128,11 @@ export default function Home() {
                 <Shield className="mr-2 h-4 w-4" /> Security Atlas
               </Link>
             </Button>
+            <Button variant="outline" className="border-purple-500 text-purple-500 hover:bg-purple-500/20 hover:text-purple-400 hidden md:flex" asChild>
+              <Link href="/cybersecurity-ai">
+                <Brain className="mr-2 h-4 w-4" /> Cybersecurity AI
+              </Link>
+            </Button>
 
             <MobileNav 
               showTerminal={showMobileTerminal}
@@ -137,14 +144,14 @@ export default function Home() {
 
       <main className="relative z-10">
         {/* Hero Section */}
-        <section className="container mx-auto py-20 px-4">
+        <section className="container mx-auto py-12 md:py-20 px-4">
           <HackerTerminal />
           {/* Cybersecurity badge and tagline */}
           <div className="mt-6 text-center">
             <Badge className="mb-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
               <Shield className="w-3 h-3 mr-1" /> Cybersecurity
             </Badge>
-            <p className="text-sm text-zinc-300">
+            <p className="text-sm md:text-base text-zinc-300">
               Threat Analysis • Vulnerability Management • Incident Response
             </p>
           </div>
@@ -360,7 +367,7 @@ export default function Home() {
                   <h3 className="text-xl font-semibold mb-6 flex items-center text-emerald-400">
                     <Terminal className="mr-3 h-6 w-6" />🧠 Programming Languages
                   </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-6">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
                     {[
                       {
                         name: "Python",
@@ -405,7 +412,7 @@ export default function Home() {
                     ].map((skill) => (
                       <div key={skill.name} className="group flex flex-col items-center">
                         <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-12 h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
                             <img
                               src={skill.icon || "/placeholder.svg"}
                               alt={skill.name}
@@ -427,7 +434,7 @@ export default function Home() {
                   <h3 className="text-xl font-semibold mb-6 flex items-center text-emerald-400">
                     <Code className="mr-3 h-6 w-6" />🎨 Frontend & Frameworks
                   </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-6">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
                     {[
                       {
                         name: "React",
@@ -472,7 +479,7 @@ export default function Home() {
                     ].map((skill) => (
                       <div key={skill.name} className="group flex flex-col items-center">
                         <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-12 h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
                             <img
                               src={skill.icon || "/placeholder.svg"}
                               alt={skill.name}
@@ -495,7 +502,7 @@ export default function Home() {
                     <Server className="mr-3 h-6 w-6" />
                     🗄️ Backend & Databases
                   </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-6">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
                     {[
                       {
                         name: "Node.js",
@@ -535,7 +542,7 @@ export default function Home() {
                     ].map((skill) => (
                       <div key={skill.name} className="group flex flex-col items-center">
                         <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-12 h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
                             <img
                               src={skill.icon || "/placeholder.svg"}
                               alt={skill.name}
@@ -558,7 +565,7 @@ export default function Home() {
                     <Globe className="mr-3 h-6 w-6" />
                     ☁️ DevOps & Cloud
                   </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-6">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
                     {[
                       {
                         name: "Docker",
@@ -574,6 +581,13 @@ export default function Home() {
                         name: "Azure",
                         icon: "https://www.vectorlogo.zone/logos/microsoft_azure/microsoft_azure-icon.svg",
                         url: "https://azure.microsoft.com/en-in/",
+                        badge: "AI Security"
+                      },
+                      {
+                        name: "Microsoft Entra",
+                        icon: "https://www.vectorlogo.zone/logos/microsoft_azure/microsoft_azure-icon.svg",
+                        url: "https://learn.microsoft.com/en-us/entra/",
+                        badge: "Identity"
                       },
                       {
                         name: "Bash",
@@ -593,12 +607,17 @@ export default function Home() {
                     ].map((skill) => (
                       <div key={skill.name} className="group flex flex-col items-center">
                         <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-12 h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1 relative">
                             <img
                               src={skill.icon || "/placeholder.svg"}
                               alt={skill.name}
                               className="w-full h-full object-contain"
                             />
+                            {skill.badge && (
+                              <Badge className="absolute -top-1 -right-1 text-xs bg-blue-500 text-white px-1 py-0.5">
+                                {skill.badge}
+                              </Badge>
+                            )}
                           </div>
                           <span className="text-xs text-zinc-400 group-hover:text-emerald-400 transition-colors text-center">
                             {skill.name}
@@ -606,6 +625,17 @@ export default function Home() {
                         </a>
                       </div>
                     ))}
+                  </div>
+                  <div className="mt-6 p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+                    <div className="flex items-center gap-2 text-blue-400 mb-2">
+                      <Shield className="h-4 w-4" />
+                      <span className="font-semibold">Microsoft AI Security Integration</span>
+                    </div>
+                    <p className="text-sm text-zinc-300">
+                      Leveraging Microsoft Azure AI for advanced threat detection, Entra ID for identity protection, 
+                      and Loop for collaborative security workflows. Experience next-generation cybersecurity 
+                      with AI-powered automation and predictive analytics.
+                    </p>
                   </div>
                 </div>
               </TabsContent>
@@ -615,7 +645,7 @@ export default function Home() {
                   <h3 className="text-xl font-semibold mb-6 flex items-center text-emerald-400">
                     <FileCode className="mr-3 h-6 w-6" />📱 Mobile & Game Dev
                   </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-6">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
                     {[
                       {
                         name: "Android",
@@ -640,7 +670,7 @@ export default function Home() {
                     ].map((skill) => (
                       <div key={skill.name} className="group flex flex-col items-center">
                         <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-12 h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
                             <img
                               src={skill.icon || "/placeholder.svg"}
                               alt={skill.name}
@@ -662,7 +692,7 @@ export default function Home() {
                   <h3 className="text-xl font-semibold mb-6 flex items-center text-emerald-400">
                     <Braces className="mr-3 h-6 w-6" />🎨 UI/UX & Design
                   </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-6">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
                     {[
                       {
                         name: "Figma",
@@ -697,7 +727,7 @@ export default function Home() {
                     ].map((skill) => (
                       <div key={skill.name} className="group flex flex-col items-center">
                         <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-12 h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
                             <img
                               src={skill.icon || "/placeholder.svg"}
                               alt={skill.name}
@@ -1056,6 +1086,174 @@ export default function Home() {
                   </CardFooter>
                 </Card>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Microsoft Integration Showcase */}
+        <section className="bg-zinc-900/30 py-20 relative">
+          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+          <div className="container mx-auto px-4 relative">
+            <div className="max-w-3xl mx-auto text-center mb-12">
+              <Badge className="mb-4 bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                <Globe className="w-3 h-3 mr-1" /> Microsoft Solutions
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                <GlitchText text="Microsoft & Enterprise Security" />
+              </h2>
+              <p className="text-zinc-400">
+                Advanced cybersecurity implementations leveraging Microsoft Azure, Entra ID, and enterprise-grade 
+                solutions for comprehensive threat protection and identity management.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+              <Card className="bg-zinc-800/50 border-zinc-700 hover:border-blue-500/50 transition-all duration-300 group">
+                <CardHeader>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                      <Server className="h-6 w-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-white group-hover:text-blue-400 transition-colors">
+                        Microsoft Azure Security
+                      </CardTitle>
+                      <CardDescription className="text-blue-400">Cloud Security Platform</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 text-sm text-zinc-300">
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Advanced Threat Protection with AI-powered detection</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Security posture management across hybrid environments</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Compliance monitoring and automated remediation</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Real-time security analytics and incident response</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" className="border-blue-500 text-blue-500 hover:bg-blue-500/20 w-full" asChild>
+                    <Link href="/cybersecurity-ai">
+                      <ArrowRight className="mr-2 h-4 w-4" />
+                      Explore Azure AI Security
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card className="bg-zinc-800/50 border-zinc-700 hover:border-purple-500/50 transition-all duration-300 group">
+                <CardHeader>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                      <Lock className="h-6 w-6 text-purple-500" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-white group-hover:text-purple-400 transition-colors">
+                        Microsoft Entra ID
+                      </CardTitle>
+                      <CardDescription className="text-purple-400">Identity & Access Management</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 text-sm text-zinc-300">
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Risk-based authentication with conditional access</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Identity protection with anomaly detection</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Single sign-on across enterprise applications</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Privileged identity management and monitoring</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" className="border-purple-500 text-purple-500 hover:bg-purple-500/20 w-full">
+                    <Shield className="mr-2 h-4 w-4" />
+                    View Identity Solutions
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card className="bg-zinc-800/50 border-zinc-700 hover:border-emerald-500/50 transition-all duration-300 group">
+                <CardHeader>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                      <Database className="h-6 w-6 text-emerald-500" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-white group-hover:text-emerald-400 transition-colors">
+                        Caen HR Solutions
+                      </CardTitle>
+                      <CardDescription className="text-emerald-400">HR Security & Compliance</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3 text-sm text-zinc-300">
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Employee data protection with encryption at rest</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Access management with role-based permissions</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Compliance tracking for HR regulations</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
+                      <span>Audit trails and security monitoring</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/20 w-full">
+                    <Code className="mr-2 h-4 w-4" />
+                    View HR Security Tools
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+
+            <div className="mt-12 text-center">
+              <div className="inline-flex items-center gap-4 p-6 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                <div className="text-blue-400">
+                  <Brain className="h-8 w-8" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-white mb-1">AI-Powered Security Integration</h3>
+                  <p className="text-sm text-zinc-400">
+                    Leveraging Microsoft AI for predictive threat detection and automated response
+                  </p>
+                </div>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
+                  <Link href="/cybersecurity-ai">
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>

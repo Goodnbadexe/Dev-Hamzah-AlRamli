@@ -151,7 +151,7 @@ export function MobileTerminal({ isOpen, onClose }: MobileTerminalProps) {
           ))}
           
           {/* Input Line */}
-          <div className="flex items-center mt-2">
+          <div className="flex items-center mt-2 min-h-[44px]">
             <span className="text-emerald-500 mr-2">
               goodnbad@exe {currentDirectory} $
             </span>
@@ -161,7 +161,7 @@ export function MobileTerminal({ isOpen, onClose }: MobileTerminalProps) {
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="flex-1 bg-transparent border-none outline-none text-emerald-300 caret-emerald-300"
+              className="flex-1 bg-transparent border-none outline-none text-emerald-300 caret-emerald-300 min-h-[44px] text-base"
               placeholder="Type a command..."
             />
           </div>
