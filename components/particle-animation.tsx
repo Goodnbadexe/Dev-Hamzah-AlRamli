@@ -318,10 +318,11 @@ export function ParticleAnimation() {
       gl!.drawArrays(gl!.POINTS, 0, config.particleCount)
     }
 
+    let animationId: number
     function animate(): void {
       updateParticles()
       draw()
-      requestAnimationFrame(animate)
+      animationId = requestAnimationFrame(animate)
     }
 
     const handleMouseMove = (event: MouseEvent): void => {
@@ -330,7 +331,21 @@ export function ParticleAnimation() {
       mouse.y = ((event.clientY - rect.top) / rect.height) * -2 + 1
     }
 
+    const handleTouchMove = (event: TouchEvent): void => {
+      if (event.touches.length > 0) {
+        const rect = canvas.getBoundingClientRect()
+        const touch = event.touches[0]
+        mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1
+        mouse.y = ((touch.clientY - rect.top) / rect.height) * -2 + 1
+      }
+    }
+
     const handleMouseLeave = (): void => {
+      mouse.x = -500
+      mouse.y = -500
+    }
+
+    const handleTouchEnd = (): void => {
       mouse.x = -500
       mouse.y = -500
     }
@@ -375,6 +390,8 @@ export function ParticleAnimation() {
 
     canvas.addEventListener("mousemove", handleMouseMove)
     canvas.addEventListener("mouseleave", handleMouseLeave)
+    canvas.addEventListener("touchmove", handleTouchMove)
+    canvas.addEventListener("touchend", handleTouchEnd)
     window.addEventListener("resize", handleResize)
 
     // Enable blending for transparency
@@ -394,8 +411,32 @@ export function ParticleAnimation() {
     return () => {
       canvas.removeEventListener("mousemove", handleMouseMove)
       canvas.removeEventListener("mouseleave", handleMouseLeave)
+      canvas.removeEventListener("touchmove", handleTouchMove)
+      canvas.removeEventListener("touchend", handleTouchEnd)
       window.removeEventListener("resize", handleResize)
       clearTimeout(nextTextTimeout)
+      if (animationId) {
+        cancelAnimationFrame(animationId)
+      }
+      // Clean up WebGL resources
+      if (gl && program) {
+        gl.deleteProgram(program)
+      }
+      if (vertexShader) {
+        gl.deleteShader(vertexShader)
+      }
+      if (fragmentShader) {
+        gl.deleteShader(fragmentShader)
+      }
+      if (positionBuffer) {
+        gl.deleteBuffer(positionBuffer)
+      }
+      if (hueBuffer) {
+        gl.deleteBuffer(hueBuffer)
+      }
+      if (saturationBuffer) {
+        gl.deleteBuffer(saturationBuffer)
+      }
     }
   }, [])
 

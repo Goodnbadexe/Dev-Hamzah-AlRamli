@@ -5,8 +5,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, X, FileText, Terminal, Brain } from "lucide-react"
+import { Menu, X, FileText, Terminal, Brain, Shield } from "lucide-react"
 import { GlitchText } from "@/components/glitch-text"
+import { DateTimeDisplay } from "@/components/datetime-display"
 
 interface MobileNavProps {
   showTerminal: boolean
@@ -26,19 +27,30 @@ export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:w-80 bg-zinc-900 border-zinc-800 p-0 [&>button]:hidden">
         <div className="flex flex-col h-full">
-          <div className="flex items-center p-4 border-b border-zinc-800">
+          <div className="flex items-center justify-between p-4 border-b border-zinc-800">
             <div className="flex items-center gap-2">
-              <div className="relative w-12 h-12">
+              <div className="relative w-10 h-10">
                 <Image
                   src="/images/logo-green.png"
                   alt="Goodnbad.exe Logo"
-                  width={48}
-                  height={48}
+                  width={40}
+                  height={40}
                   className="rounded-full"
                 />
               </div>
-              <GlitchText text="Goodnbad.exe" className="font-bold text-lg" />
+              <div className="flex flex-col">
+                <GlitchText text="Goodnbad.exe" className="font-bold text-lg" />
+                <DateTimeDisplay />
+              </div>
             </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-zinc-400 hover:text-emerald-400"
+              onClick={() => setOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
 
           <nav className="flex-1 overflow-auto py-6 px-4">
@@ -74,6 +86,11 @@ export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
               >
                 <Terminal className="mr-2 h-4 w-4" /> 
                 {showTerminal ? 'Hide Terminal' : 'Open Terminal'}
+              </Button>
+              <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white min-h-[44px]" asChild>
+                <Link href="/security" onClick={() => setOpen(false)}>
+                  <Shield className="mr-2 h-4 w-4" /> Security Atlas
+                </Link>
               </Button>
               <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white min-h-[44px]" asChild>
                 <Link href="/cybersecurity-ai" onClick={() => setOpen(false)}>

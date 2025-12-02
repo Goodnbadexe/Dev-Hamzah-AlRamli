@@ -11,12 +11,25 @@ export function InteractiveHackerElements() {
       setMousePosition({ x: e.clientX, y: e.clientY })
     }
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const touch = e.touches[0]
+        setMousePosition({ x: touch.clientX, y: touch.clientY })
+      }
+    }
+
     window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    window.addEventListener('touchmove', handleTouchMove)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('touchmove', handleTouchMove)
+    }
   }, [])
 
   const handleMouseEnter = () => setShowTracking(true)
   const handleMouseLeave = () => setShowTracking(false)
+  const handleTouchStart = () => setShowTracking(true)
+  const handleTouchEnd = () => setShowTracking(false)
 
   return (
     <div className="fixed inset-0 pointer-events-none z-40">
@@ -51,42 +64,44 @@ export function InteractiveHackerElements() {
 
       {/* Interactive corner elements */}
       <div 
-        className="absolute top-4 left-4 text-emerald-400/30 hover:text-emerald-400 transition-colors duration-300 cursor-pointer pointer-events-auto"
+        className="absolute top-16 left-2 md:top-4 md:left-4 text-emerald-400/30 hover:text-emerald-400 transition-colors duration-300 cursor-pointer pointer-events-auto z-30"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         <div className="font-mono text-xs">
-          <div>IP: 192.168.{Math.floor(Math.random() * 255)}.{Math.floor(Math.random() * 255)}</div>
+          <div className="hidden sm:block">IP: 192.168.{Math.floor(Math.random() * 255)}.{Math.floor(Math.random() * 255)}</div>
           <div>STATUS: {showTracking ? 'TRACKING' : 'IDLE'}</div>
-          <div>X: {mousePosition.x} Y: {mousePosition.y}</div>
+          <div className="hidden md:block">X: {mousePosition.x} Y: {mousePosition.y}</div>
         </div>
       </div>
 
-      <div className="absolute top-4 right-4 text-emerald-400/30 hover:text-emerald-400 transition-colors duration-300 pointer-events-auto">
+      <div className="absolute top-16 right-2 md:top-4 md:right-4 text-emerald-400/30 hover:text-emerald-400 transition-colors duration-300 pointer-events-auto z-30">
         <div className="font-mono text-xs text-right">
-          <div>SYSTEM: ONLINE</div>
+          <div className="hidden sm:block">SYSTEM: ONLINE</div>
           <div>FIREWALL: ACTIVE</div>
-          <div>PACKETS: {Math.floor(Math.random() * 9999)}</div>
+          <div className="hidden lg:block">PACKETS: {Math.floor(Math.random() * 9999)}</div>
         </div>
       </div>
 
-      <div className="absolute bottom-4 left-4 text-emerald-400/30 hover:text-emerald-400 transition-colors duration-300 pointer-events-auto">
+      <div className="absolute bottom-20 left-2 md:bottom-4 md:left-4 text-emerald-400/30 hover:text-emerald-400 transition-colors duration-300 pointer-events-auto z-30">
         <div className="font-mono text-xs">
-          <div>PORT: 8080</div>
-          <div>PROTOCOL: HTTPS</div>
-          <div>ENCRYPTION: AES-256</div>
+          <div className="hidden sm:block">PORT: 8080</div>
+          <div className="hidden md:block">PROTOCOL: HTTPS</div>
+          <div className="hidden lg:block">ENCRYPTION: AES-256</div>
         </div>
       </div>
 
       {/* Animated status indicators */}
-      <div className="absolute bottom-4 right-4 space-y-2 pointer-events-auto">
+      <div className="absolute bottom-16 right-2 md:bottom-4 md:right-4 space-y-1 md:space-y-2 pointer-events-auto z-40">
         {['SCANNING', 'MONITORING', 'PROTECTING'].map((status, index) => (
-          <div key={status} className="flex items-center gap-2">
+          <div key={status} className="flex items-center gap-1 md:gap-2">
             <div 
-              className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"
+              className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-400 animate-pulse"
               style={{ animationDelay: `${index * 0.5}s` }}
             />
-            <span className="text-emerald-400/60 text-xs font-mono">{status}</span>
+            <span className="text-emerald-400/60 text-xs font-mono hidden sm:inline">{status}</span>
           </div>
         ))}
       </div>
@@ -98,7 +113,7 @@ export function FloatingBinaryBackground() {
   const [binaryChars, setBinaryChars] = useState<Array<{id: number, char: string, x: number, y: number, delay: number}>>([])
 
   useEffect(() => {
-    const chars = Array.from({ length: 50 }, (_, i) => ({
+    const chars = Array.from({ length: 30 }, (_, i) => ({
       id: i,
       char: Math.random() > 0.5 ? '1' : '0',
       x: Math.random() * 100,

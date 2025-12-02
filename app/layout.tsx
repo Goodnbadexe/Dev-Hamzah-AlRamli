@@ -13,33 +13,87 @@ const notoKufiArabic = Noto_Kufi_Arabic({
 })
 
 export const metadata: Metadata = {
-  title: "Hamzah Al‑Ramli — Cybersecurity Portfolio",
-  description: "Personal CV and projects: cybersecurity, systems administration, development, and CTFs.",
+  title: "Hamzah Al-Ramli - Cybersecurity Expert & Ethical Hacker Portfolio | Certified Security Professional",
+  description: "Certified cybersecurity professional specializing in ethical hacking, penetration testing, malware analysis, and enterprise security. Microsoft Azure, Entra ID, and advanced threat protection expertise. View my security certifications and portfolio.",
   generator: 'v0.dev',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
     apple: '/favicon.svg',
   },
+  keywords: [
+    "cybersecurity portfolio", "ethical hacker", "penetration testing", "malware analysis", 
+    "Microsoft Azure security", "Entra ID", "cybersecurity expert", "threat detection",
+    "vulnerability assessment", "network security", "information security", "CTF",
+    "cybersecurity certifications", "reverse engineering", "security risk management",
+    "Hamzah Al-Ramli", "Goodnbad.exe", "cybersecurity professional", "security analyst",
+    "certified ethical hacker", "CEH", "CompTIA Security+", "Microsoft security",
+    "Azure security engineer", "incident response", "digital forensics", "cybersecurity consultant",
+    "threat hunting", "security architecture", "risk assessment", "compliance security",
+    "Saudi Arabia cybersecurity", "Middle East security expert", "GCC cybersecurity",
+    "enterprise security solutions", "security audit", "vulnerability management",
+    "security operations center", "SOC analyst", "security information management",
+    "cybersecurity training", "security awareness", "phishing simulation", "security testing"
+  ],
+  authors: [{ name: "Hamzah Al-Ramli", url: "https://www.goodnbad.info" }],
+  creator: "Hamzah Al-Ramli",
+  publisher: "Goodnbad.exe",
   openGraph: {
-    title: 'Hamzah Al‑Ramli — Cybersecurity Portfolio',
-    description: 'Personal CV and projects with terminal, CTFs, and security atlas.',
+    title: 'Hamzah Al-Ramli - Certified Cybersecurity Expert & Ethical Hacker',
+    description: 'Certified cybersecurity professional with expertise in ethical hacking, Microsoft security solutions, malware analysis, and advanced threat protection. View my security portfolio, certifications, and enterprise security experience.',
     url: 'https://www.goodnbad.info',
-    siteName: 'Goodnbad.exe',
+    siteName: 'Goodnbad.exe - Cybersecurity Professional Portfolio',
     images: [
-      { url: '/images/logo-green.png', width: 512, height: 512, alt: 'Goodnbad.exe' }
+      { url: '/images/logo-green.png', width: 512, height: 512, alt: 'Hamzah Al-Ramli Cybersecurity Expert Portfolio - Certified Security Professional' }
     ],
-    type: 'website'
+    type: 'website',
+    locale: 'en_US'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Hamzah Al‑Ramli — Cybersecurity Portfolio',
-    description: 'CV, projects, terminal CTFs, and security atlas.',
-    images: ['/images/logo-green.png']
+    title: 'Hamzah Al-Ramli - Cybersecurity Expert & Ethical Hacker Portfolio',
+    description: 'Certified cybersecurity professional specializing in ethical hacking, malware analysis, Microsoft enterprise security solutions, and advanced threat protection.',
+    images: ['/images/logo-green.png'],
+    creator: '@Goodnbadexe'
   },
   robots: {
     index: true,
-    follow: true
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'google-site-verification-code',
+    yandex: 'yandex-verification-code'
+  },
+  alternates: {
+    canonical: 'https://www.goodnbad.info',
+    languages: {
+      'en-US': 'https://www.goodnbad.info',
+    },
+  },
+  category: 'cybersecurity',
+  classification: 'Cybersecurity Professional Portfolio',
+  other: {
+    'page-topic': 'Cybersecurity, Ethical Hacking, Penetration Testing',
+    'page-type': 'Portfolio',
+    'audience': 'Security professionals, recruiters, enterprises',
+    'author': 'Hamzah Al-Ramli',
+    'copyright': '© 2024 Hamzah Al-Ramli. All rights reserved.',
+    'reply-to': 'contact@goodnbad.info',
+    'distribution': 'global',
+    'rating': 'general',
+    'revisit-after': '7 days',
+    'language': 'en-us',
+    'geo.region': 'SA',
+    'geo.placename': 'Saudi Arabia',
+    'geo.position': '24.7136;46.6753',
+    'ICBM': '24.7136, 46.6753'
   }
 }
 
@@ -48,6 +102,59 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Hamzah Al-Ramli",
+    "jobTitle": "Cybersecurity Expert & Ethical Hacker",
+    "description": "Certified cybersecurity professional specializing in ethical hacking, penetration testing, malware analysis, and enterprise security solutions.",
+    "url": "https://www.goodnbad.info",
+    "image": "https://www.goodnbad.info/images/logo-green.png",
+    "sameAs": [
+      "https://github.com/Goodnbadexe",
+      "https://linkedin.com/in/hamzah-al-ramli",
+      "https://www.goodnbad.info"
+    ],
+    "knowsAbout": [
+      "Cybersecurity",
+      "Ethical Hacking",
+      "Penetration Testing",
+      "Malware Analysis",
+      "Microsoft Azure Security",
+      "Entra ID",
+      "Threat Detection",
+      "Vulnerability Assessment",
+      "Network Security",
+      "Incident Response"
+    ],
+    "alumniOf": {
+      "@type": "EducationalOrganization",
+      "name": "Taylor's University"
+    },
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Goodnbad.exe",
+      "description": "Cybersecurity Consulting and Professional Services"
+    },
+    "hasCredential": [
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Microsoft Cybersecurity Architect",
+        "issuedBy": "Microsoft"
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "LetsDefend Malware Analysis",
+        "issuedBy": "LetsDefend"
+      }
+    ],
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "SA",
+      "addressRegion": "Riyadh"
+    }
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -57,6 +164,10 @@ export default function RootLayout({
           href="/images/Taylors-University-Logo-Vector.svg-.png"
         />
         <link rel="canonical" href="https://www.goodnbad.info" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
       </head>
       <body className={`${inter.className} ${notoKufiArabic.className}`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>

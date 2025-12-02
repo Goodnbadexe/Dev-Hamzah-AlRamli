@@ -1,13 +1,3 @@
-// === METADATA ===
-// Purpose: Cybersecurity AI showcase page with interactive demonstrations
-// Author: @Goodnbad.exe
-// Inputs: N/A
-// Outputs: Rendered Next.js page with AI cybersecurity features
-// Assumptions: TailwindCSS configured; interactive elements available
-// Tests: Manual UI check at `http://localhost:3000/cybersecurity-ai`
-// Security: No sensitive data; client-side demonstrations only
-// Complexity: O(N) rendering where N = interactive elements
-// === END METADATA ===
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -125,7 +115,7 @@ export default function CybersecurityAIPage() {
     }
   ];
 
-  const microsoftIntegrations = [
+  const microsoftSkills = [
     {
       title: "Microsoft Azure Security Center",
       description: "Advanced threat protection across hybrid cloud environments",
@@ -145,10 +135,10 @@ export default function CybersecurityAIPage() {
       features: ["Content Security", "Collaboration Monitoring", "Data Loss Prevention"]
     },
     {
-      title: "Caen HR Security Solutions",
-      description: "HR systems security with predictive analytics",
+      title: "Microsoft Admin Center",
+      description: "Unified administration portal with security integration",
       icon: <Code className="h-5 w-5" />,
-      features: ["Employee Data Protection", "Access Management", "Compliance Tracking"]
+      features: ["User Management", "Policy Deployment", "Security Monitoring"]
     }
   ];
 
@@ -350,35 +340,35 @@ export default function CybersecurityAIPage() {
         </div>
       </section>
 
-      {/* Microsoft Integrations Section */}
+      {/* Microsoft AI Skills Section */}
       <section className="container mx-auto py-20 px-4 relative z-10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              <GlitchText text="Microsoft AI Integrations" />
+              <GlitchText text="Microsoft AI Skills" />
             </h2>
             <p className="text-zinc-400 text-lg">
-              Advanced cybersecurity solutions powered by Microsoft AI technologies
+              Advanced cybersecurity skills with Microsoft AI technologies
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {microsoftIntegrations.map((integration, index) => (
+            {microsoftSkills.map((skill, index) => (
               <Card key={index} className="bg-zinc-800/50 border-zinc-700 hover:border-blue-500/50 transition-all duration-300 group">
                 <CardHeader>
                   <div className="text-blue-500 mb-3 group-hover:scale-110 transition-transform">
-                    {integration.icon}
+                    {skill.icon}
                   </div>
                   <CardTitle className="text-white group-hover:text-blue-400 transition-colors">
-                    {integration.title}
+                    {skill.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-zinc-400 mb-4">
-                    {integration.description}
+                    {skill.description}
                   </CardDescription>
                   <div className="space-y-3">
-                    {integration.features.map((feature, idx) => (
+                    {skill.features.map((feature, idx) => (
                       <div key={idx} className="flex items-start gap-3">
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
                         <span className="text-sm text-zinc-300">{feature}</span>

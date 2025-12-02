@@ -33,7 +33,7 @@ export function getParticleConfig(width: number, height: number): ParticleConfig
   const fontSize = Math.min(width * 0.18, height * 0.28, 220)
 
   return {
-    particleCount: isMobile ? 2000 : isTablet ? 3500 : 5000,
+    particleCount: isMobile ? 800 : isTablet ? 1500 : 2500,
     textArray: ["Stay curious.", "Break limits.", "Build meaning."],
     mouseRadius: isMobile ? 0.15 : 0.1,
     particleSize: isMobile ? 1.5 : 2,

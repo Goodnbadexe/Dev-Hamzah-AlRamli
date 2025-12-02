@@ -179,13 +179,13 @@ export default function SecurityPage() {
                       <div className="mb-3">
                         <div className="text-emerald-400 font-medium mb-1">{lang==='ar'?'الدروس':'Lessons'}</div>
                         <ul className="space-y-1 text-zinc-300 text-sm">
-                          {c.lessons.map((l,i)=>(<li key={i}>• {l}</li>))}
+                          {c.lessons.map((l: string,i: number)=>(<li key={i}>• {l}</li>))}
                         </ul>
                       </div>
                       <div className="mb-3">
                         <div className="text-emerald-400 font-medium mb-1">{lang==='ar'?'التخفيف':'Mitigations'}</div>
                         <ul className="space-y-1 text-zinc-300 text-sm">
-                          {c.mitigations.map((m,i)=>(<li key={i}>• {m}</li>))}
+                          {c.mitigations.map((m: string,i: number)=>(<li key={i}>• {m}</li>))}
                         </ul>
                       </div>
                       <Link className="text-emerald-400 text-sm" href={c.source} target="_blank">{c.sourceLabel}</Link>

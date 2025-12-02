@@ -55,6 +55,7 @@ import { MobileTerminal } from "@/components/mobile-terminal"
 import { GlitchText } from "@/components/glitch-text"
 import { MatrixBackground } from "@/components/matrix-background"
 import { ParticleAnimation } from "@/components/particle-animation"
+import { DateTimeDisplay } from "@/components/datetime-display"
 
 export default function Home() {
   const [showMobileTerminal, setShowMobileTerminal] = useState(false)
@@ -99,7 +100,10 @@ export default function Home() {
                 priority
               />
             </div>
-            <GlitchText text="Goodnbad.exe" className="font-bold text-xl" />
+            <div className="flex flex-col">
+              <GlitchText text="Goodnbad.exe" className="font-bold text-xl" />
+              <DateTimeDisplay />
+            </div>
           </div>
 
           <div className="hidden md:flex gap-6">
@@ -168,7 +172,7 @@ export default function Home() {
               <Shield className="w-3 h-3 mr-1" /> Cybersecurity
             </Badge>
             <p className="text-sm md:text-base text-zinc-300">
-              Threat Analysis • Vulnerability Management • Incident Response
+              <GlitchText text="Threat Analysis" /> • <GlitchText text="Vulnerability Management" /> • <GlitchText text="Incident Response" />
             </p>
           </div>
         </section>
@@ -181,7 +185,7 @@ export default function Home() {
         </div>
 
         {/* Particle Animation Section */}
-        <section className="relative h-96 mb-20 overflow-hidden">
+        <section className="relative h-64 md:h-80 lg:h-96 mb-12 md:mb-16 lg:mb-20 overflow-hidden">
           <div className="absolute inset-0" style={{ zIndex: 1 }}>
             <ParticleAnimation />
           </div>
@@ -203,9 +207,9 @@ export default function Home() {
               </p>
               {/* Bullet strengths */}
               <div className="mt-6 flex items-center justify-center gap-6 text-sm text-zinc-300">
-                <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-emerald-500" /> Threat Analysis</span>
-                <span className="flex items-center gap-2"><Bug className="w-4 h-4 text-emerald-500" /> Vulnerability Management</span>
-                <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-emerald-500" /> Incident Response</span>
+                <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-emerald-500" /> <GlitchText text="Threat Analysis" /></span>
+                <span className="flex items-center gap-2"><Bug className="w-4 h-4 text-emerald-500" /> <GlitchText text="Vulnerability Management" /></span>
+                <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-emerald-500" /> <GlitchText text="Incident Response" /></span>
               </div>
               {/* Cert ribbon */}
               <div className="mt-4 flex flex-wrap justify-center gap-3">
@@ -369,13 +373,13 @@ export default function Home() {
             </div>
 
             <Tabs value={activeSkillTab} onValueChange={setActiveSkillTab} className="mt-12">
-              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 max-w-4xl mx-auto bg-zinc-800/50">
-                <TabsTrigger value="programming">Programming</TabsTrigger>
-                <TabsTrigger value="frontend">Frontend</TabsTrigger>
-                <TabsTrigger value="backend">Backend</TabsTrigger>
-                <TabsTrigger value="devops">DevOps</TabsTrigger>
-                <TabsTrigger value="mobile">Mobile</TabsTrigger>
-                <TabsTrigger value="design">Design</TabsTrigger>
+              <TabsList className="flex w-full max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-x-auto shadow-lg">
+                <TabsTrigger value="programming" className="flex-shrink-0">Programming</TabsTrigger>
+                <TabsTrigger value="frontend" className="flex-shrink-0">Frontend</TabsTrigger>
+                <TabsTrigger value="backend" className="flex-shrink-0">Backend</TabsTrigger>
+                <TabsTrigger value="devops" className="flex-shrink-0">DevOps</TabsTrigger>
+                <TabsTrigger value="mobile" className="flex-shrink-0">Mobile</TabsTrigger>
+                <TabsTrigger value="design" className="flex-shrink-0">Design</TabsTrigger>
               </TabsList>
 
               <TabsContent value="programming" className="mt-8">
@@ -432,7 +436,7 @@ export default function Home() {
                             <img
                               src={skill.icon || "/placeholder.svg"}
                               alt={skill.name}
-                              className="w-full h-full object-contain"
+                              className={`w-full h-full object-contain ${skill.name === "Photoshop" ? "brightness-0 invert" : ""}`}
                             />
                           </div>
                           <span className="text-xs text-zinc-400 group-hover:text-emerald-400 transition-colors text-center">
@@ -722,7 +726,7 @@ export default function Home() {
                       },
                       {
                         name: "Photoshop",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/photoshop/photoshop-line.svg",
+                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/photoshop/photoshop-plain.svg",
                         url: "https://www.photoshop.com/en",
                       },
                       {
@@ -772,6 +776,10 @@ export default function Home() {
                   { name: "Network Security", level: 85 },
                   { name: "Vulnerability Management", level: 88 },
                   { name: "MDR (Managed Detection and Response)", level: 82 },
+                  { name: "Malware Analysis", level: 88 },
+                  { name: "Reverse Engineering", level: 85 },
+                  { name: "Static & Dynamic Analysis", level: 87 },
+                  { name: "KayanHR Security Systems", level: 83 },
                   { name: "Cybersecurity Foundations", level: 85 },
                 ].map((skill) => (
                   <div key={skill.name} className="group">
@@ -1038,6 +1046,14 @@ export default function Home() {
                   skills: ["Cybersecurity", "Network Security", "Linux and SQL", "Foundations of Cybersecurity"],
                 },
                 {
+                  title: "Malware Analysis Skill Path",
+                  issuer: "LetsDefend",
+                  date: "November 2025",
+                  credentialId: "1901438d-f379-4456-a222-d3744d4c15be",
+                  url: "https://app.letsdefend.io/certificate/show/1901438d-f379-4456-a222-d3744d4c15be",
+                  skills: ["Malware Analysis", "Reverse Engineering", "Static Analysis", "Dynamic Analysis"],
+                },
+                {
                   title: "Cybersecurity Assessment: CompTIA Security+ & CYSA+",
                   issuer: "IBM",
                   date: "May 2025",
@@ -1112,14 +1128,14 @@ export default function Home() {
           <div className="container mx-auto px-4 relative">
             <div className="max-w-3xl mx-auto text-center mb-12">
               <Badge className="mb-4 bg-blue-500/10 text-blue-400 border border-blue-500/30">
-                <Globe className="w-3 h-3 mr-1" /> Microsoft Solutions
+                <Globe className="w-3 h-3 mr-1" /> Microsoft Skills
               </Badge>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                <GlitchText text="Microsoft & Enterprise Security" />
+                <GlitchText text="Microsoft & Enterprise Security Skills" />
               </h2>
               <p className="text-zinc-400">
-                Advanced cybersecurity implementations leveraging Microsoft Azure, Entra ID, and enterprise-grade 
-                solutions for comprehensive threat protection and identity management.
+                Advanced cybersecurity skills with Microsoft Azure, Entra ID, and enterprise-grade 
+                implementations for comprehensive threat protection and identity management.
               </p>
             </div>
 
@@ -1214,13 +1230,13 @@ export default function Home() {
                 <CardHeader>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-                      <Database className="h-6 w-6 text-emerald-500" />
+                      <Server className="h-6 w-6 text-emerald-500" />
                     </div>
                     <div>
                       <CardTitle className="text-white group-hover:text-emerald-400 transition-colors">
-                        Caen HR Solutions
+                        Microsoft Admin Center
                       </CardTitle>
-                      <CardDescription className="text-emerald-400">HR Security & Compliance</CardDescription>
+                      <CardDescription className="text-emerald-400">Unified Administration Portal</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -1228,26 +1244,26 @@ export default function Home() {
                   <ul className="space-y-3 text-sm text-zinc-300">
                     <li className="flex items-start gap-2">
                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
-                      <span>Employee data protection with encryption at rest</span>
+                      <span>Centralized user and device management across Microsoft 365</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
-                      <span>Access management with role-based permissions</span>
+                      <span>Security policy deployment and compliance monitoring</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
-                      <span>Compliance tracking for HR regulations</span>
+                      <span>Integrated reporting and analytics for enterprise security</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
-                      <span>Audit trails and security monitoring</span>
+                      <span>Automated security workflows and threat response</span>
                     </li>
                   </ul>
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/20 w-full">
                     <Code className="mr-2 h-4 w-4" />
-                    View HR Security Tools
+                    View Admin Solutions
                   </Button>
                 </CardFooter>
               </Card>
@@ -1316,12 +1332,6 @@ export default function Home() {
                       url: "https://www.masaratevents.com",
                       description: "Corporate website for Masarat Events with modern design and event management.",
                       icon: <Globe />,
-                    },
-                    {
-                      title: "GitHub Profile",
-                      url: "https://github.com/goodnbadexe",
-                      description: "My GitHub repositories featuring various coding projects and experiments.",
-                      icon: <Github />,
                     },
                   ].map((site, index) => (
                     <Card
@@ -1618,7 +1628,10 @@ export default function Home() {
                   className="rounded-full"
                 />
               </div>
-              <GlitchText text="Goodnbad.exe" className="font-bold text-xl" />
+              <div className="flex flex-col">
+                <GlitchText text="Goodnbad.exe" className="font-bold text-xl" />
+                <DateTimeDisplay />
+              </div>
             </div>
             <div className="text-zinc-400 text-sm">
               © {new Date().getFullYear()} Hamzah Al-Ramli. All rights reserved.
