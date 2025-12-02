@@ -33,7 +33,8 @@ import {
   ArrowLeft,
   ArrowRight,
   Play,
-  Pause
+  Pause,
+  Mail
 } from 'lucide-react';
 import { MatrixBackground } from '@/components/matrix-background';
 import { GlitchText } from '@/components/glitch-text';

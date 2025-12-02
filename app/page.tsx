@@ -12,7 +12,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   ArrowRight,
   Code,
@@ -41,6 +41,8 @@ import {
   Bug,
   Brain,
   Bot,
+  Lock,
+  Database,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -56,6 +58,20 @@ import { ParticleAnimation } from "@/components/particle-animation"
 
 export default function Home() {
   const [showMobileTerminal, setShowMobileTerminal] = useState(false)
+  const [activeSkillTab, setActiveSkillTab] = useState("programming")
+
+  // Auto-rotate skills tabs
+  useEffect(() => {
+    const skillTabs = ["programming", "frontend", "backend", "devops", "mobile", "design"]
+    let currentIndex = 0
+
+    const interval = setInterval(() => {
+      currentIndex = (currentIndex + 1) % skillTabs.length
+      setActiveSkillTab(skillTabs[currentIndex])
+    }, 4000) // Rotate every 4 seconds
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white relative overflow-hidden">
@@ -352,7 +368,7 @@ export default function Home() {
               </p>
             </div>
 
-            <Tabs defaultValue="programming" className="mt-12">
+            <Tabs value={activeSkillTab} onValueChange={setActiveSkillTab} className="mt-12">
               <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 max-w-4xl mx-auto bg-zinc-800/50">
                 <TabsTrigger value="programming">Programming</TabsTrigger>
                 <TabsTrigger value="frontend">Frontend</TabsTrigger>

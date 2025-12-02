@@ -24,7 +24,7 @@ export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
           <span className="sr-only">Toggle menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:w-80 bg-zinc-900 border-zinc-800 p-0">
+      <SheetContent side="right" className="w-full sm:w-80 bg-zinc-900 border-zinc-800 p-0 [&>button]:hidden">
         <div className="flex flex-col h-full">
           <div className="flex items-center p-4 border-b border-zinc-800">
             <div className="flex items-center gap-2">
