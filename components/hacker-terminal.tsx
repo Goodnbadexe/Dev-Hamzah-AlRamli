@@ -17,6 +17,33 @@ import { AuthManager } from './terminal/auth/AuthManager';
 import { GameStateManager } from './terminal/game/GameStateManager';
 import { TerminalContext, CommandResult } from './terminal/types';
 import { asciiArt, startURLAnimation, createMultiEmojiAnimation, createWaveAnimation, createLoadingAnimation } from './terminal/utils/ascii-art';
+import { getNextChallenge } from './terminal/config/ctf-challenges';
+
+const userSkull = `⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡠⢤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡴⠟⠃⠀⠀⠙⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠋⠀⠀⠀⠀⠀⠀⠘⣆⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠾⢛⠒⠀⠀⠀⠀⠀⠀⠀⢸⡆⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣶⣄⡈⠓⢄⠠⡀⠀⠀⠀⣄⣷⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣷⠀⠈⠱⡄⠑⣌⠆⠀⠀⡜⢻⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⡿⠳⡆⠐⢿⣆⠈⢿⠀⠀⡇⠘⡆⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⣿⣷⡇⠀⠀⠈⢆⠈⠆⢸⠀⠀⢣⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣧⠀⠀⠈⢂⠀⡇⠀⠀⢨⠓⣄⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣿⣿⣦⣤⠖⡏⡸⠀⣀⡴⠋⠀⠈⠢⡀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⠁⣹⣿⣿⣿⣷⣾⠽⠖⠊⢹⣀⠄⠀⠀⠀⠈⢣⡀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡟⣇⣰⢫⢻⢉⠉⠀⣿⡆⠀⠀⡸⡏⠀⠀⠀⠀⠀⠀⢇
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢨⡇⡇⠈⢸⢸⢸⠀⠀⡇⡇⠀⠀⠁⠻⡄⡠⠂⠀⠀⠀⠘
+⢤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠛⠓⡇⠀⠸⡆⢸⠀⢠⣿⠀⠀⠀⠀⣰⣿⣵⡆⠀⠀⠀⠀
+⠈⢻⣷⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡿⣦⣀⡇⠀⢧⡇⠀⠀⢺⡟⠀⠀⠀⢰⠉⣰⠟⠊⣠⠂⠀⡸
+⠀⠀⢻⣿⣿⣷⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⢧⡙⠺⠿⡇⠀⠘⠇⠀⠀⢸⣧⠀⠀⢠⠃⣾⣌⠉⠩⠭⠍⣉⡇
+⠀⠀⠀⠻⣿⣿⣿⣿⣿⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣞⣋⠀⠈⠀⡳⣧⠀⠀⠀⠀⠀⢸⡏⠀⠀⡞⢰⠉⠉⠉⠉⠉⠓⢻⠃
+⠀⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣷⡄⠀⠀⢀⣀⠠⠤⣤⣤⠤⠞⠓⢠⠈⡆⠀⢣⣸⣾⠆⠀⠀⠀⠀⠀⢀⣀⡼⠁⡿⠈⣉⣉⣒⡒⠢⡼⠀
+⠀⠀⠀⠀⠀⠘⣿⣿⣿⣿⣿⣿⣿⣎⣽⣶⣤⡶⢋⣤⠃⣠⡦⢀⡼⢦⣾⡤⠚⣟⣁⣀⣀⣀⣀⠀⣀⣈⣀⣠⣾⣅⠀⠑⠂⠤⠌⣩⡇⠀
+⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡁⣺⢁⣞⣉⡴⠟⡀⠀⠀⠀⠁⠸⡅⠀⠈⢷⠈⠏⠙⠀⢹⡛⠀⢉⠀⠀⠀⣀⣀⣼⡇⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⣽⣿⡟⢡⠖⣡⡴⠂⣀⣀⣀⣰⣁⣀⣀⣸⠀⠀⠀⠀⠈⠁⠀⠀⠈⠀⣠⠜⠋⣠⠁⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⣿⣿⣿⡟⢿⣿⣿⣷⡟⢋⣥⣖⣉⠀⠈⢁⡀⠤⠚⠿⣷⡦⢀⣠⣀⠢⣄⣀⡠⠔⠋⠁⠀⣼⠃⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⣿⡄⠈⠻⣿⣿⢿⣛⣩⠤⠒⠉⠁⠀⠀⠀⠀⠀⠉⠒⢤⡀⠉⠁⠀⠀⠀⠀⠀⢀⡿⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢿⣤⣤⠴⠟⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠑⠤⠀⠀⠀⠀⠀⢩⠇⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀`;
 import { cn } from "@/lib/utils"
 
 // Add CSS animations
@@ -62,6 +89,15 @@ const styles = `
       box-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00;
     }
   }
+
+  @keyframes glitchText {
+    0% { transform: skew(0deg); opacity: 1; }
+    20% { transform: skew(2deg); opacity: 0.9; }
+    40% { transform: skew(-2deg); opacity: 1; }
+    60% { transform: skew(1deg); opacity: 0.95; }
+    80% { transform: skew(-1deg); opacity: 1; }
+    100% { transform: skew(0deg); opacity: 1; }
+  }
 `
 
 interface HistoryEntry {
@@ -85,7 +121,7 @@ export function HackerTerminal() {
   const [historyIndex, setHistoryIndex] = useState(-1)
   
   // CTF completion notifications
-  const [ctfNotifications, setCTFNotifications] = useState<{id: number, message: string, timestamp: number}[]>([])
+  const [ctfNotifications, setCTFNotifications] = useState<{id: number, message: string, timestamp: number, nextChallengeId?: string | null, nextChallengeTitle?: string | null}[]>([])
   
   // URL Animation cleanup functions
   const [urlAnimationCleanup, setUrlAnimationCleanup] = useState<(() => void) | null>(null)
@@ -496,16 +532,25 @@ export function HackerTerminal() {
             
             // Add CTF completion notification with flare animation
             const notificationId = Date.now() + Math.random();
-            setCTFNotifications(prev => [...prev, {
-              id: notificationId,
-              message: `🎉 FLAG CAPTURED! ${achievement.name}`,
-              timestamp: Date.now()
-            }]);
-            
-            // Remove notification after 5 seconds
+            let nextId: string | null = null;
+            let nextTitle: string | null = null;
+            try {
+              const solved = gameManager.getGameState().solvedChallenges || [];
+              const next = getNextChallenge(solved);
+              if (next) { nextId = next.id; nextTitle = next.title; }
+            } catch {}
             setTimeout(() => {
-              setCTFNotifications(prev => prev.filter(n => n.id !== notificationId));
-            }, 5000);
+              setCTFNotifications(prev => [...prev, {
+                id: notificationId,
+                message: `🎉 FLAG CAPTURED! ${achievement.name}`,
+                timestamp: Date.now(),
+                nextChallengeId: nextId,
+                nextChallengeTitle: nextTitle
+              }]);
+              setTimeout(() => {
+                setCTFNotifications(prev => prev.filter(n => n.id !== notificationId));
+              }, 10000);
+            }, 3000);
           }
         }
       }
@@ -513,15 +558,61 @@ export function HackerTerminal() {
       // Check if this was a CTF flag submission success
       if (result.type === 'success' && result.playSound === 'victory') {
         const notificationId = Date.now() + Math.random();
-        setCTFNotifications([{ id: notificationId, message: '🚩 FLAG COMPLETED! Great job, hacker!', timestamp: Date.now() }]);
-        setTimeout(() => { setCTFNotifications([]); }, 5000);
+        let nextId: string | null = null;
+        let nextTitle: string | null = null;
+        try {
+          const solved = gameManager.getGameState().solvedChallenges || [];
+          const next = getNextChallenge(solved);
+          if (next) { nextId = next.id; nextTitle = next.title; }
+        } catch {}
         setIsExpanded(true);
+        setTimeout(() => {
+          setCTFNotifications([{ id: notificationId, message: '🚩 FLAG COMPLETED! Great job, hacker!', timestamp: Date.now(), nextChallengeId: nextId, nextChallengeTitle: nextTitle }]);
+          setTimeout(() => { setCTFNotifications([]); }, 10000);
+        }, 3000);
 
         // Trigger breach visual effect overlay briefly
         setBreachEffect({ id: notificationId });
+        if (urlAnimationCleanup) { urlAnimationCleanup(); }
+        {
+          const cleanup = createMultiEmojiAnimation(['🟢', '🟩', '🟢'], 20);
+          setUrlAnimationCleanup(() => cleanup);
+          setTimeout(() => { try { cleanup(); } catch {} setUrlAnimationCleanup(null); }, 3000);
+        }
         setTimeout(() => {
           setBreachEffect(null);
-        }, 5000);
+        }, 3000);
+      }
+
+      // Ensure overlay triggers for CTF submissions even without playSound
+      if (lowerCommand.startsWith('ctf submit')) {
+        const id = Date.now() + Math.random();
+        const isSuccessLike = result.type === 'success' || (typeof result.output === 'string' && (result.output.includes('Correct! Flag accepted') || result.output.includes('already solved')));
+        if (isSuccessLike) {
+          // Breach effect
+          setBreachEffect({ id });
+          if (urlAnimationCleanup) { urlAnimationCleanup(); }
+          {
+            const cleanup = createMultiEmojiAnimation(['🟢', '🟩', '🟢'], 20);
+            setUrlAnimationCleanup(() => cleanup);
+            setTimeout(() => { try { cleanup(); } catch {} setUrlAnimationCleanup(null); }, 3000);
+          }
+          setTimeout(() => setBreachEffect(null), 3000);
+
+          // Notification with next challenge info
+          let nextId: string | null = null;
+          let nextTitle: string | null = null;
+          try {
+            const solved = gameManager.getGameState().solvedChallenges || [];
+            const next = getNextChallenge(solved);
+            if (next) { nextId = next.id; nextTitle = next.title; }
+          } catch {}
+          const notifId = Date.now() + Math.random();
+          setTimeout(() => {
+            setCTFNotifications([{ id: notifId, message: '⚡ SECURITY BREACH: Flag Captured!', timestamp: Date.now(), nextChallengeId: nextId, nextChallengeTitle: nextTitle }]);
+            setTimeout(() => { setCTFNotifications([]); }, 10000);
+          }, 3000);
+        }
       }
 
       // Handle XP gains and notifications
@@ -809,46 +900,40 @@ export function HackerTerminal() {
         ))}
       </div>
       
-      {/* CTF Completion Notifications with Flare Animation */}
-      <div className="fixed inset-0 z-50 pointer-events-none">
+      <div className="fixed inset-0 z-40 pointer-events-none">
         {ctfNotifications.map((notification) => (
           <div
             key={notification.id}
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-            style={{
-              animation: 'ctf-flare 5s ease-out forwards'
-            }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            style={{ animation: 'ctf-flare 5s ease-out forwards' }}
           >
-            <div className="bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 text-white px-8 py-4 rounded-lg shadow-2xl border-4 border-yellow-300 text-center">
-              <div className="text-2xl font-bold mb-2 animate-pulse">
-                {notification.message}
-              </div>
-              <div className="text-sm opacity-80">
-                🎯 Challenge Completed! 🎯
-              </div>
-            </div>
-            
-            {/* Sparkle effects */}
-            <div className="absolute inset-0 pointer-events-none">
-              {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute w-2 h-2 bg-yellow-300 rounded-full animate-ping"
-                  style={{
-                    top: `${Math.random() * 100}%`,
-                    left: `${Math.random() * 100}%`,
-                    animationDelay: `${i * 0.2}s`,
-                    animationDuration: '1s'
-                  }}
-                />
-              ))}
+            <div className="relative bg-zinc-950/90 border border-emerald-500/50 rounded-xl px-8 py-6 shadow-2xl backdrop-blur text-center pointer-events-auto">
+              <div className="absolute inset-0 opacity-[0.06] pointer-events-none" style={{
+                backgroundImage: 'repeating-linear-gradient(0deg, rgba(16,185,129,0.3) 0 2px, transparent 2px 4px)'
+              }} />
+              <div className="text-emerald-400 text-xs tracking-widest mb-1" style={{ animation: 'glitchText 1.5s infinite' }}>ACCESS GRANTED</div>
+              <div className="text-2xl font-bold text-white mb-2" style={{ animation: 'glitchText 1.5s infinite' }}>FLAG CAPTURED</div>
+              <div className="text-sm text-emerald-300 mb-3">{notification.message}</div>
+              <pre className="text-emerald-400 font-mono text-[10px] md:text-[12px] whitespace-pre leading-none max-w-sm max-h-56 mx-auto overflow-hidden p-1">
+{userSkull}
+              </pre>
+              {notification.nextChallengeId ? (
+                <button
+                  className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 border border-emerald-500 text-emerald-400 rounded hover:bg-emerald-500/10"
+                  onClick={() => handleCommand(`ctf start ${notification.nextChallengeId}`)}
+                >
+                  Start your next flag
+                </button>
+              ) : (
+                <div className="mt-3 text-xs text-zinc-400">All challenges complete. 🎖️</div>
+              )}
             </div>
           </div>
         ))}
       </div>
 
       {breachEffect && (
-        <div className="fixed inset-0 z-40 pointer-events-none">
+        <div className="fixed inset-0 z-[60] pointer-events-none">
           <div className="absolute inset-0 bg-black/60" />
           <div className="absolute inset-0" style={{
             backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,0,0,0.07) 0 2px, transparent 2px 4px)'
@@ -868,10 +953,10 @@ export function HackerTerminal() {
       {gameSnapshot && (
         <div className="fixed top-4 right-4 z-50 bg-zinc-900/80 border border-emerald-500/40 rounded-lg px-4 py-3 shadow-lg">
           <div className="text-emerald-400 text-sm font-semibold">Level {gameSnapshot.level}</div>
-          <div className="mt-1 w-48 bg-zinc-700 rounded h-2 overflow-hidden">
-            <div className="h-2 rounded bg-gradient-to-r from-yellow-400 via-emerald-400 to-green-500" style={{ width: `${gameSnapshot.experience % 100}%` }}></div>
+          <div className="mt-1 w-48 bg-zinc-700 rounded h-1 overflow-hidden">
+            <div className="h-1 bg-emerald-500" style={{ width: `${gameSnapshot.experience % 100}%` }}></div>
           </div>
-          <div className="mt-1 text-xs text-zinc-400">XP: {gameSnapshot.experience % 100}/100</div>
+          <div className="mt-1 text-xs text-zinc-400">XP {gameSnapshot.experience % 100}/100</div>
         </div>
       )}
     </div>
