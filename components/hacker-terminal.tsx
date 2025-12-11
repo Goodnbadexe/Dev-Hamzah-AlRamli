@@ -774,14 +774,16 @@ export function HackerTerminal() {
       className={cn(
         "grid transition-all duration-700 ease-in-out gap-12 items-center",
         isExpanded 
-          ? "grid-cols-1 md:grid-cols-[300px_1fr]" 
+          ? "grid-cols-1" 
           : "grid-cols-1 md:grid-cols-2"
       )}
     >
       {/* Hero Content */}
       <div className={cn(
         "transition-all duration-700 ease-in-out",
-        isExpanded ? "md:transform md:-translate-x-4 opacity-90" : ""
+        isExpanded 
+          ? "max-w-3xl mx-auto text-center"
+          : ""
       )}>
         <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent mb-4 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-none">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 mr-1">
@@ -801,7 +803,10 @@ export function HackerTerminal() {
         <p className="text-zinc-400 text-lg mb-8 border-l-2 border-emerald-500 pl-4">
           Professional overthinker, part-time button masher, full-time Goodnbad.exe. Cybersecurity engineer who turns coffee into code and transforms digital chaos into secure solutions.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 flex-wrap sm:flex-nowrap">
+        <div className={cn(
+          "flex flex-col sm:flex-row gap-4 flex-wrap sm:flex-nowrap",
+          isExpanded ? "justify-center" : ""
+        )}>
           <button 
             onClick={() => {
               const projectsSection = document.getElementById('projects');
