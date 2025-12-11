@@ -56,6 +56,7 @@ import { GlitchText } from "@/components/glitch-text"
 import { MatrixBackground } from "@/components/matrix-background"
 import { ParticleAnimation } from "@/components/particle-animation"
 import { DateTimeDisplay } from "@/components/datetime-display"
+import CluesDock from "@/components/clues-dock"
 
 export default function Home() {
   const [showMobileTerminal, setShowMobileTerminal] = useState(false)
@@ -634,9 +635,9 @@ export default function Home() {
                               className="w-full h-full object-contain"
                             />
                             {skill.badge && (
-                              <Badge className="absolute -top-1 -right-1 text-xs bg-blue-500 text-white px-1 py-0.5">
+                              <div className="absolute left-1 bottom-1 text-[10px] bg-blue-500/30 text-white px-1 py-0.5 rounded">
                                 {skill.badge}
-                              </Badge>
+                              </div>
                             )}
                           </div>
                           <span className="text-xs text-zinc-400 group-hover:text-emerald-400 transition-colors text-center">
@@ -789,10 +790,9 @@ export default function Home() {
                     </div>
                     <div className="w-full bg-zinc-700 rounded-full h-2 overflow-hidden">
                       <div
-                        className="bg-gradient-to-r from-emerald-600 to-emerald-400 h-2 rounded-full relative"
+                        className="bg-gradient-to-r from-emerald-600 to-emerald-400 h-2 rounded-full"
                         style={{ width: `${skill.level}%` }}
                       >
-                        <div className="absolute inset-0 bg-emerald-400/50 animate-pulse"></div>
                       </div>
                     </div>
                   </div>
@@ -1645,6 +1645,7 @@ export default function Home() {
         isOpen={showMobileTerminal} 
         onClose={() => setShowMobileTerminal(false)} 
       />
+      <CluesDock />
     </div>
   )
 }

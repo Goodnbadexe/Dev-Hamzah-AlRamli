@@ -122,6 +122,25 @@ export function HackerTerminal() {
   
   // CTF completion notifications
   const [ctfNotifications, setCTFNotifications] = useState<{id: number, message: string, timestamp: number, nextChallengeId?: string | null, nextChallengeTitle?: string | null}[]>([])
+  const [notifPos, setNotifPos] = useState<{x: number, y: number} | null>(null)
+  const [dragging, setDragging] = useState(false)
+  const [dragStart, setDragStart] = useState<{mx: number, my: number, x: number, y: number} | null>(null)
+  const [terminalPos, setTerminalPos] = useState<{x: number, y: number} | null>(null)
+
+  useEffect(() => {
+    if (isExpanded && !terminalPos) {
+      try {
+        setTerminalPos({ x: window.innerWidth / 2, y: window.innerHeight - 120 })
+      } catch {}
+    }
+  }, [isExpanded, terminalPos])
+
+  const setCTFMode = (active: boolean) => {
+    try {
+      localStorage.setItem('ctf_mode', active ? 'true' : 'false')
+      window.dispatchEvent(new CustomEvent('ctf-mode-change', { detail: active }))
+    } catch {}
+  }
   
   // URL Animation cleanup functions
   const [urlAnimationCleanup, setUrlAnimationCleanup] = useState<(() => void) | null>(null)
@@ -547,6 +566,12 @@ export function HackerTerminal() {
                 nextChallengeId: nextId,
                 nextChallengeTitle: nextTitle
               }]);
+              try {
+                const rect = terminalRef.current?.getBoundingClientRect()
+                if (rect) {
+                  setNotifPos({ x: rect.left + rect.width / 2, y: rect.bottom - 60 })
+                }
+              } catch {}
               setTimeout(() => {
                 setCTFNotifications(prev => prev.filter(n => n.id !== notificationId));
               }, 10000);
@@ -568,6 +593,12 @@ export function HackerTerminal() {
         setIsExpanded(true);
         setTimeout(() => {
           setCTFNotifications([{ id: notificationId, message: '🚩 FLAG COMPLETED! Great job, hacker!', timestamp: Date.now(), nextChallengeId: nextId, nextChallengeTitle: nextTitle }]);
+          try {
+            const rect = terminalRef.current?.getBoundingClientRect()
+            if (rect) {
+              setNotifPos({ x: rect.left + rect.width / 2, y: rect.bottom - 60 })
+            }
+          } catch {}
           setTimeout(() => { setCTFNotifications([]); }, 10000);
         }, 3000);
 
@@ -610,6 +641,12 @@ export function HackerTerminal() {
           const notifId = Date.now() + Math.random();
           setTimeout(() => {
             setCTFNotifications([{ id: notifId, message: '⚡ SECURITY BREACH: Flag Captured!', timestamp: Date.now(), nextChallengeId: nextId, nextChallengeTitle: nextTitle }]);
+            try {
+              const rect = terminalRef.current?.getBoundingClientRect()
+              if (rect) {
+                setNotifPos({ x: rect.left + rect.width / 2, y: rect.bottom - 60 })
+              }
+            } catch {}
             setTimeout(() => { setCTFNotifications([]); }, 10000);
           }, 3000);
         }
@@ -646,6 +683,12 @@ export function HackerTerminal() {
         setGameSnapshot({ level: snap.level, experience: snap.experience });
       } catch {}
 
+      // Enable/Disable CTF mode visibility based on commands
+      if (lowerCommand.startsWith('ctf')) {
+        setCTFMode(true)
+      } else if (lowerCommand === 'logout') {
+        setCTFMode(false)
+      }
     } catch (error) {
       setHistory(prev => [
         ...prev,
@@ -727,12 +770,14 @@ export function HackerTerminal() {
   }, [isInitialized, commandProcessor, authManager, gameManager])
 
   return (
-    <div className={cn(
-      "grid transition-all duration-700 ease-in-out gap-12 items-center",
-      isExpanded 
-        ? "grid-cols-1 md:grid-cols-[300px_1fr]" 
-        : "grid-cols-1 md:grid-cols-2"
-    )}>
+    <div
+      className={cn(
+        "grid transition-all duration-700 ease-in-out gap-12 items-center",
+        isExpanded 
+          ? "grid-cols-1 md:grid-cols-[300px_1fr]" 
+          : "grid-cols-1 md:grid-cols-2"
+      )}
+    >
       {/* Hero Content */}
       <div className={cn(
         "transition-all duration-700 ease-in-out",
@@ -789,7 +834,17 @@ export function HackerTerminal() {
       </div>
 
       {/* Terminal Section */}
-      <div className="relative hidden md:block">
+      <div
+        className="relative hidden md:block"
+        style={isExpanded && terminalPos ? {
+          position: 'fixed',
+          top: `${terminalPos.y}px`,
+          left: `${terminalPos.x}px`,
+          transform: 'translate(-50%, -50%)',
+          zIndex: 70,
+          width: 'min(960px, 95vw)'
+        } : undefined}
+      >
         <div className="absolute inset-0 bg-emerald-500/20 rounded-lg blur-3xl"></div>
         <div className="relative bg-zinc-800/80 p-4 rounded-lg border border-emerald-500/30 backdrop-blur-sm">
           <div
@@ -804,7 +859,24 @@ export function HackerTerminal() {
             }}
           >
             {/* Terminal Header */}
-            <div className="flex items-center bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 px-6 py-3 border-b border-emerald-500/50 shadow-lg">
+            <div
+              className="flex items-center bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 px-6 py-3 border-b border-emerald-500/50 shadow-lg cursor-move"
+              onPointerDown={(e) => {
+                if (!isExpanded) return
+                try { (e.target as HTMLElement).setPointerCapture?.(e.pointerId) } catch {}
+                const start = { mx: e.clientX, my: e.clientY, x: terminalPos?.x || window.innerWidth/2, y: terminalPos?.y || (window.innerHeight - 120) }
+                const onMove = (ev: PointerEvent) => {
+                  setTerminalPos({ x: start.x + (ev.clientX - start.mx), y: start.y + (ev.clientY - start.my) })
+                }
+                const onUp = () => {
+                  window.removeEventListener('pointermove', onMove)
+                  window.removeEventListener('pointerup', onUp)
+                }
+                window.addEventListener('pointermove', onMove)
+                window.addEventListener('pointerup', onUp)
+              }}
+              style={{ touchAction: 'none' }}
+            >
               <div className="flex space-x-2">
                 <button 
                   onClick={(e) => {
@@ -826,7 +898,20 @@ export function HackerTerminal() {
                 <button 
                   onClick={(e) => {
                     e.stopPropagation()
-                    setIsExpanded(!isExpanded)
+                    const toExpand = !isExpanded
+                    setIsExpanded(toExpand)
+                    if (toExpand) {
+                      try {
+                        const rect = terminalRef.current?.getBoundingClientRect()
+                        if (rect) {
+                          setTerminalPos({ x: rect.left + rect.width / 2, y: rect.bottom - 120 })
+                        } else {
+                          setTerminalPos({ x: window.innerWidth / 2, y: window.innerHeight - 120 })
+                        }
+                      } catch {
+                        setTerminalPos({ x: window.innerWidth / 2, y: window.innerHeight - 120 })
+                      }
+                    }
                   }}
                   className="w-3 h-3 rounded-full bg-green-500 animate-pulse hover:bg-green-400 transition-colors cursor-pointer" 
                   style={{animationDelay: '0.4s'}}
@@ -904,13 +989,52 @@ export function HackerTerminal() {
         {ctfNotifications.map((notification) => (
           <div
             key={notification.id}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            style={{ animation: 'ctf-flare 5s ease-out forwards' }}
+            className="absolute"
+            style={{ 
+              animation: 'ctf-flare 5s ease-out forwards',
+              top: notifPos ? `${notifPos.y}px` : 'calc(100% - 80px)',
+              left: notifPos ? `${notifPos.x}px` : '50%',
+              transform: notifPos ? 'translate(-50%, -50%)' : 'translate(-50%, -50%)'
+            }}
           >
-            <div className="relative bg-zinc-950/90 border border-emerald-500/50 rounded-xl px-8 py-6 shadow-2xl backdrop-blur text-center pointer-events-auto">
-              <div className="absolute inset-0 opacity-[0.06] pointer-events-none" style={{
-                backgroundImage: 'repeating-linear-gradient(0deg, rgba(16,185,129,0.3) 0 2px, transparent 2px 4px)'
-              }} />
+            <div className="relative bg-zinc-950/90 border border-emerald-500/50 rounded-xl px-8 pt-6 pb-6 shadow-2xl backdrop-blur text-center pointer-events-auto">
+              <div className="absolute left-3 top-2 flex items-center gap-2">
+                <button aria-label="Close"
+                  className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600"
+                  onClick={handleOverlayClose}
+                />
+                <button aria-label="Minimize"
+                  className="w-3 h-3 rounded-full bg-yellow-400 hover:bg-yellow-500"
+                  onClick={handleOverlayMinimize}
+                />
+                <button aria-label="Maximize"
+                  className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600"
+                  onClick={handleOverlayMaximize}
+                />
+              </div>
+              <div
+                onMouseDown={(e) => {
+                  if (!isExpanded) return
+                  const rect = (e.currentTarget.parentElement as HTMLElement).getBoundingClientRect()
+                  const start = { mx: e.clientX, my: e.clientY, x: rect.left + rect.width/2, y: rect.top + rect.height/2 }
+                  setDragging(true)
+                  setDragStart(start)
+                  const onMove = (ev: MouseEvent) => {
+                    setNotifPos({ x: start.x + (ev.clientX - start.mx), y: start.y + (ev.clientY - start.my) })
+                  }
+                  const onUp = () => {
+                    setDragging(false)
+                    setDragStart(null)
+                    window.removeEventListener('mousemove', onMove)
+                    window.removeEventListener('mouseup', onUp)
+                  }
+                  window.addEventListener('mousemove', onMove)
+                  window.addEventListener('mouseup', onUp)
+                }}
+                className="absolute inset-0 opacity-[0.06] cursor-move"
+                style={{
+                  backgroundImage: 'repeating-linear-gradient(0deg, rgba(16,185,129,0.3) 0 2px, transparent 2px 4px)'
+                }} />
               <div className="text-emerald-400 text-xs tracking-widest mb-1" style={{ animation: 'glitchText 1.5s infinite' }}>ACCESS GRANTED</div>
               <div className="text-2xl font-bold text-white mb-2" style={{ animation: 'glitchText 1.5s infinite' }}>FLAG CAPTURED</div>
               <div className="text-sm text-emerald-300 mb-3">{notification.message}</div>
@@ -962,3 +1086,25 @@ export function HackerTerminal() {
     </div>
   )
 }
+  const handleOverlayClose = () => {
+    try {
+      setCTFNotifications([])
+      setBreachEffect(null)
+      setCTFMode(false)
+      handleCommand('logout')
+      setIsExpanded(false)
+    } catch {}
+  }
+
+  const handleOverlayMinimize = () => {
+    try {
+      setIsExpanded(false)
+      setNotifPos(null)
+    } catch {}
+  }
+
+  const handleOverlayMaximize = () => {
+    try {
+      setIsExpanded(true)
+    } catch {}
+  }
