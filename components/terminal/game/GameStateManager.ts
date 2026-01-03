@@ -25,7 +25,7 @@ export class GameStateManager {
     try {
       // Check if we're in a browser environment
       if (typeof window !== 'undefined' && window.localStorage) {
-        const saved = localStorage.getItem(this.storageKey);
+        const saved = window.localStorage.getItem(this.storageKey);
         if (saved) {
           const parsed = JSON.parse(saved);
           return {

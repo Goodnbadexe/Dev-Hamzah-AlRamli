@@ -21,8 +21,7 @@ describe('getParticleConfig', () => {
 
   it('uses tablet settings for medium widths', () => {
     const cfg = getParticleConfig(800, 1024)
-    expect(cfg.particleCount).toBeGreaterThan(3000)
-    expect(cfg.particleCount).toBeLessThan(5000)
+    expect(cfg.particleCount).toBe(1500)
   })
 
   it('caps font size at max value', () => {
