@@ -556,7 +556,7 @@ export function HackerTerminal() {
             try {
               const solved = gameManager.getGameState().solvedChallenges || [];
               const next = getNextChallenge(solved);
-              if (next) { nextId = next.id; nextTitle = next.title; }
+              if (next) { nextId = next.id; nextTitle = next.title || null; }
             } catch {}
             setTimeout(() => {
               setCTFNotifications(prev => [...prev, {
@@ -588,7 +588,7 @@ export function HackerTerminal() {
         try {
           const solved = gameManager.getGameState().solvedChallenges || [];
           const next = getNextChallenge(solved);
-          if (next) { nextId = next.id; nextTitle = next.title; }
+          if (next) { nextId = next.id; nextTitle = next.title || null; }
         } catch {}
         setIsExpanded(true);
         setTimeout(() => {
@@ -636,7 +636,7 @@ export function HackerTerminal() {
           try {
             const solved = gameManager.getGameState().solvedChallenges || [];
             const next = getNextChallenge(solved);
-            if (next) { nextId = next.id; nextTitle = next.title; }
+            if (next) { nextId = next.id; nextTitle = next.title || null; }
           } catch {}
           const notifId = Date.now() + Math.random();
           setTimeout(() => {
@@ -768,6 +768,29 @@ export function HackerTerminal() {
       setIsInitialized(true)
     }
   }, [isInitialized, commandProcessor, authManager, gameManager])
+
+  const handleOverlayClose = () => {
+    try {
+      setCTFNotifications([])
+      setBreachEffect(null)
+      setCTFMode(false)
+      handleCommand('logout')
+      setIsExpanded(false)
+    } catch {}
+  }
+
+  const handleOverlayMinimize = () => {
+    try {
+      setIsExpanded(false)
+      setNotifPos(null)
+    } catch {}
+  }
+
+  const handleOverlayMaximize = () => {
+    try {
+      setIsExpanded(true)
+    } catch {}
+  }
 
   return (
     <div
@@ -935,19 +958,26 @@ export function HackerTerminal() {
 
             {/* Terminal Content */}
             <div ref={terminalRef} className="flex-1 overflow-auto p-8 custom-scrollbar max-w-5xl mx-auto w-full">
-               {history.map((entry, index) => (
-                 <div key={index} className="whitespace-pre-wrap mb-1">
-                   {entry.type === 'input' ? (
-                     <span className="text-emerald-500">
-                       {currentDirectory === '~' ? 'goodnbad@exe ~ $ ' : `goodnbad@exe ${currentDirectory} $ `}{entry.content}
-                     </span>
-                   ) : (
-                     <span className={entry.isError ? 'text-red-400' : 'text-emerald-300'}>
-                       {entry.content}
-                     </span>
-                   )}
-                 </div>
-               ))}
+               {history.map((entry, index) => {
+                 const isBanner = entry.content === asciiArt.banner;
+                 return (
+                   <div key={index} className={`mb-1 ${isBanner ? 'overflow-x-hidden' : 'whitespace-pre-wrap'}`}>
+                     {entry.type === 'input' ? (
+                       <span className="text-emerald-500">
+                         {currentDirectory === '~' ? 'goodnbad@exe ~ $ ' : `goodnbad@exe ${currentDirectory} $ `}{entry.content}
+                       </span>
+                     ) : isBanner ? (
+                       <pre className="text-[5px] xs:text-[8px] sm:text-[10px] md:text-sm leading-none text-emerald-300 font-bold tracking-tighter whitespace-pre font-mono">
+                         {entry.content}
+                       </pre>
+                     ) : (
+                       <span className={entry.isError ? 'text-red-400' : 'text-emerald-300'}>
+                         {entry.content}
+                       </span>
+                     )}
+                   </div>
+                 );
+               })}
                
                {/* Current Input Line */}
                <div className="flex items-center">
@@ -1067,49 +1097,8 @@ export function HackerTerminal() {
           <div className="absolute inset-0" style={{
             backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,0,0,0.07) 0 2px, transparent 2px 4px)'
           }} />
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(600px 300px at 50% 50%, rgba(16,185,129,0.15), transparent)'
-          }} />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-red-400 text-2xl font-bold animate-pulse">BREACH SEQUENCE</div>
-              <div className="mt-2 text-emerald-400 text-sm">elevating privileges… decrypting payload… securing trace…</div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {gameSnapshot && (
-        <div className="fixed top-4 right-4 z-50 bg-zinc-900/80 border border-emerald-500/40 rounded-lg px-4 py-3 shadow-lg">
-          <div className="text-emerald-400 text-sm font-semibold">Level {gameSnapshot.level}</div>
-          <div className="mt-1 w-48 bg-zinc-700 rounded h-1 overflow-hidden">
-            <div className="h-1 bg-emerald-500" style={{ width: `${gameSnapshot.experience % 100}%` }}></div>
-          </div>
-          <div className="mt-1 text-xs text-zinc-400">XP {gameSnapshot.experience % 100}/100</div>
         </div>
       )}
     </div>
   )
 }
-  const handleOverlayClose = () => {
-    try {
-      setCTFNotifications([])
-      setBreachEffect(null)
-      setCTFMode(false)
-      handleCommand('logout')
-      setIsExpanded(false)
-    } catch {}
-  }
-
-  const handleOverlayMinimize = () => {
-    try {
-      setIsExpanded(false)
-      setNotifPos(null)
-    } catch {}
-  }
-
-  const handleOverlayMaximize = () => {
-    try {
-      setIsExpanded(true)
-    } catch {}
-  }
