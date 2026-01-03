@@ -4,19 +4,19 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { MatrixBackground } from '@/components/matrix-background'
 
+const commands = [
+  'ping goodnbad.info',
+  'traceroute 404.page',
+  'nmap -sV hidden.paths',
+  'sqlmap -u "http://goodnbad.info/*"',
+  'hydra -l admin -P wordlist.txt goodnbad.info'
+]
+
 export default function NotFound() {
   const [glitchText, setGlitchText] = useState('404')
   const [showTerminal, setShowTerminal] = useState(false)
   const [terminalText, setTerminalText] = useState('')
   const [currentCommand, setCurrentCommand] = useState(0)
-
-  const commands = [
-    'ping goodnbad.info',
-    'traceroute 404.page',
-    'nmap -sV hidden.paths',
-    'sqlmap -u "http://goodnbad.info/*"',
-    'hydra -l admin -P wordlist.txt goodnbad.info'
-  ]
 
   const errorCodes = [
     { code: '404', message: 'PAGE_NOT_FOUND', description: 'The requested resource could not be located' },
@@ -128,10 +128,10 @@ export default function NotFound() {
               "Not all paths are obvious. Some pages hide in plain sight."
             </p>
             <p className="text-emerald-400 font-mono">
-              // Try exploring unusual routes, headers, or patterns
+              {'// Try exploring unusual routes, headers, or patterns'}
             </p>
             <p className="text-purple-400 font-mono text-sm">
-              /* There might be a flag nearby... */
+              {'/* There might be a flag nearby... */'}
             </p>
           </div>
 
