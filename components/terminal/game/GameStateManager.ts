@@ -76,7 +76,7 @@ export class GameStateManager {
     try {
       // Check if we're in a browser environment
       if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.gameState));
+        window.localStorage.setItem(this.storageKey, JSON.stringify(this.gameState));
       }
     } catch (error) {
       console.warn('Failed to save game state:', error);
