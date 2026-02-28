@@ -1503,7 +1503,7 @@ export default function Home() {
                       </div>
                       <div>
                         <h4 className="font-medium">Email</h4>
-                        <p className="text-zinc-400">alramli.hamzah@gmail.com</p>
+                        <p className="text-zinc-400">Goodnbadexe@hotmail.com</p>
                       </div>
                     </li>
                     <li className="flex items-center gap-3">
@@ -1557,7 +1557,7 @@ export default function Home() {
                       <SocialButton
                         icon={<Instagram className="h-5 w-5" />}
                         label="Instagram"
-                        href="https://instagram.com/hamzah-al-ramli"
+                        href="https://www.goodnbad.info"
                       />
                       <SocialButton
                         icon={<Twitter className="h-5 w-5" />}
@@ -1582,7 +1582,7 @@ export default function Home() {
                       <SocialButton
                         icon={<Mail className="h-5 w-5" />}
                         label="Email"
-                        href="mailto:alramli.hamzah@gmail.com"
+                        href="mailto:Goodnbadexe@hotmail.com"
                       />
                     </div>
                   </CardContent>

@@ -13,8 +13,9 @@ const notoKufiArabic = Noto_Kufi_Arabic({
 })
 
 export const metadata: Metadata = {
-  title: "Hamzah Al-Ramli - Cybersecurity Expert & Ethical Hacker Portfolio | Certified Security Professional",
-  description: "Certified cybersecurity professional specializing in ethical hacking, penetration testing, malware analysis, and enterprise security. Microsoft Azure, Entra ID, and advanced threat protection expertise. View my security certifications and portfolio.",
+  title: "Hamzah Al-Ramli (Goodnbad) | Cybersecurity & Automation Architect",
+  description: "Hamzah Al-Ramli (Goodnbad) is a cybersecurity and automation-focused systems architect based in Saudi Arabia, specializing in digital infrastructure optimization, workflow automation, and security-driven architecture design.",
+  metadataBase: new URL('https://www.goodnbad.info'),
   generator: 'v0.dev',
   icons: {
     icon: '/favicon.svg',
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Hamzah Al-Ramli", url: "https://www.goodnbad.info" }],
   creator: "Hamzah Al-Ramli",
-  publisher: "Goodnbad.exe",
+  publisher: "Goodnbad",
   openGraph: {
     title: 'Hamzah Al-Ramli - Certified Cybersecurity Expert & Ethical Hacker',
     description: 'Certified cybersecurity professional with expertise in ethical hacking, Microsoft security solutions, malware analysis, and advanced threat protection. View my security portfolio, certifications, and enterprise security experience.',
@@ -67,10 +68,8 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'google-site-verification-code',
-    yandex: 'yandex-verification-code'
-  },
+  verification: {},
+
   alternates: {
     canonical: 'https://www.goodnbad.info',
     languages: {
@@ -104,55 +103,47 @@ export default function RootLayout({
 }>) {
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "Person",
-    "name": "Hamzah Al-Ramli",
-    "jobTitle": "Cybersecurity Expert & Ethical Hacker",
-    "description": "Certified cybersecurity professional specializing in ethical hacking, penetration testing, malware analysis, and enterprise security solutions.",
-    "url": "https://www.goodnbad.info",
-    "image": "https://www.goodnbad.info/images/logo-green.png",
-    "sameAs": [
-      "https://github.com/Goodnbadexe",
-      "https://linkedin.com/in/hamzah-al-ramli",
-      "https://www.goodnbad.info"
-    ],
-    "knowsAbout": [
-      "Cybersecurity",
-      "Ethical Hacking",
-      "Penetration Testing",
-      "Malware Analysis",
-      "Microsoft Azure Security",
-      "Entra ID",
-      "Threat Detection",
-      "Vulnerability Assessment",
-      "Network Security",
-      "Incident Response"
-    ],
-    "alumniOf": {
-      "@type": "EducationalOrganization",
-      "name": "Taylor's University"
-    },
-    "worksFor": {
-      "@type": "Organization",
-      "name": "Goodnbad.exe",
-      "description": "Cybersecurity Consulting and Professional Services"
-    },
-    "hasCredential": [
+    "@graph": [
       {
-        "@type": "EducationalOccupationalCredential",
-        "name": "Microsoft Cybersecurity Architect",
-        "issuedBy": "Microsoft"
+        "@type": "Person",
+        "@id": "https://www.goodnbad.info/#person",
+        "name": "Hamzah Al-Ramli",
+        "alternateName": ["Goodnbad", "goodnbad.exe", "goodnbad505"],
+        "url": "https://www.goodnbad.info",
+        "image": "https://www.goodnbad.info/images/logo-green.png",
+        "email": "mailto:Goodnbadexe@hotmail.com",
+        "jobTitle": "Cybersecurity and Automation Architect",
+        "description": "Hamzah Al-Ramli (Goodnbad) is a cybersecurity and automation-focused systems architect based in Saudi Arabia. He specializes in digital infrastructure optimization, workflow automation, and security-driven architecture design.",
+        "nationality": {
+          "@type": "Country",
+          "name": "Saudi Arabia"
+        },
+        "knowsAbout": [
+          "Cybersecurity",
+          "Ethical Hacking",
+          "Workflow Automation",
+          "n8n",
+          "AI Agents",
+          "Systems Architecture",
+          "Digital Infrastructure",
+          "IT Optimization",
+          "Process Engineering"
+        ],
+        "sameAs": [
+          "https://www.linkedin.com/in/hamzah-al-ramli-505",
+          "https://github.com/Goodnbadexe"
+        ]
       },
       {
-        "@type": "EducationalOccupationalCredential",
-        "name": "LetsDefend Malware Analysis",
-        "issuedBy": "LetsDefend"
+        "@type": "WebSite",
+        "@id": "https://www.goodnbad.info/#website",
+        "url": "https://www.goodnbad.info",
+        "name": "Goodnbad",
+        "publisher": {
+          "@id": "https://www.goodnbad.info/#person"
+        }
       }
-    ],
-    "address": {
-      "@type": "PostalAddress",
-      "addressCountry": "SA",
-      "addressRegion": "Riyadh"
-    }
+    ]
   }
 
   return (
