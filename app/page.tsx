@@ -1550,6 +1550,11 @@ export default function Home() {
                         href="https://linkedin.com/in/hamzah-al-ramli-505"
                       />
                       <SocialButton
+                        icon={<Globe className="h-5 w-5" />}
+                        label="Donate"
+                        href="https://www.paypal.me/goodnbadexe"
+                      />
+                      <SocialButton
                         icon={<Github className="h-5 w-5" />}
                         label="GitHub"
                         href="https://github.com/goodnbadexe"
