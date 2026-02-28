@@ -110,6 +110,7 @@ export default function RootLayout({
         "name": "Hamzah Al-Ramli",
         "alternateName": ["Goodnbad", "goodnbad.exe", "goodnbad505"],
         "url": "https://www.goodnbad.info",
+        "mainEntityOfPage": "https://www.goodnbad.info/about",
         "image": "https://www.goodnbad.info/images/logo-green.png",
         "email": "mailto:Goodnbadexe@hotmail.com",
         "jobTitle": "Cybersecurity and Automation Architect",

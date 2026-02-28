@@ -25,10 +25,6 @@ import {
   MapPin,
   Linkedin,
   Github,
-  Twitter,
-  Youtube,
-  Instagram,
-  Codepen,
   Globe,
   Terminal,
   Cpu,
@@ -1543,16 +1539,11 @@ export default function Home() {
                     <CardTitle>Social Media</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       <SocialButton
                         icon={<Linkedin className="h-5 w-5" />}
                         label="LinkedIn"
                         href="https://linkedin.com/in/hamzah-al-ramli-505"
-                      />
-                      <SocialButton
-                        icon={<Globe className="h-5 w-5" />}
-                        label="Donate"
-                        href="https://www.paypal.me/goodnbadexe"
                       />
                       <SocialButton
                         icon={<Github className="h-5 w-5" />}
@@ -1560,34 +1551,24 @@ export default function Home() {
                         href="https://github.com/goodnbadexe"
                       />
                       <SocialButton
-                        icon={<Instagram className="h-5 w-5" />}
-                        label="Instagram"
+                        icon={<Globe className="h-5 w-5" />}
+                        label="Website"
                         href="https://www.goodnbad.info"
                       />
                       <SocialButton
-                        icon={<Twitter className="h-5 w-5" />}
-                        label="Twitter"
-                        href="https://twitter.com/hamzah-al-ramli"
-                      />
-                      <SocialButton
-                        icon={<Youtube className="h-5 w-5" />}
-                        label="YouTube"
-                        href="https://youtube.com/ludusVaria"
-                      />
-                      <SocialButton
-                        icon={<Codepen className="h-5 w-5" />}
-                        label="CodePen"
-                        href="https://codepen.io/hamzah-al-ramli"
-                      />
-                      <SocialButton
                         icon={<Globe className="h-5 w-5" />}
-                        label="Portfolio"
-                        href="https://hamzah-al-ramli.myportfolio.com/"
+                        label="Donate"
+                        href="https://www.paypal.me/goodnbadexe"
                       />
                       <SocialButton
                         icon={<Mail className="h-5 w-5" />}
                         label="Email"
                         href="mailto:Goodnbadexe@hotmail.com"
+                      />
+                      <SocialButton
+                        icon={<Globe className="h-5 w-5" />}
+                        label="About"
+                        href="https://www.goodnbad.info/about"
                       />
                     </div>
                   </CardContent>
