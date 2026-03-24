@@ -39,6 +39,12 @@ import {
   Bot,
   Lock,
   Database,
+  Instagram,
+  Youtube,
+  Facebook,
+  PenTool,
+  LayoutDashboard,
+  Palette
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -53,6 +59,8 @@ import { MatrixBackground } from "@/components/matrix-background"
 import { ParticleAnimation } from "@/components/particle-animation"
 import { DateTimeDisplay } from "@/components/datetime-display"
 import CluesDock from "@/components/clues-dock"
+
+import { FacebookAbout } from "@/components/facebook-about"
 
 export default function Home() {
   const [showMobileTerminal, setShowMobileTerminal] = useState(false)
@@ -74,14 +82,16 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white relative overflow-hidden">
       <MatrixBackground />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'Person',
-        name: 'Hamzah Al-Ramli',
-        url: 'https://www.goodnbad.info',
-        jobTitle: 'IT Systems & Support Administrator',
-        address: { '@type': 'PostalAddress', addressLocality: 'Riyadh', addressCountry: 'SA' }
-      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          name: 'Hamzah Al-Ramli',
+          url: 'https://www.goodnbad.info',
+          jobTitle: 'IT Systems & Support Administrator',
+          address: { '@type': 'PostalAddress', addressLocality: 'Riyadh', addressCountry: 'SA' }
+        })
+      }} />
 
       {/* Navigation */}
       <header className="container mx-auto py-6 relative z-10">
@@ -89,11 +99,11 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <div className="relative w-24 h-24">
               <Image
-                src="/images/logo-green.png"
+                src="/images/newlogovector.png"
                 alt="Goodnbad.exe Logo"
                 width={96}
                 height={96}
-                className="rounded-full"
+                className="rounded-full bg-zinc-800 p-1"
                 priority
               />
             </div>
@@ -151,7 +161,7 @@ export default function Home() {
               </Link>
             </Button>
 
-            <MobileNav 
+            <MobileNav
               showTerminal={showMobileTerminal}
               onToggleTerminal={() => setShowMobileTerminal(!showMobileTerminal)}
             />
@@ -197,7 +207,7 @@ export default function Home() {
                 <Code className="w-3 h-3 mr-1" /> About Me
               </Badge>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                <GlitchText text="Fresh Graduate & Developer" />
+                <GlitchText text="Cybersec Engineer & Developer" />
               </h2>
               <p className="text-zinc-400">
                 Analytical and adaptive junior cybersecurity engineer with a foundation in computer science. Skilled in system security, vulnerability management, and threat analysis, with hands-on exposure to SIEM tools, network monitoring, and risk assessment.
@@ -214,6 +224,10 @@ export default function Home() {
                 <Badge className="bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700/50 animate-pulse">IBM Cybersecurity Assessment</Badge>
                 <Badge className="bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700/50 animate-pulse">Google Analytics</Badge>
               </div>
+            </div>
+
+            <div className="max-w-3xl mx-auto mb-12">
+              <FacebookAbout />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
@@ -299,23 +313,19 @@ export default function Home() {
               <Card className="bg-zinc-800/50 border-zinc-700 hover:border-emerald-500/50 transition-all duration-300 group">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-emerald-500 group-hover:animate-pulse" />
-                    Recent Certifications
+                    <Shield className="h-5 w-5 text-emerald-500 group-hover:animate-pulse" />
+                    Professional Experience
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
-                    <li className="flex flex-col">
-                      <span className="font-medium">Google Cybersecurity Professional Certificate</span>
-                      <span className="text-sm text-zinc-400">March 2025</span>
+                  <ul className="space-y-4">
+                    <li className="flex flex-col group">
+                      <span className="font-medium transition-colors duration-300 group-hover:text-emerald-400">IT Support Specialist</span>
+                      <span className="text-sm text-zinc-400">Calma.sa (06/2025 - Present)</span>
                     </li>
-                    <li className="flex flex-col">
-                      <span className="font-medium">IBM Cybersecurity Assessment</span>
-                      <span className="text-sm text-zinc-400">May 2025</span>
-                    </li>
-                    <li className="flex flex-col">
-                      <span className="font-medium">Google Analytics Certification</span>
-                      <span className="text-sm text-zinc-400">May 2025</span>
+                    <li className="flex flex-col group">
+                      <span className="font-medium transition-colors duration-300 group-hover:text-emerald-400">Head of Technology</span>
+                      <span className="text-sm text-zinc-400">Masarat Events (09/2024 - 05/2025)</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -324,27 +334,19 @@ export default function Home() {
               <Card className="bg-zinc-800/50 border-zinc-700 hover:border-emerald-500/50 transition-all duration-300 group">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Cpu className="h-5 w-5 text-emerald-500 group-hover:animate-pulse" />
-                    Core Skills
+                    <Terminal className="h-5 w-5 text-emerald-500 group-hover:animate-pulse" />
+                    Early Tech Roles
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
-                    <li className="flex flex-col">
-                      <span className="font-medium">Security Risk Management</span>
-                      <span className="text-sm text-zinc-400">Network Security, Vulnerability Management</span>
+                  <ul className="space-y-4">
+                    <li className="flex flex-col group">
+                      <span className="font-medium transition-colors duration-300 group-hover:text-emerald-400">Web Developer</span>
+                      <span className="text-sm text-zinc-400">ThunderQuote (08/2022 - 12/2022)</span>
                     </li>
-                    <li className="flex flex-col">
-                      <span className="font-medium">Full-Stack Development</span>
-                      <span className="text-sm text-zinc-400">React, Node.js, Mobile Development</span>
-                    </li>
-                    <li className="flex flex-col">
-                      <span className="font-medium">Systems & Infrastructure</span>
-                      <span className="text-sm text-zinc-400">Server-side integration, ERPs/finance, Windows Server 2012/2016, Linux ops</span>
-                    </li>
-                    <li className="flex flex-col">
-                      <span className="font-medium">Leadership & Collaboration</span>
-                      <span className="text-sm text-zinc-400">Project Management, Team Leadership</span>
+                    <li className="flex flex-col group">
+                      <span className="font-medium transition-colors duration-300 group-hover:text-emerald-400">Full-stack Developer</span>
+                      <span className="text-sm text-zinc-400">Kabel (04/2021 - 05/2021)</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -649,8 +651,8 @@ export default function Home() {
                       <span className="font-semibold">Microsoft AI Security Integration</span>
                     </div>
                     <p className="text-sm text-zinc-300">
-                      Leveraging Microsoft Azure AI for advanced threat detection, Entra ID for identity protection, 
-                      and Loop for collaborative security workflows. Experience next-generation cybersecurity 
+                      Leveraging Microsoft Azure AI for advanced threat detection, Entra ID for identity protection,
+                      and Loop for collaborative security workflows. Experience next-generation cybersecurity
                       with AI-powered automation and predictive analytics.
                     </p>
                   </div>
@@ -1130,7 +1132,7 @@ export default function Home() {
                 <GlitchText text="Microsoft & Enterprise Security Skills" />
               </h2>
               <p className="text-zinc-400">
-                Advanced cybersecurity skills with Microsoft Azure, Entra ID, and enterprise-grade 
+                Advanced cybersecurity skills with Microsoft Azure, Entra ID, and enterprise-grade
                 implementations for comprehensive threat protection and identity management.
               </p>
             </div>
@@ -1539,37 +1541,29 @@ export default function Home() {
                     <CardTitle>Social Media</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      <SocialButton
-                        icon={<Linkedin className="h-5 w-5" />}
-                        label="LinkedIn"
-                        href="https://linkedin.com/in/hamzah-al-ramli-505"
-                      />
-                      <SocialButton
-                        icon={<Github className="h-5 w-5" />}
-                        label="GitHub"
-                        href="https://github.com/goodnbadexe"
-                      />
-                      <SocialButton
-                        icon={<Globe className="h-5 w-5" />}
-                        label="Website"
-                        href="https://www.goodnbad.info"
-                      />
-                      <SocialButton
-                        icon={<Globe className="h-5 w-5" />}
-                        label="Donate"
-                        href="https://www.paypal.me/goodnbadexe"
-                      />
-                      <SocialButton
-                        icon={<Mail className="h-5 w-5" />}
-                        label="Email"
-                        href="mailto:Goodnbadexe@hotmail.com"
-                      />
-                      <SocialButton
-                        icon={<Globe className="h-5 w-5" />}
-                        label="About"
-                        href="https://www.goodnbad.info/about"
-                      />
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {/* Professional Presence */}
+                      <SocialButton icon={<Linkedin className="h-5 w-5" />} label="LinkedIn" href="https://linkedin.com/in/hamzah-al-ramli-505" />
+                      <SocialButton icon={<Github className="h-5 w-5" />} label="GitHub" href="https://github.com/goodnbadexe" />
+                      <SocialButton icon={<Globe className="h-5 w-5" />} label="Salesforce" href="https://www.salesforce.com/trailblazer/goodnbad505" />
+                      <SocialButton icon={<Code className="h-5 w-5" />} label="CodePen" href="https://codepen.io/hamzah-al-ramli" />
+
+                      {/* Portfolios & Creative hubs */}
+                      <SocialButton icon={<Globe className="h-5 w-5" />} label="Portfolio" href="https://goodnbad.info" />
+                      <SocialButton icon={<Palette className="h-5 w-5" />} label="Adobe Portfolio" href="https://hamzah-al-ramli.myportfolio.com/" />
+                      <SocialButton icon={<LayoutDashboard className="h-5 w-5" />} label="Sketchfab" href="https://sketchfab.com/Goodnbad.exe" />
+
+                      {/* Social Media & Content */}
+                      <SocialButton icon={<Instagram className="h-5 w-5" />} label="Instagram (Brand)" href="https://www.instagram.com/Goodnbad.exe/" />
+                      <SocialButton icon={<Instagram className="h-5 w-5" />} label="Instagram (Personal)" href="https://instagram.com/hamzah-al-ramli" />
+                      <SocialButton icon={<Youtube className="h-5 w-5" />} label="YouTube" href="https://youtube.com/ludusVaria" />
+                      <SocialButton icon={<Facebook className="h-5 w-5" />} label="Facebook" href="https://www.facebook.com/hamzah.ramli.790" />
+
+                      {/* Blogs */}
+                      <SocialButton icon={<PenTool className="h-5 w-5" />} label="Tech Blog" href="https://goodnbadexe.blogspot.com" />
+                      <SocialButton icon={<PenTool className="h-5 w-5" />} label="Secondary Blog" href="https://g505dnbad.blogspot.com" />
+
+                      <SocialButton icon={<Mail className="h-5 w-5" />} label="Email Me" href="mailto:goodnbadexe@hotmail.com" />
                     </div>
                   </CardContent>
                 </Card>
@@ -1625,11 +1619,11 @@ export default function Home() {
           </div>
         </div>
       </footer>
-      
+
       {/* Mobile Terminal */}
-      <MobileTerminal 
-        isOpen={showMobileTerminal} 
-        onClose={() => setShowMobileTerminal(false)} 
+      <MobileTerminal
+        isOpen={showMobileTerminal}
+        onClose={() => setShowMobileTerminal(false)}
       />
       <CluesDock />
     </div>

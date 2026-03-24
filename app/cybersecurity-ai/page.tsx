@@ -152,11 +152,11 @@ export default function CybersecurityAIPage() {
           <Link href="/" className="flex items-center gap-2">
             <div className="relative w-16 h-16">
               <img
-                src="/images/logo-green.png"
+                src="/images/newlogovector.png"
                 alt="Goodnbad.exe Logo"
                 width={64}
                 height={64}
-                className="rounded-full"
+                className="rounded-full bg-zinc-800 p-0.5"
               />
             </div>
             <GlitchText text="Goodnbad.exe" className="font-bold text-xl" />

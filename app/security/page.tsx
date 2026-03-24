@@ -110,7 +110,7 @@ export default function SecurityPage() {
         <FullscreenButton />
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <img src="/images/logo-green.png" alt="Goodnbad.exe" width={40} height={40} className="rounded-full" />
+            <img src="/images/newlogovector.png" alt="Goodnbad.exe" width={40} height={40} className="rounded-full bg-zinc-800 p-0.5" />
             <img src="/images/hacker-avatar.svg" alt="Hamzah" width={40} height={40} className="rounded-full" />
           </div>
           <Link href="/" className="text-emerald-400">{lang==='ar'?'الصفحة الرئيسية':'Home'}</Link>

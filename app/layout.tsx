@@ -18,9 +18,9 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.goodnbad.info'),
   generator: 'v0.dev',
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    icon: '/images/newlogovector.png',
+    shortcut: '/images/newlogovector.png',
+    apple: '/images/newlogovector.png',
   },
   keywords: [
     "cybersecurity portfolio", "ethical hacker", "penetration testing", "malware analysis", 
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     url: 'https://www.goodnbad.info',
     siteName: 'Goodnbad.exe - Cybersecurity Professional Portfolio',
     images: [
-      { url: '/images/logo-green.png', width: 512, height: 512, alt: 'Hamzah Al-Ramli Cybersecurity Expert Portfolio - Certified Security Professional' }
+      { url: '/images/newlogovector.png', width: 512, height: 512, alt: 'Hamzah Al-Ramli Cybersecurity Expert Portfolio - Certified Security Professional' }
     ],
     type: 'website',
     locale: 'en_US'
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Hamzah Al-Ramli - Cybersecurity Expert & Ethical Hacker Portfolio',
     description: 'Certified cybersecurity professional specializing in ethical hacking, malware analysis, Microsoft enterprise security solutions, and advanced threat protection.',
-    images: ['/images/logo-green.png'],
+    images: ['/images/newlogovector.png'],
     creator: '@Goodnbadexe'
   },
   robots: {
@@ -111,7 +111,7 @@ export default function RootLayout({
         "alternateName": ["Goodnbad", "goodnbad.exe", "goodnbad505"],
         "url": "https://www.goodnbad.info",
         "mainEntityOfPage": "https://www.goodnbad.info/about",
-        "image": "https://www.goodnbad.info/images/logo-green.png",
+        "image": "https://www.goodnbad.info/images/newlogovector.png",
         "email": "mailto:Goodnbadexe@hotmail.com",
         "jobTitle": "Cybersecurity and Automation Architect",
         "description": "Hamzah Al-Ramli (Goodnbad) is a cybersecurity and automation-focused systems architect based in Saudi Arabia. He specializes in digital infrastructure optimization, workflow automation, and security-driven architecture design.",
