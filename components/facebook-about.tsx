@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Facebook, Loader2, UserCircle } from 'lucide-react';
 import Image from 'next/image';
-import { GlitchText } from '@/components/glitch-text';
 
 export function FacebookAbout() {
   const [fbData, setFbData] = useState<any>(null);
@@ -15,12 +14,11 @@ export function FacebookAbout() {
   useEffect(() => {
     async function fetchFacebookData() {
       try {
-        const token = "EAAb75ZCw1boMBRKixK8aejnzPSMiD6Eal8WDcl0FrSKHRZC4uCN21UdJbPg6TZChJg6K6TV6dRHn7mfP3EtBbUkLZAmZAKxUKaiQH8EEILO6kNRKcrFVdImsdfIVVfdSzeYNEuGM6oA6e719B0WibMirkwS8UIoqs7b8rkRPe6H3RZABgUDLJO19VxKZAV2wfs1RTxTYjc3LjKdnBaBrCQ9rotqPW2rKa4xwX6v8go0K6gY60wv7CBMxEOLRoneU8qB3ZCTtYYWCzL8AanlqIjzTckZCkhL5Q";
-        // Fetch data from Facebook Graph API
-        const response = await fetch(`https://graph.facebook.com/me?fields=id,name,picture.width(400).height(400),about,link,quotes&access_token=${token}`);
+        const response = await fetch('/api/facebook-profile', { cache: 'no-store' });
         
         if (!response.ok) {
-          throw new Error('Failed to fetch Facebook data');
+          const failure = await response.json().catch(() => ({}));
+          throw new Error(failure.message || 'Failed to fetch Facebook data');
         }
         
         const data = await response.json();
