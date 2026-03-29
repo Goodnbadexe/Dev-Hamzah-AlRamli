@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, X, FileText, Terminal, Brain, Shield } from "lucide-react"
 import { GlitchText } from "@/components/glitch-text"
 import { DateTimeDisplay } from "@/components/datetime-display"
+import { SocialIdentity } from "@/components/social-identity"
 
 interface MobileNavProps {
   showTerminal: boolean
@@ -28,18 +28,9 @@ export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
       <SheetContent side="right" className="w-full sm:w-80 bg-zinc-900 border-zinc-800 p-0 [&>button]:hidden">
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-            <div className="flex items-center gap-2">
-              <div className="relative w-10 h-10">
-                <Image
-                  src="/images/newlogovector.png"
-                  alt="Goodnbad.exe Logo"
-                  width={40}
-                  height={40}
-                  className="rounded-full bg-zinc-800 p-0.5"
-                />
-              </div>
-              <div className="flex flex-col">
-                <GlitchText text="Goodnbad.exe" className="font-bold text-lg" />
+            <div className="min-w-0">
+              <SocialIdentity variant="mobile" />
+              <div className="mt-2 pl-[60px]">
                 <DateTimeDisplay />
               </div>
             </div>
@@ -106,7 +97,8 @@ export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
           </nav>
 
           <div className="p-4 border-t border-zinc-800 text-center text-xs text-zinc-500">
-            © {new Date().getFullYear()} Hamzah Al-Ramli
+            <GlitchText text="Goodnbad.exe" className="font-semibold text-sm text-zinc-300" />
+            <div className="mt-1">© {new Date().getFullYear()} Hamzah Al-Ramli</div>
           </div>
         </div>
       </SheetContent>

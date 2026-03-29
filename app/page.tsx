@@ -48,6 +48,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { TechnicalExpertise } from "@/components/technical-expertise"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { HackerTerminal } from "@/components/hacker-terminal"
@@ -57,27 +58,13 @@ import { MobileTerminal } from "@/components/mobile-terminal"
 import { GlitchText } from "@/components/glitch-text"
 import { MatrixBackground } from "@/components/matrix-background"
 import { ParticleAnimation } from "@/components/particle-animation"
-import { DateTimeDisplay } from "@/components/datetime-display"
 import CluesDock from "@/components/clues-dock"
 
 import { FacebookAbout } from "@/components/facebook-about"
+import { SocialIdentity } from "@/components/social-identity"
 
 export default function Home() {
   const [showMobileTerminal, setShowMobileTerminal] = useState(false)
-  const [activeSkillTab, setActiveSkillTab] = useState("programming")
-
-  // Auto-rotate skills tabs
-  useEffect(() => {
-    const skillTabs = ["programming", "frontend", "backend", "devops", "mobile", "design"]
-    let currentIndex = 0
-
-    const interval = setInterval(() => {
-      currentIndex = (currentIndex + 1) % skillTabs.length
-      setActiveSkillTab(skillTabs[currentIndex])
-    }, 4000) // Rotate every 4 seconds
-
-    return () => clearInterval(interval)
-  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white relative overflow-hidden">
@@ -95,25 +82,26 @@ export default function Home() {
 
       {/* Navigation */}
       <header className="container mx-auto py-6 relative z-10">
-        <nav className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="relative w-24 h-24">
+        <nav className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative h-14 w-14 overflow-hidden rounded-full border border-zinc-700 bg-zinc-900">
               <Image
                 src="/images/newlogovector.png"
                 alt="Goodnbad.exe Logo"
-                width={96}
-                height={96}
-                className="rounded-full bg-zinc-800 p-1"
+                fill
+                sizes="56px"
+                className="object-cover p-1"
                 priority
               />
             </div>
             <div className="flex flex-col">
-              <GlitchText text="Goodnbad.exe" className="font-bold text-xl" />
-              <DateTimeDisplay />
+              <GlitchText text="Goodnbad.exe" className="font-bold text-xl md:text-2xl" />
+              <p className="text-sm text-zinc-300">Hamzah Al-Ramli</p>
+              <p className="text-xs text-zinc-500">Cybersecurity & Automation Architect</p>
             </div>
           </div>
 
-          <div className="hidden md:flex gap-6">
+          <div className="hidden flex-wrap items-center gap-5 lg:flex xl:justify-center xl:flex-1">
             <Link href="#about" className="hover:text-emerald-400 transition-colors relative group">
               About
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
@@ -126,21 +114,13 @@ export default function Home() {
               Projects
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="#experience" className="hover:text-emerald-400 transition-colors relative group">
-              Experience
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-            <Link href="#portfolio" className="hover:text-emerald-400 transition-colors relative group">
-              Portfolio
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
-            </Link>
             <Link href="#contact" className="hover:text-emerald-400 transition-colors relative group">
               Contact
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 self-start xl:self-auto">
             <Button
               variant="outline"
               className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400 hidden md:flex"
@@ -371,398 +351,7 @@ export default function Home() {
               </p>
             </div>
 
-            <Tabs value={activeSkillTab} onValueChange={setActiveSkillTab} className="mt-12">
-              <TabsList className="flex w-full max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-x-auto shadow-lg">
-                <TabsTrigger value="programming" className="flex-shrink-0">Programming</TabsTrigger>
-                <TabsTrigger value="frontend" className="flex-shrink-0">Frontend</TabsTrigger>
-                <TabsTrigger value="backend" className="flex-shrink-0">Backend</TabsTrigger>
-                <TabsTrigger value="devops" className="flex-shrink-0">DevOps</TabsTrigger>
-                <TabsTrigger value="mobile" className="flex-shrink-0">Mobile</TabsTrigger>
-                <TabsTrigger value="design" className="flex-shrink-0">Design</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="programming" className="mt-8">
-                <div className="bg-zinc-800/30 rounded-lg p-6 border border-zinc-700/50">
-                  <h3 className="text-xl font-semibold mb-6 flex items-center text-emerald-400">
-                    <Terminal className="mr-3 h-6 w-6" />🧠 Programming Languages
-                  </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
-                    {[
-                      {
-                        name: "Python",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
-                        url: "https://www.python.org",
-                      },
-                      {
-                        name: "Java",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg",
-                        url: "https://www.java.com",
-                      },
-                      {
-                        name: "Kotlin",
-                        icon: "https://www.vectorlogo.zone/logos/kotlinlang/kotlinlang-icon.svg",
-                        url: "https://kotlinlang.org",
-                      },
-                      {
-                        name: "Dart",
-                        icon: "https://www.vectorlogo.zone/logos/dartlang/dartlang-icon.svg",
-                        url: "https://dart.dev",
-                      },
-                      {
-                        name: "C++",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg",
-                        url: "https://www.w3schools.com/cpp/",
-                      },
-                      {
-                        name: "PHP",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg",
-                        url: "https://www.php.net",
-                      },
-                      {
-                        name: "JavaScript",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
-                        url: "https://www.javascript.com/",
-                      },
-                      {
-                        name: "TypeScript",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
-                        url: "https://www.typescriptlang.org/",
-                      },
-                    ].map((skill) => (
-                      <div key={skill.name} className="group flex flex-col items-center">
-                        <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                            <img
-                              src={skill.icon || "/placeholder.svg"}
-                              alt={skill.name}
-                              className={`w-full h-full object-contain ${skill.name === "Photoshop" ? "brightness-0 invert" : ""}`}
-                            />
-                          </div>
-                          <span className="text-xs text-zinc-400 group-hover:text-emerald-400 transition-colors text-center">
-                            {skill.name}
-                          </span>
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="frontend" className="mt-8">
-                <div className="bg-zinc-800/30 rounded-lg p-6 border border-zinc-700/50">
-                  <h3 className="text-xl font-semibold mb-6 flex items-center text-emerald-400">
-                    <Code className="mr-3 h-6 w-6" />🎨 Frontend & Frameworks
-                  </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
-                    {[
-                      {
-                        name: "React",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
-                        url: "https://reactjs.org/",
-                      },
-                      {
-                        name: "Next.js",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
-                        url: "https://nextjs.org/",
-                      },
-                      {
-                        name: "Vue.js",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg",
-                        url: "https://vuejs.org/",
-                      },
-                      {
-                        name: "Flutter",
-                        icon: "https://www.vectorlogo.zone/logos/flutterio/flutterio-icon.svg",
-                        url: "https://flutter.dev",
-                      },
-                      {
-                        name: "Bootstrap",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bootstrap/bootstrap-plain-wordmark.svg",
-                        url: "https://getbootstrap.com",
-                      },
-                      {
-                        name: "Tailwind",
-                        icon: "https://www.vectorlogo.zone/logos/tailwindcss/tailwindcss-icon.svg",
-                        url: "https://tailwindcss.com/",
-                      },
-                      {
-                        name: "HTML5",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original-wordmark.svg",
-                        url: "https://www.w3schools.com/html/",
-                      },
-                      {
-                        name: "CSS3",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original-wordmark.svg",
-                        url: "https://www.w3schools.com/css/",
-                      },
-                    ].map((skill) => (
-                      <div key={skill.name} className="group flex flex-col items-center">
-                        <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                            <img
-                              src={skill.icon || "/placeholder.svg"}
-                              alt={skill.name}
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                          <span className="text-xs text-zinc-400 group-hover:text-emerald-400 transition-colors text-center">
-                            {skill.name}
-                          </span>
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="backend" className="mt-8">
-                <div className="bg-zinc-800/30 rounded-lg p-6 border border-zinc-700/50">
-                  <h3 className="text-xl font-semibold mb-6 flex items-center text-emerald-400">
-                    <Server className="mr-3 h-6 w-6" />
-                    🗄️ Backend & Databases
-                  </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
-                    {[
-                      {
-                        name: "Node.js",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original-wordmark.svg",
-                        url: "https://nodejs.org",
-                      },
-                      {
-                        name: "Windows Server",
-                        icon: "https://www.svgrepo.com/show/303229/microsoft-sql-server-logo.svg",
-                        url: "https://learn.microsoft.com/en-us/windows-server/",
-                      },
-                      {
-                        name: "Linux Servers",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg",
-                        url: "https://www.linux.org/",
-                      },
-                      {
-                        name: "MySQL",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original-wordmark.svg",
-                        url: "https://www.mysql.com/",
-                      },
-                      {
-                        name: "PostgreSQL",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original-wordmark.svg",
-                        url: "https://www.postgresql.org",
-                      },
-                      {
-                        name: "SQL Server",
-                        icon: "https://www.svgrepo.com/show/303229/microsoft-sql-server-logo.svg",
-                        url: "https://www.microsoft.com/en-us/sql-server",
-                      },
-                      {
-                        name: "Oracle DB",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/oracle/oracle-original.svg",
-                        url: "https://www.oracle.com/",
-                      },
-                    ].map((skill) => (
-                      <div key={skill.name} className="group flex flex-col items-center">
-                        <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                            <img
-                              src={skill.icon || "/placeholder.svg"}
-                              alt={skill.name}
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                          <span className="text-xs text-zinc-400 group-hover:text-emerald-400 transition-colors text-center">
-                            {skill.name}
-                          </span>
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="devops" className="mt-8">
-                <div className="bg-zinc-800/30 rounded-lg p-6 border border-zinc-700/50">
-                  <h3 className="text-xl font-semibold mb-6 flex items-center text-emerald-400">
-                    <Globe className="mr-3 h-6 w-6" />
-                    ☁️ DevOps & Cloud
-                  </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
-                    {[
-                      {
-                        name: "Docker",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original-wordmark.svg",
-                        url: "https://www.docker.com/",
-                      },
-                      {
-                        name: "AWS",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg",
-                        url: "https://aws.amazon.com",
-                      },
-                      {
-                        name: "Azure",
-                        icon: "https://www.vectorlogo.zone/logos/microsoft_azure/microsoft_azure-icon.svg",
-                        url: "https://azure.microsoft.com/en-in/",
-                        badge: "AI Security"
-                      },
-                      {
-                        name: "Microsoft Entra",
-                        icon: "https://www.vectorlogo.zone/logos/microsoft_azure/microsoft_azure-icon.svg",
-                        url: "https://learn.microsoft.com/en-us/entra/",
-                        badge: "Identity"
-                      },
-                      {
-                        name: "Bash",
-                        icon: "https://www.vectorlogo.zone/logos/gnu_bash/gnu_bash-icon.svg",
-                        url: "https://www.gnu.org/software/bash/",
-                      },
-                      {
-                        name: "Linux",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg",
-                        url: "https://www.linux.org/",
-                      },
-                      {
-                        name: "Git",
-                        icon: "https://www.vectorlogo.zone/logos/git-scm/git-scm-icon.svg",
-                        url: "https://git-scm.com/",
-                      },
-                    ].map((skill) => (
-                      <div key={skill.name} className="group flex flex-col items-center">
-                        <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1 relative">
-                            <img
-                              src={skill.icon || "/placeholder.svg"}
-                              alt={skill.name}
-                              className="w-full h-full object-contain"
-                            />
-                            {skill.badge && (
-                              <div className="absolute left-1 bottom-1 text-[10px] bg-blue-500/30 text-white px-1 py-0.5 rounded">
-                                {skill.badge}
-                              </div>
-                            )}
-                          </div>
-                          <span className="text-xs text-zinc-400 group-hover:text-emerald-400 transition-colors text-center">
-                            {skill.name}
-                          </span>
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-6 p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
-                    <div className="flex items-center gap-2 text-blue-400 mb-2">
-                      <Shield className="h-4 w-4" />
-                      <span className="font-semibold">Microsoft AI Security Integration</span>
-                    </div>
-                    <p className="text-sm text-zinc-300">
-                      Leveraging Microsoft Azure AI for advanced threat detection, Entra ID for identity protection,
-                      and Loop for collaborative security workflows. Experience next-generation cybersecurity
-                      with AI-powered automation and predictive analytics.
-                    </p>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="mobile" className="mt-8">
-                <div className="bg-zinc-800/30 rounded-lg p-6 border border-zinc-700/50">
-                  <h3 className="text-xl font-semibold mb-6 flex items-center text-emerald-400">
-                    <FileCode className="mr-3 h-6 w-6" />📱 Mobile & Game Dev
-                  </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
-                    {[
-                      {
-                        name: "Android",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/android/android-original-wordmark.svg",
-                        url: "https://developer.android.com",
-                      },
-                      {
-                        name: "React Native",
-                        icon: "https://reactnative.dev/img/header_logo.svg",
-                        url: "https://reactnative.dev/",
-                      },
-                      {
-                        name: "Unity",
-                        icon: "https://www.vectorlogo.zone/logos/unity3d/unity3d-icon.svg",
-                        url: "https://unity.com/",
-                      },
-                      {
-                        name: "Unreal Engine",
-                        icon: "https://raw.githubusercontent.com/kenangundogan/fontisto/036b7eca71aab1bef8e6a0518f7329f13ed62f6b/icons/svg/brand/unreal-engine.svg",
-                        url: "https://unrealengine.com/",
-                      },
-                    ].map((skill) => (
-                      <div key={skill.name} className="group flex flex-col items-center">
-                        <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                            <img
-                              src={skill.icon || "/placeholder.svg"}
-                              alt={skill.name}
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                          <span className="text-xs text-zinc-400 group-hover:text-emerald-400 transition-colors text-center">
-                            {skill.name}
-                          </span>
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="design" className="mt-8">
-                <div className="bg-zinc-800/30 rounded-lg p-6 border border-zinc-700/50">
-                  <h3 className="text-xl font-semibold mb-6 flex items-center text-emerald-400">
-                    <Braces className="mr-3 h-6 w-6" />🎨 UI/UX & Design
-                  </h3>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 md:gap-6">
-                    {[
-                      {
-                        name: "Figma",
-                        icon: "https://www.vectorlogo.zone/logos/figma/figma-icon.svg",
-                        url: "https://www.figma.com/",
-                      },
-                      {
-                        name: "Illustrator",
-                        icon: "https://www.vectorlogo.zone/logos/adobe_illustrator/adobe_illustrator-icon.svg",
-                        url: "https://www.adobe.com/products/illustrator.html",
-                      },
-                      {
-                        name: "Photoshop",
-                        icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/photoshop/photoshop-plain.svg",
-                        url: "https://www.photoshop.com/en",
-                      },
-                      {
-                        name: "Adobe XD",
-                        icon: "https://cdn.worldvectorlogo.com/logos/adobe-xd-2.svg",
-                        url: "https://www.adobe.com/products/xd.html",
-                      },
-                      {
-                        name: "Sketch",
-                        icon: "https://www.vectorlogo.zone/logos/sketchapp/sketchapp-icon.svg",
-                        url: "https://www.sketch.com/",
-                      },
-                      {
-                        name: "Blender",
-                        icon: "https://download.blender.org/branding/community/blender_community_badge_white.svg",
-                        url: "https://www.blender.org/",
-                      },
-                    ].map((skill) => (
-                      <div key={skill.name} className="group flex flex-col items-center">
-                        <a href={skill.url} target="_blank" rel="noopener noreferrer" className="block">
-                          <div className="w-10 h-10 md:w-12 md:h-12 mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                            <img
-                              src={skill.icon || "/placeholder.svg"}
-                              alt={skill.name}
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                          <span className="text-xs text-zinc-400 group-hover:text-emerald-400 transition-colors text-center">
-                            {skill.name}
-                          </span>
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+            <TechnicalExpertise />
 
             {/* Cybersecurity Skills Progress Bars */}
             <div className="bg-zinc-800/30 rounded-lg p-6 border border-zinc-700/50 mt-12">
@@ -1597,24 +1186,32 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-zinc-900/80 py-12 border-t border-zinc-800 relative z-10">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-2 mb-4 md:mb-0">
-              <div className="relative w-16 h-16">
-                <Image
-                  src="/images/logo-green.png"
-                  alt="Goodnbad.exe Logo"
-                  width={64}
-                  height={64}
-                  className="rounded-full"
-                />
-              </div>
-              <div className="flex flex-col">
-                <GlitchText text="Goodnbad.exe" className="font-bold text-xl" />
-                <DateTimeDisplay />
+          <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr_1fr]">
+            <div>
+              <SocialIdentity variant="footer" />
+              <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-400">
+                Cybersecurity, automation, and digital systems with direct links to Facebook and Instagram.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">Quick Links</h3>
+              <div className="space-y-2 text-sm text-zinc-300">
+                <Link href="#about" className="block hover:text-emerald-400">About</Link>
+                <Link href="#skills" className="block hover:text-emerald-400">Skills</Link>
+                <Link href="#projects" className="block hover:text-emerald-400">Projects</Link>
+                <Link href="#contact" className="block hover:text-emerald-400">Contact</Link>
               </div>
             </div>
-            <div className="text-zinc-400 text-sm">
-              © {new Date().getFullYear()} Hamzah Al-Ramli. All rights reserved.
+
+            <div>
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">Direct Contact</h3>
+              <div className="space-y-2 text-sm text-zinc-300">
+                <p>Goodnbadexe@hotmail.com</p>
+                <p>+966 50 850 1717</p>
+                <p>Riyadh, Saudi Arabia</p>
+                <p className="pt-3 text-zinc-500">© {new Date().getFullYear()} Hamzah Al-Ramli</p>
+              </div>
             </div>
           </div>
         </div>

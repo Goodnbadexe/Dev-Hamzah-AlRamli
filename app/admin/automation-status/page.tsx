@@ -13,6 +13,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { CheckCircle, AlertTriangle } from 'lucide-react'
 
 type UpdateEvent = {
   ts: string
@@ -24,6 +25,7 @@ type UpdateEvent = {
 
 export default function AutomationStatus() {
   const [events, setEvents] = useState<UpdateEvent[]>([])
+  const [facebookFlagPresent, setFacebookFlagPresent] = useState<boolean | null>(null)
 
   useEffect(() => {
     fetch('/updates.json')
@@ -33,6 +35,13 @@ export default function AutomationStatus() {
   }, [])
 
   const dryRun = process.env.NEXT_PUBLIC_SOCIAL_DRY_RUN === 'true'
+
+  useEffect(() => {
+    fetch('/api/flags/facebookSDK', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : { present: false })
+      .then(d => setFacebookFlagPresent(Boolean(d?.present)))
+      .catch(() => setFacebookFlagPresent(false))
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white">
@@ -46,7 +55,21 @@ export default function AutomationStatus() {
             <CardTitle>Latest Update Events</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 text-sm text-zinc-400">Dry-run mode: {dryRun ? 'enabled' : 'disabled'} (set NEXT_PUBLIC_SOCIAL_DRY_RUN and SOCIAL_DRY_RUN)</div>
+            <div className="mb-2 text-sm text-zinc-400">Dry-run mode: {dryRun ? 'enabled' : 'disabled'} (set NEXT_PUBLIC_SOCIAL_DRY_RUN and SOCIAL_DRY_RUN)</div>
+            <div className="mb-4 text-sm text-zinc-400 flex items-center gap-2">
+              <span>facebookSDK flag:</span>
+              {facebookFlagPresent === null ? (
+                <span className="text-zinc-500">checking…</span>
+              ) : facebookFlagPresent ? (
+                <span className="inline-flex items-center gap-1 text-emerald-400">
+                  <CheckCircle className="h-4 w-4" /> present
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-red-400">
+                  <AlertTriangle className="h-4 w-4" /> missing
+                </span>
+              )}
+            </div>
             {events.length === 0 ? (
               <div className="text-zinc-400">No events yet.</div>
             ) : (

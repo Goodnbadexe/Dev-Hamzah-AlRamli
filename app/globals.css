@@ -560,3 +560,192 @@ Complexity: O(1) styling
   white-space: nowrap;
   animation: typewriter 3s steps(40, end);
 }
+
+.tech-exp {
+  margin-top: 3rem;
+  width: 100%;
+}
+
+.tech-exp__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .tech-exp__list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+}
+
+.tech-exp__item {
+  flex: 1 1 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(63, 63, 70, 0.5);
+  background: rgba(39, 39, 42, 0.3);
+  padding: 1.5rem;
+  transform-origin: center;
+  overflow: visible;
+  transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+  will-change: transform;
+}
+
+@media (min-width: 768px) {
+  .tech-exp__item {
+    flex: 1 1 calc(50% - 0.75rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .tech-exp__item {
+    flex: 1 1 calc(33.333% - 1rem);
+  }
+}
+
+.js .tech-exp__itemInner {
+  opacity: 0;
+  transform: translateY(12px);
+  transition-property: opacity, transform;
+  transition-duration: 420ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--tech-exp-delay, 0ms);
+}
+
+.js .tech-exp__item.tech-exp__item--visible .tech-exp__itemInner {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tech-exp__item--active {
+  transform: scale(1.05);
+  box-shadow: 0 18px 50px rgba(16, 185, 129, 0.08), 0 0 0 1px rgba(16, 185, 129, 0.15);
+}
+
+.tech-exp--has-active .tech-exp__item:not(.tech-exp__item--active) {
+  opacity: 0.55;
+}
+
+.tech-exp--instant .tech-exp__item {
+  transition-duration: 0ms;
+}
+
+.tech-exp__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem 0;
+  color: rgb(52 211 153);
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.tech-exp__headingIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 auto;
+}
+
+.tech-exp__skills {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .tech-exp__skills {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.tech-exp__skillLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  border-radius: 0.75rem;
+  padding: 0.5rem;
+  color: inherit;
+  outline: none;
+}
+
+.tech-exp__skillLink:focus-visible {
+  outline: 2px solid rgba(16, 185, 129, 0.95);
+  outline-offset: 2px;
+}
+
+.tech-exp__skillIconWrap {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.tech-exp__skillIcon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tech-exp__skillIcon--invert {
+  filter: brightness(0) invert(1);
+}
+
+.tech-exp__skillBadge {
+  position: absolute;
+  right: -0.5rem;
+  bottom: -0.5rem;
+  font-size: 9px;
+  line-height: 1;
+  padding: 0.25rem 0.3rem;
+  border-radius: 0.375rem;
+  background: rgba(59, 130, 246, 0.85);
+  color: white;
+  white-space: nowrap;
+}
+
+.tech-exp__skillName {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: rgb(161 161 170);
+  text-align: center;
+}
+
+.tech-exp__extra {
+  margin-top: 1.25rem;
+}
+
+.tech-exp__callout {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(30, 58, 138, 0.2);
+}
+
+.tech-exp__calloutHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: rgb(96 165 250);
+}
+
+.tech-exp__calloutTitle {
+  font-weight: 600;
+}
+
+.tech-exp__calloutText {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: rgb(212 212 216);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tech-exp__item,
+  .tech-exp__itemInner {
+    transition: none !important;
+    transform: none !important;
+  }
+}
