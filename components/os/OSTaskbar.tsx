@@ -4,14 +4,12 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
+import { OS_APPS } from "./types"
 
+// Home entry + all registered OS apps
 const NAV_ITEMS = [
-  { href: "/",            label: "HOME",        code: "~" },
-  { href: "/personnel",   label: "PERSONNEL",   code: "01" },
-  { href: "/deployments", label: "DEPLOYMENTS", code: "02" },
-  { href: "/signal",      label: "SIGNAL",      code: "03" },
-  { href: "/contact",     label: "CONTACT",     code: "04" },
-  { href: "/terminal",    label: "TERMINAL",    code: "05" },
+  { href: "/", label: "HOME", code: "~" },
+  ...OS_APPS.map(app => ({ href: app.route, label: app.id.toUpperCase(), code: app.code })),
 ]
 
 function Clock() {
