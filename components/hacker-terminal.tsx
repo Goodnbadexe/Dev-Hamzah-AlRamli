@@ -318,7 +318,7 @@ export function HackerTerminal() {
           "",
           asciiArt.banner,
           "",
-          "🚀 Welcome to Goodnbad.exe Terminal v2.0.0 - Advanced Hacker Edition",
+          "Welcome to GOODNBAD OS Terminal Env [Version 2.5]",
           "Last login: " + new Date().toLocaleString() + " on ttys001",
           "",
           "💡 Type 'help' to see available commands",
@@ -755,7 +755,7 @@ export function HackerTerminal() {
       const welcomeMessage = [
         asciiArt.banner,
         "",
-        "🚀 Welcome to Goodnbad.exe Terminal v2.0.1 - Advanced Hacker Edition",
+        "Welcome to GOODNBAD OS Terminal Env [Version 2.5]",
         "Last login: " + new Date().toLocaleString() + " on ttys001",
         "",
         "💡 Type 'help' to see available commands",
@@ -793,209 +793,68 @@ export function HackerTerminal() {
   }
 
   return (
-    <div
-      className={cn(
-        "grid transition-all duration-700 ease-in-out gap-12 items-center",
-        isExpanded 
-          ? "grid-cols-1" 
-          : "grid-cols-1 md:grid-cols-2"
-      )}
-    >
-      {/* Hero Content */}
-      <div className={cn(
-        "transition-all duration-700 ease-in-out",
-        isExpanded 
-          ? "max-w-3xl mx-auto text-center"
-          : ""
-      )}>
-        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent mb-4 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-none">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 mr-1">
-            <polyline points="4 17 10 11 4 5"></polyline>
-            <line x1="12" x2="20" y1="19" y2="19"></line>
-          </svg>
-          DEV
-        </div>
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 glitch-stack">
-          <span className="relative inline-block text-white">
-            <span className="relative z-10">Hamzah</span>
-          </span>
-          <span className="relative inline-block text-emerald-500">
-            <span className="relative z-10">Al-Ramli</span>
-          </span>
-        </h1>
-        <p className="text-zinc-400 text-lg mb-8 border-l-2 border-emerald-500 pl-4">
-          Professional overthinker, part-time button masher, full-time Goodnbad.exe. Cybersecurity engineer who turns coffee into code and transforms digital chaos into secure solutions.
-        </p>
-        <div className={cn(
-          "flex flex-col sm:flex-row gap-4 flex-wrap sm:flex-nowrap",
-          isExpanded ? "justify-center" : ""
-        )}>
-          <button 
-            onClick={() => {
-              const projectsSection = document.getElementById('projects');
-              if (projectsSection) {
-                projectsSection.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-black group relative overflow-hidden min-w-[180px] sm:min-w-[200px]"
-          >
-            <span className="relative z-10 flex items-center">
-              View Projects
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform">
-                <path d="M5 12h14"></path>
-                <path d="m12 5 7 7-7 7"></path>
-              </svg>
-            </span>
-            <span className="absolute inset-0 bg-emerald-400 translate-y-full group-hover:translate-y-0 transition-transform duration-200"></span>
-          </button>
-          <a target="_blank" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-background hover:bg-accent h-10 px-4 py-2 border-zinc-700 hover:border-emerald-500 hover:text-emerald-500 group min-w-[180px] sm:min-w-[200px]" href="/files/hamzah-al-ramli-resume.pdf">
-            <span className="flex items-center">
-              Download Resume
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 h-4 w-4 group-hover:translate-y-1 transition-transform">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" x2="12" y1="15" y2="3"></line>
-              </svg>
-            </span>
-          </a>
-        </div>
-      </div>
-
-      {/* Terminal Section */}
-      <div
-        className="relative hidden md:block"
-        style={isExpanded && terminalPos ? {
-          position: 'fixed',
-          top: `${terminalPos.y}px`,
-          left: `${terminalPos.x}px`,
-          transform: 'translate(-50%, -50%)',
-          zIndex: 70,
-          width: 'min(960px, 95vw)'
-        } : undefined}
-      >
-        <div className="absolute inset-0 bg-emerald-500/20 rounded-lg blur-3xl"></div>
-        <div className="relative bg-zinc-800/80 p-4 rounded-lg border border-emerald-500/30 backdrop-blur-sm">
-          <div
-            className={cn(
-              "flex flex-col bg-black/80 text-emerald-400 font-mono text-sm overflow-hidden border border-emerald-500/30 transition-all duration-700 ease-in-out rounded-md",
-              isExpanded ? "h-[600px]" : "h-full"
-            )}
-            onClick={() => {
-              if (inputRef.current) {
-                inputRef.current.focus()
-              }
-            }}
-          >
-            {/* Terminal Header */}
-            <div
-              className="flex items-center bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 px-6 py-3 border-b border-emerald-500/50 shadow-lg cursor-move"
-              onPointerDown={(e) => {
-                if (!isExpanded) return
-                try { (e.target as HTMLElement).setPointerCapture?.(e.pointerId) } catch {}
-                const start = { mx: e.clientX, my: e.clientY, x: terminalPos?.x || window.innerWidth/2, y: terminalPos?.y || (window.innerHeight - 120) }
-                const onMove = (ev: PointerEvent) => {
-                  setTerminalPos({ x: start.x + (ev.clientX - start.mx), y: start.y + (ev.clientY - start.my) })
-                }
-                const onUp = () => {
-                  window.removeEventListener('pointermove', onMove)
-                  window.removeEventListener('pointerup', onUp)
-                }
-                window.addEventListener('pointermove', onMove)
-                window.addEventListener('pointerup', onUp)
-              }}
-              style={{ touchAction: 'none' }}
-            >
-              <div className="flex space-x-2">
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setIsExpanded(false)
-                  }}
-                  className="w-3 h-3 rounded-full bg-red-500 animate-pulse hover:bg-red-400 transition-colors cursor-pointer"
-                  title="Close"
-                ></button>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setIsExpanded(false)
-                  }}
-                  className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse hover:bg-yellow-400 transition-colors cursor-pointer" 
-                  style={{animationDelay: '0.2s'}}
-                  title="Minimize"
-                ></button>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    const toExpand = !isExpanded
-                    setIsExpanded(toExpand)
-                    if (toExpand) {
-                      try {
-                        const rect = terminalRef.current?.getBoundingClientRect()
-                        if (rect) {
-                          setTerminalPos({ x: rect.left + rect.width / 2, y: rect.bottom - 120 })
-                        } else {
-                          setTerminalPos({ x: window.innerWidth / 2, y: window.innerHeight - 120 })
-                        }
-                      } catch {
-                        setTerminalPos({ x: window.innerWidth / 2, y: window.innerHeight - 120 })
-                      }
-                    }
-                  }}
-                  className="w-3 h-3 rounded-full bg-green-500 animate-pulse hover:bg-green-400 transition-colors cursor-pointer" 
-                  style={{animationDelay: '0.4s'}}
-                  title="Maximize"
-                ></button>
+    <>
+      <div className="relative w-full h-[500px] md:h-[600px] shadow-2xl">
+        <div
+          className="flex flex-col bg-zinc-950/90 text-emerald-400 font-mono text-sm overflow-hidden border border-zinc-800/80 transition-all duration-700 ease-in-out rounded-lg h-full w-full backdrop-blur-md"
+          onClick={() => {
+            if (inputRef.current) {
+              inputRef.current.focus()
+            }
+          }}
+        >
+          {/* Minimal OS Status Bar */}
+          <div className="flex items-center bg-zinc-950 px-4 py-2 border-b border-zinc-800/80 select-none">
+            <div className="flex-1 text-left">
+              <div className="text-xs font-medium text-zinc-500 tracking-wider">
+                goodnbad.exe — terminal.sh
               </div>
-              <div className="flex-1 text-center">
-                 <div className="text-sm font-bold text-emerald-400 tracking-wider">
-                   🚀 GOODNBAD.EXE - HACKER TERMINAL
-                 </div>
-                 <div className="text-xs text-emerald-300/70 mt-1">
-                   {isExpanded ? '[EXPANDED CTF MODE] - Ready for Challenges' : '[NORMAL MODE] - Ready for Commands'}
-                 </div>
-               </div>
             </div>
-
-            {/* Terminal Content */}
-            <div ref={terminalRef} className="flex-1 overflow-auto p-8 custom-scrollbar max-w-5xl mx-auto w-full">
-               {history.map((entry, index) => {
-                 const isBanner = entry.content === asciiArt.banner;
-                 return (
-                   <div key={index} className={`mb-1 ${isBanner ? 'overflow-x-hidden' : 'whitespace-pre-wrap'}`}>
-                     {entry.type === 'input' ? (
-                       <span className="text-emerald-500">
-                         {currentDirectory === '~' ? 'goodnbad@exe ~ $ ' : `goodnbad@exe ${currentDirectory} $ `}{entry.content}
-                       </span>
-                     ) : isBanner ? (
-                       <pre className="text-[5px] xs:text-[8px] sm:text-[10px] md:text-sm leading-none text-emerald-300 font-bold tracking-tighter whitespace-pre font-mono">
-                         {entry.content}
-                       </pre>
-                     ) : (
-                       <span className={entry.isError ? 'text-red-400' : 'text-emerald-300'}>
-                         {entry.content}
-                       </span>
-                     )}
-                   </div>
-                 );
-               })}
-               
-               {/* Current Input Line */}
-               <div className="flex items-center">
-                 <span className="text-emerald-500">
-                   {currentDirectory === '~' ? 'goodnbad@exe ~ $ ' : `goodnbad@exe ${currentDirectory} $ `}
-                 </span>
-                 <input
-                   ref={inputRef}
-                   type="text"
-                   value={currentInput}
-                   onChange={(e) => setCurrentInput(e.target.value)}
-                   onKeyDown={handleKeyDown}
-                   className="flex-1 bg-transparent border-none outline-none text-emerald-300 caret-emerald-300 ml-1"
-                   autoFocus
-                 />
-               </div>
-             </div>
+            <div className="text-[10px] text-zinc-600 uppercase tracking-widest flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              SYSTEM ONLINE
+            </div>
           </div>
+  
+          {/* Terminal Content */}
+          <div ref={terminalRef} className="flex-1 overflow-auto p-4 md:p-6 custom-scrollbar w-full">
+             {history.map((entry, index) => {
+               const isBanner = entry.content === asciiArt.banner;
+               return (
+                 <div key={index} className={`mb-1 ${isBanner ? 'overflow-x-auto' : 'whitespace-pre-wrap'}`}>
+                   {entry.type === 'input' ? (
+                     <span className="text-emerald-500">
+                       {currentDirectory === '~' ? 'goodnbad@exe ~ $ ' : `goodnbad@exe ${currentDirectory} $ `}{entry.content}
+                     </span>
+                   ) : isBanner ? (
+                     <pre className="text-[5px] xs:text-[8px] sm:text-[10px] md:text-sm leading-none text-emerald-300 font-bold tracking-tighter whitespace-pre font-mono">
+                       {entry.content}
+                     </pre>
+                   ) : (
+                     <span className={entry.isError ? 'text-red-400' : 'text-emerald-300'}>
+                       {entry.content}
+                     </span>
+                   )}
+                 </div>
+               );
+             })}
+             
+             {/* Current Input Line */}
+             <div className="flex items-center">
+               <span className="text-emerald-500">
+                 {currentDirectory === '~' ? 'goodnbad@exe ~ $ ' : `goodnbad@exe ${currentDirectory} $ `}
+               </span>
+               <input
+                 ref={inputRef}
+                 type="text"
+                 value={currentInput}
+                 onChange={(e) => setCurrentInput(e.target.value)}
+                 onKeyDown={handleKeyDown}
+                 className="flex-1 bg-transparent border-none outline-none text-emerald-300 caret-emerald-300 ml-1"
+                 autoFocus
+               />
+             </div>
+           </div>
         </div>
       </div>
       
@@ -1099,6 +958,6 @@ export function HackerTerminal() {
           }} />
         </div>
       )}
-    </div>
+    </>
   )
 }

@@ -2,7 +2,7 @@ import { flag } from "flags/next"
 import { vercelAdapter } from "@flags-sdk/vercel"
 
 const facebookSDKAdapter =
-  process.env.FLAGS ? vercelAdapter<string | undefined, never>() : undefined
+  process.env.FLAGS ? vercelAdapter<string | undefined, any>() : undefined
 
 export const facebookSDK = flag<string | undefined>({
   key: "facebookSDK",

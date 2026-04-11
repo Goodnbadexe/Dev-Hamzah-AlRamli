@@ -8,8 +8,13 @@ import { OS_APPS } from "./types"
 
 // Home entry + all registered OS apps
 const NAV_ITEMS = [
-  { href: "/", label: "HOME", code: "~" },
-  ...OS_APPS.map(app => ({ href: app.route, label: app.id.toUpperCase(), code: app.code })),
+  { href: "/", label: "HOME", code: "~", shortLabel: "HOME" },
+  ...OS_APPS.map(app => ({ 
+    href: app.route, 
+    label: app.id.toUpperCase(), 
+    code: app.code,
+    shortLabel: app.id.substring(0, 4).toUpperCase()
+  })),
 ]
 
 function Clock() {
@@ -99,6 +104,30 @@ export function OSTaskbar({ className }: OSTaskbarProps) {
         })}
       </nav>
 
+      <nav
+        aria-label="Primary navigation"
+        className="flex md:hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto"
+      >
+        {NAV_ITEMS.map(({ href, label, code, shortLabel }) => {
+          const active = pathname === href || (href !== "/" && pathname.startsWith(href))
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "shrink-0 rounded px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors",
+                active
+                  ? "bg-emerald-950/40 text-emerald-400"
+                  : "text-zinc-500 hover:bg-zinc-900/60 hover:text-zinc-300"
+              )}
+              aria-label={label}
+            >
+              {shortLabel}
+            </Link>
+          )
+        })}
+      </nav>
+
       {/* System status — right side */}
       <div className="ml-auto flex items-center gap-3">
         <span className="hidden sm:flex items-center gap-1.5">
@@ -110,8 +139,6 @@ export function OSTaskbar({ className }: OSTaskbarProps) {
         <Clock />
       </div>
 
-      {/* Mobile nav trigger — minimal, just the logo anchors navigation */}
-      {/* Full mobile nav handled by MobileNav component in desktop shell */}
     </header>
   )
 }

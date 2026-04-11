@@ -150,18 +150,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link
-          rel="preload"
-          as="image"
-          href="/images/Taylors-University-Logo-Vector.svg-.png"
-        />
         <link rel="canonical" href="https://www.goodnbad.info" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       </head>
-      <body className={`${inter.className} ${notoKufiArabic.className}`}>
+      <body className={`${inter.className} ${notoKufiArabic.className} pb-24 md:pb-0`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           {children}
           <FullscreenButton />

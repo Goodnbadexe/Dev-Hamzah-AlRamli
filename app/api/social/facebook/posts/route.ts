@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server"
 import { facebookSDK } from "@/flags"
 
-export async function GET() {
+function isAuthorized(request: Request): boolean {
+  const secret = process.env.WEBHOOK_SECRET
+  if (!secret) return false
+  const authHeader = request.headers.get("authorization") ?? ""
+  return authHeader === `Bearer ${secret}`
+}
+
+export async function GET(request: Request) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 })
+  }
+
   try {
     const token = await facebookSDK()
     if (!token) {

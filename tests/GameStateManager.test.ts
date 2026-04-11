@@ -19,16 +19,14 @@ class LocalStorageMock {
   clear() { this.store = {}; }
 }
 
-declare global {
-  // eslint-disable-next-line no-var
-  var window: any;
-}
-
 describe('GameStateManager', () => {
   let gsm: GameStateManager;
 
   beforeEach(() => {
-    (global as any).window = { localStorage: new LocalStorageMock() };
+    Object.defineProperty(globalThis, 'window', {
+      value: { localStorage: new LocalStorageMock() as unknown as Storage },
+      configurable: true,
+    });
     gsm = new GameStateManager();
   });
 

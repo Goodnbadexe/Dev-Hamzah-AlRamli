@@ -258,7 +258,20 @@ export const asciiArt = {
 ⠀⠀⠀⠀⠀⠀⢠⡏⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣄⠹⣧⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠈⢧⡛⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠒⠒⠒⠒⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⣰⢋⣷⠏⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠀⠀
-`
+`,
+
+  gamepad: `[==== GAMEPAD ====]\n   ^   A B\n < + > X Y\n   v`,
+  wolf: `/\\_/\\\\\n( o.o )\n > ^ <`,
+  lightsaber: `==========[:::::::::::::::>`,
+  vader: `   .-.\n  |o o|\n  | = |\n  '---'`,
+  fsociety: `fsociety\ncontrol is an illusion`,
+  hello_world: `printf("hello, world");`,
+  bug: `  /\\_/\\\\\n ( x.x )\n  > bug <`,
+  coffee: `  ( (\n   ) )\n  -----\n |     |]\n  -----`,
+  pizza: `  /\\\n /__\\\n \\  /\n  \\/`,
+  github: `git push origin main\n[repository online]`,
+  santa: `  _<|:)\n  (  )\n  /__\\`,
+  ghost: ` .-.\n(o o)\n| O \\\n \\   \\\n  \`~~~'`
 };
 
 export function getRandomArt(): string {

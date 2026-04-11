@@ -1,68 +1,123 @@
-// GOODNBAD OS — /lab [REDACTED]
-// This route is intentionally obscure.
-// Not linked from the public OS desktop.
-// Discoverable only via terminal: cd lab
-// Passphrase gate to be wired in Phase 4 via LAB_PASSPHRASE env var.
+import type { Metadata } from "next"
+import { Lock, ShieldCheck, Terminal } from "lucide-react"
 import { OSPageShell } from "@/components/os/OSPageShell"
+import { OSWindow } from "@/components/os"
+import { hasLabAccess, unlockLab } from "./actions"
 
-export const metadata = {
-  title: "Access Denied | Goodnbad.exe",
+export const metadata: Metadata = {
+  title: "Restricted Lab | Goodnbad.exe",
+  description: "Restricted Goodnbad.exe lab access.",
   robots: {
-    index:  false,
+    index: false,
     follow: false,
   },
 }
 
-export default function LabPage() {
+interface Props {
+  searchParams: Promise<{ error?: string }>
+}
+
+export default async function LabPage({ searchParams }: Props) {
+  const [{ error }, unlocked] = await Promise.all([searchParams, hasLabAccess()])
+
   return (
-    <OSPageShell osName="[REDACTED]" label="Restricted Zone">
-      <div className="container mx-auto px-4 py-24 max-w-xl">
-        <div className="font-mono space-y-5 os-panel-in">
-          {/* Classification header */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className="h-2 w-2 rounded-full bg-yellow-500 shadow-[0_0_6px_theme(colors.yellow.500)]" />
-            <span className="text-[10px] text-zinc-600 uppercase tracking-[0.4em]">
-              restricted access
-            </span>
-          </div>
+    <OSPageShell osName="[REDACTED]" label="Restricted Lab">
+      <div className="container mx-auto max-w-3xl px-4 py-12 md:py-20">
+        {unlocked ? <UnlockedLab /> : <LockedLab error={error} />}
+      </div>
+    </OSPageShell>
+  )
+}
 
-          {/* Redacted classification block */}
-          <div className="border border-zinc-800 rounded px-4 py-5 space-y-3 bg-zinc-950/60">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-zinc-700 uppercase tracking-widest">file</span>
-              <span className="text-[10px] text-yellow-800 uppercase tracking-widest">█████████████</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-zinc-700 uppercase tracking-widest">classification</span>
-              <span className="text-[10px] text-yellow-700 uppercase tracking-widest">RESTRICTED</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-zinc-700 uppercase tracking-widest">access</span>
-              <span className="text-[10px] text-red-900 uppercase tracking-widest">DENIED</span>
-            </div>
+function LockedLab({ error }: { error?: string }) {
+  return (
+    <OSWindow label="restricted.access" title="passphrase required" status="alert" className="os-panel-in">
+      <div className="space-y-6">
+        <div>
+          <div className="flex items-center gap-2 text-yellow-400">
+            <Lock className="h-5 w-5" />
+            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
+              Private lab
+            </p>
           </div>
+          <h1 className="mt-3 text-3xl font-semibold text-zinc-100">Access required</h1>
+          <p className="mt-3 text-sm leading-7 text-zinc-400">
+            This area is intentionally not part of the public site. Enter the lab passphrase to continue.
+          </p>
+        </div>
 
-          {/* Auth prompt placeholder — wired to LAB_PASSPHRASE in Phase 4 */}
-          <div className="border border-zinc-900 rounded px-4 py-4 space-y-2">
-            <div className="text-[10px] text-zinc-700 uppercase tracking-widest mb-3">
-              clearance required
-            </div>
-            <div className="flex items-center gap-2 text-xs text-zinc-700">
-              <span className="text-emerald-900">$</span>
-              <span>enter passphrase:</span>
-              <span className="h-3.5 w-1.5 bg-zinc-800" />
-            </div>
-            <div className="text-[10px] text-zinc-800 pt-2">
-              — passphrase gate active in Phase 4 —
-            </div>
+        <form action={unlockLab} className="space-y-4 rounded-md border border-zinc-800 bg-zinc-950/45 p-4">
+          <label htmlFor="passphrase" className="block font-mono text-[10px] uppercase tracking-widest text-zinc-600">
+            Lab passphrase
+          </label>
+          <input
+            id="passphrase"
+            name="passphrase"
+            type="password"
+            required
+            autoComplete="off"
+            className="w-full rounded-md border border-zinc-800 bg-black px-3 py-3 font-mono text-sm text-zinc-100 outline-none transition placeholder:text-zinc-700 focus:border-emerald-700"
+            placeholder="Enter passphrase"
+          />
+          {error && (
+            <p className="text-sm text-red-400">
+              {error === "not-configured" ? "Lab access is not configured." : "Access denied."}
+            </p>
+          )}
+          <button
+            type="submit"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-emerald-800 bg-emerald-950/40 px-4 py-3 text-sm font-semibold text-emerald-300 transition hover:border-emerald-600 hover:bg-emerald-950/70"
+          >
+            <ShieldCheck className="h-4 w-4" />
+            Unlock lab
+          </button>
+        </form>
+
+        <p className="text-center font-mono text-[10px] uppercase tracking-widest text-zinc-800">
+          No public links. No indexed content.
+        </p>
+      </div>
+    </OSWindow>
+  )
+}
+
+function UnlockedLab() {
+  return (
+    <OSWindow label="lab.session" title="restricted workspace" status="active" className="os-panel-in">
+      <div className="space-y-6">
+        <div>
+          <div className="flex items-center gap-2 text-emerald-400">
+            <Terminal className="h-5 w-5" />
+            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
+              Lab unlocked
+            </p>
           </div>
+          <h1 className="mt-3 text-3xl font-semibold text-zinc-100">Restricted workspace</h1>
+          <p className="mt-3 text-sm leading-7 text-zinc-400">
+            Access is active for this browser session. Keep experiments small, private, and separate from the public navigation.
+          </p>
+        </div>
 
-          {/* Navigation hint */}
-          <p className="text-[10px] text-zinc-800 text-center pt-4 uppercase tracking-widest">
-            if you found this, you know what to do
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[
+            ["Mode", "Private"],
+            ["Indexing", "Disabled"],
+            ["Public links", "None"],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-md border border-zinc-800 bg-zinc-950/45 p-3">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">{label}</p>
+              <p className="mt-2 text-sm font-semibold text-zinc-100">{value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-md border border-zinc-800 bg-zinc-950/45 p-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">Current lab status</p>
+          <p className="mt-3 text-sm leading-7 text-zinc-400">
+            The gate is live. Future lab experiments can be added here without exposing them to normal visitors or public navigation.
           </p>
         </div>
       </div>
-    </OSPageShell>
+    </OSWindow>
   )
 }
