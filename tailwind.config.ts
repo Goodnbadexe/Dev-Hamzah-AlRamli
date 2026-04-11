@@ -85,6 +85,20 @@ const config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        // OS primitives
+        "os-panel-in": "os-panel-in 0.4s cubic-bezier(0.16,1,0.3,1) both",
+        "os-signal":   "os-signal-pulse 2s ease-in-out infinite",
+      },
+      keyframes: {
+        // Extend — accordion keyframes are defined above, these are additive
+        "os-panel-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to:   { opacity: "1", transform: "translateY(0)" },
+        },
+        "os-signal-pulse": {
+          "0%, 100%": { opacity: "1", boxShadow: "0 0 4px #10b981" },
+          "50%":       { opacity: "0.6", boxShadow: "0 0 8px #10b981" },
+        },
       },
     },
   },

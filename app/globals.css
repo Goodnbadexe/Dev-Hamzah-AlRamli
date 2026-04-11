@@ -749,3 +749,118 @@ Complexity: O(1) styling
     transform: none !important;
   }
 }
+
+/* ==========================================================
+   GOODNBAD OS — Design Tokens & Primitives
+   ========================================================== */
+
+:root {
+  /* OS surface scale */
+  --os-bg:         #09090b;   /* zinc-950 */
+  --os-surface:    #18181b;   /* zinc-900 */
+  --os-surface-hi: #27272a;   /* zinc-800 */
+  --os-border:     #27272a;   /* zinc-800 */
+  --os-border-dim: #1c1c1f;
+
+  /* OS signal color */
+  --os-signal:     #10b981;   /* emerald-500 */
+  --os-signal-dim: #064e3b;   /* emerald-950 */
+
+  /* OS text scale */
+  --os-text-1:     #f4f4f5;   /* zinc-100 */
+  --os-text-2:     #a1a1aa;   /* zinc-400 */
+  --os-text-3:     #52525b;   /* zinc-600 */
+  --os-text-4:     #3f3f46;   /* zinc-700 */
+
+  /* OS motion */
+  --os-transition: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* OS scanline overlay — apply to full-bleed containers */
+.os-scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+}
+
+/* OS grid background — subtle structure for desktop surfaces */
+.os-grid {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40' width='40' height='40' fill='none' stroke='rgb(255 255 255 / 0.025)'%3e%3cpath d='M0 .5H39.5V40'/%3e%3c/svg%3e");
+}
+
+/* OS signal glow — active indicator pulse */
+@keyframes os-signal-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 4px var(--os-signal);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 8px var(--os-signal);
+  }
+}
+
+.os-signal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--os-signal);
+  animation: os-signal-pulse 2s ease-in-out infinite;
+}
+
+/* OS panel fade-in — used by OSWindow and page sections */
+@keyframes os-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.os-panel-in {
+  animation: os-panel-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered children — set --os-delay on each child */
+.os-stagger > * {
+  animation: os-panel-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--os-delay, 0ms);
+}
+
+/* OS redaction bar — for classified file aesthetic */
+.os-redact {
+  display: inline-block;
+  background: var(--os-text-4);
+  color: transparent;
+  user-select: none;
+  border-radius: 2px;
+}
+
+/* Taskbar padding offset — prevents content from hiding under fixed taskbar */
+.os-page-offset {
+  padding-top: 2.75rem; /* h-11 = 44px */
+}
+
+/* Text selection — OS brand */
+::selection {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-panel-in,
+  .os-stagger > *,
+  .os-signal-dot {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
