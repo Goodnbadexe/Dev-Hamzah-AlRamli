@@ -49,17 +49,17 @@ describe("initTechnicalExpertise", () => {
       };
     });
 
-    vi.stubGlobal(
-      "IntersectionObserver",
-      vi.fn().mockImplementation((cb: (entries: any[]) => void) => {
+    class IntersectionObserverMock {
+      observe = vi.fn();
+      unobserve = vi.fn();
+      disconnect = vi.fn();
+
+      constructor(cb: (entries: any[]) => void) {
         storedObserverCallback = cb;
-        return {
-          observe: vi.fn(),
-          unobserve: vi.fn(),
-          disconnect: vi.fn(),
-        };
-      })
-    );
+      }
+    }
+
+    vi.stubGlobal("IntersectionObserver", IntersectionObserverMock);
   });
 
   afterEach(() => {
