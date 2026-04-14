@@ -66,7 +66,7 @@ export function BootSequence({ onComplete, className }: BootSequenceProps) {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[100] flex flex-col items-center justify-center bg-zinc-950",
+        "fixed inset-0 z-[100] flex flex-col items-center justify-center bg-zinc-950/78 backdrop-blur-[1px]",
         "transition-opacity duration-500",
         exiting ? "opacity-0 pointer-events-none" : "opacity-100",
         className

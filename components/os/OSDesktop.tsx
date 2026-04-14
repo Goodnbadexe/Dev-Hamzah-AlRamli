@@ -17,8 +17,8 @@ interface OSDesktopProps {
  * OSDesktop — the top-level state machine for the Goodnbad OS experience.
  *
  * States:
- *   booting   → BootSequence overlay is visible
- *   entering  → BootSequence has completed, desktop fades in
+ *   booting   → BootSequence overlay is visible above the live desktop
+ *   entering  → BootSequence has completed
  *   ready     → full desktop is visible and interactive
  *
  * The boot sequence runs once per browser session (sessionStorage flag).
@@ -38,7 +38,6 @@ export function OSDesktop({ children, skipBoot = false, className }: OSDesktopPr
   function handleBootComplete() {
     sessionStorage.setItem(BOOT_SEEN_KEY, "1")
     setState("entering")
-    // Small delay so the fade-out of BootSequence and fade-in of desktop overlap cleanly
     setTimeout(() => setState("ready"), 200)
   }
 
@@ -50,9 +49,7 @@ export function OSDesktop({ children, skipBoot = false, className }: OSDesktopPr
 
       <div
         className={cn(
-          "min-h-screen bg-zinc-950 transition-opacity duration-700",
-          state === "booting"  ? "opacity-0" : "opacity-100",
-          state === "entering" ? "opacity-0" : "opacity-100",
+          "min-h-screen bg-zinc-950 transition-opacity duration-700 opacity-100",
           className
         )}
       >

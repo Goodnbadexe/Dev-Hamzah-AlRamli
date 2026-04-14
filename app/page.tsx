@@ -4,9 +4,10 @@ import { useCallback, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import dynamic from "next/dynamic"
-import { ArrowRight, Shield, Terminal, Layers, Radio, Mail, User, ChevronRight } from "lucide-react"
+import { ArrowRight, Shield, Terminal, Layers, Radio, Mail, User, ChevronRight, Maximize2, X } from "lucide-react"
 import { OSDesktop, OSTaskbar, OSWindow, AmbientFeed } from "@/components/os"
 import { GlitchText } from "@/components/glitch-text"
+import { cn } from "@/lib/utils"
 import type { FeedEntry } from "@/components/os"
 import type { ThreatEvent } from "@/app/api/threats/route"
 
@@ -50,6 +51,20 @@ const ACCENT: Record<string, { border: string; dot: string; icon: string; hover:
   zinc:    { border: "hover:border-zinc-600",    dot: "bg-zinc-500",                                                icon: "text-zinc-400",    hover: "group-hover:text-zinc-300"    },
 }
 
+const WORLD_LAYERS = [
+  "Tech HQ",
+  "Accelerators",
+  "Cloud Regions",
+  "AI Data Centers",
+  "Undersea Cables",
+  "Cyber Threats",
+  "Internet Outages",
+  "Tech Events",
+  "Fires",
+  "Natural Events",
+  "Day / Night",
+]
+
 function nowTs() {
   const d = new Date()
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
@@ -60,6 +75,7 @@ function nowTs() {
 // ---------------------------------------------------------------------------
 export default function HomePage() {
   const [liveEntries, setLiveEntries] = useState<FeedEntry[]>([])
+  const [globeInspect, setGlobeInspect] = useState(false)
 
   // Each globe drip fires this — converts attack → ambient feed entry
   const handleAttack = useCallback((attack: ThreatEvent) => {
@@ -77,8 +93,13 @@ export default function HomePage() {
       {/* ------------------------------------------------------------------ */}
       {/* GLOBE — fixed full-viewport background layer                        */}
       {/* ------------------------------------------------------------------ */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <ThreatGlobe interactive={false} onAttack={handleAttack} />
+      <div className="fixed inset-0 z-0">
+        <ThreatGlobe
+          interactive={globeInspect}
+          showWorldLayers
+          onAttack={handleAttack}
+          onGlobeClick={() => setGlobeInspect(true)}
+        />
       </div>
 
       {/* Dark radial vignette — keeps content readable over globe */}
@@ -86,7 +107,9 @@ export default function HomePage() {
         className="fixed inset-0 z-[1] pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 85% 85% at 50% 50%, rgba(9,9,11,0.45) 0%, rgba(9,9,11,0.80) 100%)",
+            globeInspect
+              ? "radial-gradient(ellipse 80% 75% at 38% 50%, rgba(9,9,11,0.12) 0%, rgba(9,9,11,0.62) 100%)"
+              : "radial-gradient(ellipse 85% 85% at 50% 50%, rgba(9,9,11,0.35) 0%, rgba(9,9,11,0.82) 100%)",
         }}
       />
 
@@ -95,18 +118,59 @@ export default function HomePage() {
       {/* ------------------------------------------------------------------ */}
       <OSTaskbar />
 
-      <main className="relative z-10 os-page-offset min-h-screen">
+      <div className="fixed left-4 top-16 z-20 hidden max-w-[340px] flex-wrap gap-2 lg:flex">
+        {WORLD_LAYERS.map((layer) => (
+          <span
+            key={layer}
+            className="rounded border border-zinc-800 bg-zinc-950/55 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-zinc-500 backdrop-blur-sm"
+          >
+            {layer}
+          </span>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setGlobeInspect(true)}
+        className={cn(
+          "fixed left-4 bottom-16 z-30 flex items-center gap-2 rounded border border-emerald-900 bg-zinc-950/70 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-emerald-400 backdrop-blur-md transition-all hover:border-emerald-700 hover:bg-emerald-950/40",
+          globeInspect && "opacity-0 pointer-events-none"
+        )}
+      >
+        <Maximize2 className="h-3.5 w-3.5" />
+        inspect world monitor
+      </button>
+
+      {globeInspect && (
+        <button
+          type="button"
+          onClick={() => setGlobeInspect(false)}
+          className="fixed right-4 top-16 z-40 flex items-center gap-2 rounded border border-zinc-800 bg-zinc-950/75 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 backdrop-blur-md transition-colors hover:border-zinc-600 hover:text-zinc-200"
+        >
+          <X className="h-3.5 w-3.5" />
+          exit globe preview
+        </button>
+      )}
+
+      <main
+        className={cn(
+          "relative z-10 os-page-offset min-h-screen transition-all duration-700 ease-out",
+          globeInspect
+            ? "pointer-events-none fixed right-4 top-12 bottom-12 w-[min(440px,calc(100vw-2rem))] overflow-y-auto pr-1"
+            : "pointer-events-auto"
+        )}
+      >
 
         {/* ── HERO IDENTITY ─────────────────────────────────── */}
-        <section className="container mx-auto px-4 pt-16 pb-10 md:pt-20 md:pb-14">
-          <div className="max-w-4xl mx-auto">
+        <section className={cn(globeInspect ? "px-0 pt-4 pb-3" : "container mx-auto px-4 pt-16 pb-10 md:pt-20 md:pb-14")}>
+          <div className={cn(globeInspect ? "w-full pointer-events-auto" : "max-w-4xl mx-auto")}>
             <OSWindow
               label="personnel.identity"
               title="GOODNBAD.EXE — ACTIVE SESSION"
               status="active"
-              className="os-panel-in"
+              className={cn("os-panel-in transition-all duration-700", globeInspect && "bg-zinc-950/70")}
             >
-              <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+              <div className={cn("flex gap-6 items-start", globeInspect ? "flex-col" : "flex-col sm:flex-row sm:items-center")}>
                 {/* Avatar */}
                 <div className="shrink-0 relative h-16 w-16 rounded-full overflow-hidden border border-zinc-700 bg-zinc-900">
                   <Image
@@ -151,7 +215,7 @@ export default function HomePage() {
               </div>
 
               {/* Capability strip */}
-              <div className="mt-5 pt-4 border-t border-zinc-800 flex flex-wrap gap-x-6 gap-y-2">
+              <div className={cn("mt-5 pt-4 border-t border-zinc-800 flex flex-wrap gap-x-6 gap-y-2", globeInspect && "gap-x-3")}>
                 {[
                   { label: "Threat Analysis",          Icon: Shield   },
                   { label: "Vulnerability Management", Icon: Shield   },
@@ -169,13 +233,13 @@ export default function HomePage() {
         </section>
 
         {/* ── APP LAUNCHER ──────────────────────────────────── */}
-        <section className="container mx-auto px-4 pb-10">
-          <div className="max-w-4xl mx-auto">
+        <section className={cn(globeInspect ? "px-0 pb-3" : "container mx-auto px-4 pb-10")}>
+          <div className={cn(globeInspect ? "w-full pointer-events-auto" : "max-w-4xl mx-auto")}>
             <div className="mb-4 flex items-center gap-3">
               <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">os.modules</span>
               <span className="h-px flex-1 bg-zinc-900" />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className={cn("grid grid-cols-1 gap-3", !globeInspect && "sm:grid-cols-2 lg:grid-cols-3")}>
               {APP_ITEMS.map(({ href, code, label, sub, Icon, accent }, i) => {
                 const a = ACCENT[accent]
                 return (
@@ -211,11 +275,11 @@ export default function HomePage() {
         </section>
 
         {/* ── SIGNAL PREVIEW + CTA ROW ──────────────────────── */}
-        <section className="container mx-auto px-4 pb-16">
-          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-4">
+        <section className={cn(globeInspect ? "px-0 pb-16" : "container mx-auto px-4 pb-16")}>
+          <div className={cn("grid grid-cols-1 gap-4", globeInspect ? "w-full pointer-events-auto" : "max-w-4xl mx-auto md:grid-cols-5")}>
 
             {/* Live threat feed — 3 cols */}
-            <div className="md:col-span-3 os-panel-in" style={{ animationDelay: "320ms" }}>
+            <div className={cn("os-panel-in", !globeInspect && "md:col-span-3")} style={{ animationDelay: "320ms" }}>
               <OSWindow label="signal.feed" title="live · ambient" status="active">
                 <AmbientFeed
                   entries={STATIC_ENTRIES}
@@ -236,7 +300,7 @@ export default function HomePage() {
             </div>
 
             {/* Contact CTA — 2 cols */}
-            <div className="md:col-span-2 os-panel-in" style={{ animationDelay: "400ms" }}>
+            <div className={cn("os-panel-in", !globeInspect && "md:col-span-2")} style={{ animationDelay: "400ms" }}>
               <OSWindow label="comms.channel" title="encrypted" status="idle" className="h-full">
                 <div className="flex flex-col h-full gap-4">
                   <div>
@@ -266,35 +330,35 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+      </main>
 
-        {/* ── SYSTEM FOOTER ─────────────────────────────────── */}
-        <footer className="border-t border-zinc-900/60 py-4 backdrop-blur-sm">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-              <span className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest">
-                GOODNBAD.EXE © {new Date().getFullYear()} — All systems nominal
-              </span>
-              <div className="flex items-center gap-4">
-                {[
-                  { href: "https://github.com/Goodnbadexe", label: "GitHub",   external: true  },
-                  { href: "https://www.linkedin.com/in/hamzah-al-ramli-505", label: "LinkedIn", external: true  },
-                  { href: "/files/hamzah-al-ramli-resume.pdf", label: "Resume ↗", external: true },
-                ].map(({ href, label, external }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    target={external ? "_blank" : undefined}
-                    rel={external ? "noopener noreferrer" : undefined}
-                    className="font-mono text-[10px] text-zinc-700 hover:text-zinc-400 uppercase tracking-widest transition-colors"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
+      {/* ── SYSTEM FOOTER ─────────────────────────────────── */}
+      <footer className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-900/70 bg-zinc-950/35 py-3 backdrop-blur-sm">
+        <div className="px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest">
+              GOODNBAD.EXE © {new Date().getFullYear()} — world monitor active
+            </span>
+            <div className="flex items-center gap-4">
+              {[
+                { href: "https://github.com/Goodnbadexe", label: "GitHub",   external: true  },
+                { href: "https://www.linkedin.com/in/hamzah-al-ramli-505", label: "LinkedIn", external: true  },
+                { href: "/files/hamzah-al-ramli-resume.pdf", label: "Resume ↗", external: true },
+              ].map(({ href, label, external }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  target={external ? "_blank" : undefined}
+                  rel={external ? "noopener noreferrer" : undefined}
+                  className="font-mono text-[10px] text-zinc-700 hover:text-zinc-400 uppercase tracking-widest transition-colors"
+                >
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
-        </footer>
-      </main>
+        </div>
+      </footer>
     </OSDesktop>
   )
 }
