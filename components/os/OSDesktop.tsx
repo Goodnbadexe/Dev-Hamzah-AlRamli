@@ -49,7 +49,8 @@ export function OSDesktop({ children, skipBoot = false, className }: OSDesktopPr
 
       <div
         className={cn(
-          "min-h-screen bg-zinc-950 transition-opacity duration-700 opacity-100",
+          "min-h-screen bg-zinc-950 transition-opacity duration-700",
+          state === "booting" ? "opacity-0" : "opacity-100",
           className
         )}
       >
