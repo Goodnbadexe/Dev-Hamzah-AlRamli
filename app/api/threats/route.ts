@@ -110,36 +110,44 @@ function synthetic(seed: number, count = 40): ThreatEvent[] {
 
 // ---------------------------------------------------------------------------
 // Feodo Tracker (Abuse.ch) — FREE real botnet C2 data, no API key
-// Enable by setting env var FEODO_ENABLED=true
+// Always enabled — falls back to synthetic if fetch fails
 // ---------------------------------------------------------------------------
-// async function fetchFeodo(): Promise<ThreatEvent[]> {
-//   const res = await fetch(
-//     "https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.json",
-//     { next: { revalidate: 300 } } // 5-min cache — Feodo updates hourly
-//   )
-//   if (!res.ok) throw new Error(`Feodo ${res.status}`)
-//   const list: Array<{ ip_address: string; country: string; first_seen: string; last_online: string }> = await res.json()
-//
-//   return list.slice(0, 40).map((entry, i) => {
-//     const srcCode = entry.country ?? "CN"
-//     const src     = COORDS[srcCode] ?? { lat: 0, lng: 0 }
-//     const tgtCode = TARGETS[i % TARGETS.length]
-//     const tgt     = COORDS[tgtCode]!
-//     return {
-//       id:         `feodo-${entry.ip_address}`,
-//       srcLat:     src.lat + (Math.random() - 0.5) * 3,
-//       srcLng:     src.lng + (Math.random() - 0.5) * 3,
-//       tgtLat:     tgt.lat + (Math.random() - 0.5) * 3,
-//       tgtLng:     tgt.lng + (Math.random() - 0.5) * 3,
-//       srcCountry: srcCode,
-//       tgtCountry: tgtCode,
-//       type:       "Ransomware",
-//       count:      Math.floor(Math.random() * 500) + 10,
-//       severity:   "high" as const,
-//       timestamp:  entry.last_online ?? new Date().toISOString(),
-//     }
-//   })
-// }
+async function fetchFeodo(): Promise<ThreatEvent[]> {
+  const res = await fetch(
+    "https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.json",
+    { next: { revalidate: 300 } } // 5-min cache — Feodo updates hourly
+  )
+  if (!res.ok) throw new Error(`Feodo ${res.status}`)
+  const list: Array<{ ip_address: string; country: string; first_seen: string; last_online: string }> = await res.json()
+
+  const seed = Math.floor(Date.now() / 30_000)
+  return list.slice(0, 40).map((entry, i) => {
+    const srcCode = entry.country ?? "CN"
+    const src     = COORDS[srcCode] ?? { lat: 0, lng: 0 }
+    let tgtCode = TARGETS[(i + 3) % TARGETS.length]
+    if (tgtCode === srcCode) {
+      tgtCode = TARGETS[(i + 7) % TARGETS.length]
+    }
+    const tgt     = COORDS[tgtCode]!
+    // Vary the attack type based on list position + seed for visual diversity
+    const typ     = TYPES[(i + seed) % TYPES.length]
+    const cnt     = Math.floor(rng(seed + i) * 2000) + 50
+    const sev: ThreatEvent["severity"] = cnt > 1500 ? "high" : cnt > 800 ? "medium" : "low"
+    return {
+      id:         `feodo-${entry.ip_address}`,
+      srcLat:     src.lat + (rng(seed + i * 3) - 0.5) * 3,
+      srcLng:     src.lng + (rng(seed + i * 5) - 0.5) * 3,
+      tgtLat:     tgt.lat + (rng(seed + i * 7) - 0.5) * 3,
+      tgtLng:     tgt.lng + (rng(seed + i * 9) - 0.5) * 3,
+      srcCountry: srcCode,
+      tgtCountry: tgtCode,
+      type:       typ,
+      count:      cnt,
+      severity:   sev,
+      timestamp:  entry.last_online ?? new Date().toISOString(),
+    }
+  })
+}
 
 // ---------------------------------------------------------------------------
 // GreyNoise GNQL — commented out (GNQL requires paid plan)
@@ -162,20 +170,16 @@ function synthetic(seed: number, count = 40): ThreatEvent[] {
 export async function GET() {
   const seed = Math.floor(Date.now() / 30_000) // changes every 30 s
 
-  // Priority order (uncomment whichever you enable):
-  // 1. Feodo Tracker (free, no key)
-  // 2. GreyNoise (paid)
-  // 3. Synthetic fallback (always works)
-
-  // const feodoEnabled = process.env.FEODO_ENABLED === "true"
-  // if (feodoEnabled) {
-  //   try {
-  //     const threats = await fetchFeodo()
-  //     return NextResponse.json({ threats, source: "feodo-tracker" }, {
-  //       headers: { "Cache-Control": "public, max-age=300" }
-  //     })
-  //   } catch { /* fall through to synthetic */ }
-  // }
+  // Priority: Feodo Tracker (real C2 data, no key) → synthetic fallback
+  try {
+    const threats = await fetchFeodo()
+    return NextResponse.json(
+      { threats, generatedAt: new Date().toISOString(), source: "feodo-tracker" },
+      { headers: { "Cache-Control": "public, max-age=300, stale-while-revalidate=60" } }
+    )
+  } catch {
+    // Feodo unreachable — synthetic feed always works
+  }
 
   const threats = synthetic(seed)
 

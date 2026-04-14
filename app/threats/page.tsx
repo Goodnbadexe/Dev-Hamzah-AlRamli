@@ -151,7 +151,7 @@ export default function ThreatsPage() {
 
         {/* Globe — fills remaining viewport */}
         <div className="absolute inset-0 pt-11">
-          <ThreatGlobe interactive={false} onAttackClick={handleAttack} />
+          <ThreatGlobe interactive onAttack={handleAttack} />
         </div>
 
         {/* Subtle edge vignette — keeps HUD text readable */}
@@ -291,7 +291,7 @@ export default function ThreatsPage() {
         <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
           <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-800 flex items-center gap-1.5">
             <Shield className="h-3 w-3" />
-            synthetic osint feed · data refreshes every 30s
+            Feodo Tracker C2 feed · synthetic fallback · data refreshes every 30s
           </p>
         </div>
 

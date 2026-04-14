@@ -3,7 +3,14 @@
 import { cn } from "@/lib/utils"
 import { OSDesktop } from "./OSDesktop"
 import { OSTaskbar } from "./OSTaskbar"
+import dynamic from "next/dynamic"
 import type { ReactNode } from "react"
+
+// Globe — SSR-safe lazy load
+const ThreatGlobe = dynamic(
+  () => import("@/components/signal/ThreatGlobe").then((m) => ({ default: m.ThreatGlobe })),
+  { ssr: false, loading: () => null }
+)
 
 interface OSPageShellProps {
   /** The OS system name displayed in the window chrome, e.g. "personnel.exe" */
@@ -34,6 +41,20 @@ interface OSPageShellProps {
 export function OSPageShell({ osName, label, children, className }: OSPageShellProps) {
   return (
     <OSDesktop skipBoot>
+      {/* Globe — fixed full-viewport background layer */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <ThreatGlobe interactive={false} />
+      </div>
+
+      {/* Dark radial vignette — keeps content readable over globe */}
+      <div
+        className="fixed inset-0 z-[1] pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 85% 85% at 50% 50%, rgba(9,9,11,0.50) 0%, rgba(9,9,11,0.85) 100%)",
+        }}
+      />
+
       <OSTaskbar />
       <main
         aria-label={label}
@@ -42,8 +63,8 @@ export function OSPageShell({ osName, label, children, className }: OSPageShellP
           "os-page-offset",
           // Subtle grid on the dark canvas — same as homepage
           "os-grid",
-          // Full viewport height minimum
-          "min-h-screen bg-zinc-950",
+          // Full viewport height minimum — transparent so globe shows through
+          "relative z-10 min-h-screen",
           className
         )}
       >

@@ -1,14 +1,25 @@
 'use client'
 
+import { useCallback, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import dynamic from "next/dynamic"
 import { ArrowRight, Shield, Terminal, Layers, Radio, Mail, User, ChevronRight } from "lucide-react"
 import { OSDesktop, OSTaskbar, OSWindow, AmbientFeed } from "@/components/os"
 import { GlitchText } from "@/components/glitch-text"
 import type { FeedEntry } from "@/components/os"
+import type { ThreatEvent } from "@/app/api/threats/route"
 
-// ── Static ambient feed — will be replaced by live data in /signal build ──
-const AMBIENT_ENTRIES: FeedEntry[] = [
+// Globe — SSR-safe lazy load
+const ThreatGlobe = dynamic(
+  () => import("@/components/signal/ThreatGlobe").then((m) => ({ default: m.ThreatGlobe })),
+  { ssr: false, loading: () => null }
+)
+
+// ---------------------------------------------------------------------------
+// Static ambient feed — shown until live attacks populate
+// ---------------------------------------------------------------------------
+const STATIC_ENTRIES: FeedEntry[] = [
   { ts: "04:12", type: "system",  label: "GOODNBAD.EXE OS v2.0 — session started" },
   { ts: "04:11", type: "deploy",  label: "deployment: goodnbad-os-rebuild", detail: "branch main" },
   { ts: "04:09", type: "cert",    label: "cert: Google Cybersecurity — active" },
@@ -20,89 +31,72 @@ const AMBIENT_ENTRIES: FeedEntry[] = [
   { ts: "03:50", type: "system",  label: "system: all modules nominal" },
 ]
 
-// ── App launcher items ──
+// ---------------------------------------------------------------------------
+// App launcher
+// ---------------------------------------------------------------------------
 const APP_ITEMS = [
-  {
-    href:    "/personnel",
-    code:    "01",
-    label:   "PERSONNEL",
-    sub:     "Dossier · CV · Clearance",
-    Icon:    User,
-    accent:  "emerald",
-  },
-  {
-    href:    "/deployments",
-    code:    "02",
-    label:   "DEPLOYMENTS",
-    sub:     "Mission files · Architecture",
-    Icon:    Layers,
-    accent:  "blue",
-  },
-  {
-    href:    "/signal",
-    code:    "03",
-    label:   "SIGNAL",
-    sub:     "Live activity · Feed",
-    Icon:    Radio,
-    accent:  "yellow",
-  },
-  {
-    href:    "/contact",
-    code:    "04",
-    label:   "CONTACT",
-    sub:     "Encrypted channel",
-    Icon:    Mail,
-    accent:  "purple",
-  },
-  {
-    href:    "/terminal",
-    code:    "05",
-    label:   "TERMINAL",
-    sub:     "Command interface",
-    Icon:    Terminal,
-    accent:  "zinc",
-  },
+  { href: "/personnel",  code: "01", label: "PERSONNEL",  sub: "Dossier · CV · Clearance",      Icon: User,    accent: "emerald" },
+  { href: "/deployments",code: "02", label: "DEPLOYMENTS",sub: "Mission files · Architecture",   Icon: Layers,  accent: "blue"    },
+  { href: "/signal",     code: "03", label: "SIGNAL",     sub: "Live activity · Feed",            Icon: Radio,   accent: "yellow"  },
+  { href: "/contact",    code: "04", label: "CONTACT",    sub: "Encrypted channel",               Icon: Mail,    accent: "purple"  },
+  { href: "/terminal",   code: "05", label: "TERMINAL",   sub: "Command interface",               Icon: Terminal,accent: "zinc"    },
 ]
 
-const ACCENT_CLASSES: Record<string, { border: string; dot: string; icon: string; hover: string }> = {
-  emerald: {
-    border: "hover:border-emerald-800",
-    dot:    "bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]",
-    icon:   "text-emerald-500",
-    hover:  "group-hover:text-emerald-400",
-  },
-  blue: {
-    border: "hover:border-blue-800",
-    dot:    "bg-blue-500 shadow-[0_0_6px_theme(colors.blue.500)]",
-    icon:   "text-blue-400",
-    hover:  "group-hover:text-blue-300",
-  },
-  yellow: {
-    border: "hover:border-yellow-800",
-    dot:    "bg-yellow-500 shadow-[0_0_6px_theme(colors.yellow.500)]",
-    icon:   "text-yellow-400",
-    hover:  "group-hover:text-yellow-300",
-  },
-  purple: {
-    border: "hover:border-purple-800",
-    dot:    "bg-purple-500 shadow-[0_0_6px_theme(colors.purple.500)]",
-    icon:   "text-purple-400",
-    hover:  "group-hover:text-purple-300",
-  },
-  zinc: {
-    border: "hover:border-zinc-600",
-    dot:    "bg-zinc-500",
-    icon:   "text-zinc-400",
-    hover:  "group-hover:text-zinc-300",
-  },
+const ACCENT: Record<string, { border: string; dot: string; icon: string; hover: string }> = {
+  emerald: { border: "hover:border-emerald-800", dot: "bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]", icon: "text-emerald-500", hover: "group-hover:text-emerald-400" },
+  blue:    { border: "hover:border-blue-800",    dot: "bg-blue-500 shadow-[0_0_6px_theme(colors.blue.500)]",       icon: "text-blue-400",    hover: "group-hover:text-blue-300"    },
+  yellow:  { border: "hover:border-yellow-800",  dot: "bg-yellow-500 shadow-[0_0_6px_theme(colors.yellow.500)]",   icon: "text-yellow-400",  hover: "group-hover:text-yellow-300"  },
+  purple:  { border: "hover:border-purple-800",  dot: "bg-purple-500 shadow-[0_0_6px_theme(colors.purple.500)]",   icon: "text-purple-400",  hover: "group-hover:text-purple-300"  },
+  zinc:    { border: "hover:border-zinc-600",    dot: "bg-zinc-500",                                                icon: "text-zinc-400",    hover: "group-hover:text-zinc-300"    },
 }
 
+function nowTs() {
+  const d = new Date()
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 export default function HomePage() {
+  const [liveEntries, setLiveEntries] = useState<FeedEntry[]>([])
+
+  // Each globe drip fires this — converts attack → ambient feed entry
+  const handleAttack = useCallback((attack: ThreatEvent) => {
+    const entry: FeedEntry = {
+      ts:     nowTs(),
+      type:   "threat",
+      label:  `${attack.type}: ${attack.srcCountry} → ${attack.tgtCountry}`,
+      detail: `${attack.count.toLocaleString()} events · ${attack.severity}`,
+    }
+    setLiveEntries(prev => [entry, ...prev].slice(0, 20))
+  }, [])
+
   return (
     <OSDesktop>
+      {/* ------------------------------------------------------------------ */}
+      {/* GLOBE — fixed full-viewport background layer                        */}
+      {/* ------------------------------------------------------------------ */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <ThreatGlobe interactive={false} onAttack={handleAttack} />
+      </div>
+
+      {/* Dark radial vignette — keeps content readable over globe */}
+      <div
+        className="fixed inset-0 z-[1] pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 85% 85% at 50% 50%, rgba(9,9,11,0.45) 0%, rgba(9,9,11,0.80) 100%)",
+        }}
+      />
+
+      {/* ------------------------------------------------------------------ */}
+      {/* SITE CHROME                                                          */}
+      {/* ------------------------------------------------------------------ */}
       <OSTaskbar />
 
-      <main className="os-page-offset os-grid min-h-screen">
+      <main className="relative z-10 os-page-offset min-h-screen">
+
         {/* ── HERO IDENTITY ─────────────────────────────────── */}
         <section className="container mx-auto px-4 pt-16 pb-10 md:pt-20 md:pb-14">
           <div className="max-w-4xl mx-auto">
@@ -128,15 +122,10 @@ export default function HomePage() {
                 {/* Identity block */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
-                      subject
-                    </span>
+                    <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">subject</span>
                     <span className="h-px flex-1 bg-zinc-800" />
-                    <span className="font-mono text-[10px] text-emerald-700 uppercase tracking-widest">
-                      verified
-                    </span>
+                    <span className="font-mono text-[10px] text-emerald-700 uppercase tracking-widest">verified</span>
                   </div>
-
                   <h1 className="text-2xl md:text-3xl font-bold text-zinc-100 leading-tight">
                     <GlitchText text="Goodnbad.exe" />
                   </h1>
@@ -148,7 +137,7 @@ export default function HomePage() {
                   </p>
                 </div>
 
-                {/* Status capsules */}
+                {/* Status */}
                 <div className="flex sm:flex-col gap-2 shrink-0">
                   <span className="flex items-center gap-1.5 font-mono text-[10px] text-emerald-600 uppercase tracking-widest">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -164,10 +153,10 @@ export default function HomePage() {
               {/* Capability strip */}
               <div className="mt-5 pt-4 border-t border-zinc-800 flex flex-wrap gap-x-6 gap-y-2">
                 {[
-                  { label: "Threat Analysis",         Icon: Shield },
-                  { label: "Vulnerability Management", Icon: Shield },
-                  { label: "Incident Response",        Icon: Shield },
-                  { label: "Security Automation",      Icon: Terminal },
+                  { label: "Threat Analysis",          Icon: Shield   },
+                  { label: "Vulnerability Management", Icon: Shield   },
+                  { label: "Incident Response",         Icon: Shield   },
+                  { label: "Security Automation",       Icon: Terminal },
                 ].map(({ label, Icon }) => (
                   <span key={label} className="flex items-center gap-1.5 text-xs text-zinc-500">
                     <Icon className="w-3 h-3 text-emerald-700" />
@@ -183,32 +172,27 @@ export default function HomePage() {
         <section className="container mx-auto px-4 pb-10">
           <div className="max-w-4xl mx-auto">
             <div className="mb-4 flex items-center gap-3">
-              <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
-                os.modules
-              </span>
+              <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">os.modules</span>
               <span className="h-px flex-1 bg-zinc-900" />
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {APP_ITEMS.map(({ href, code, label, sub, Icon, accent }, i) => {
-                const a = ACCENT_CLASSES[accent]
+                const a = ACCENT[accent]
                 return (
                   <Link
                     key={href}
                     href={href}
                     className={[
-                      "group flex items-center gap-4 rounded-md border border-zinc-800 bg-zinc-900/60",
-                      "px-4 py-3.5 transition-all duration-200 backdrop-blur-sm",
-                      "hover:bg-zinc-900/90 hover:shadow-md",
-                      a.border,
-                      "os-panel-in",
+                      "group flex items-center gap-4 rounded-md border border-zinc-800",
+                      "bg-zinc-900/75 px-4 py-3.5 transition-all duration-200 backdrop-blur-md",
+                      "hover:bg-zinc-900/95 hover:shadow-md",
+                      a.border, "os-panel-in",
                     ].join(" ")}
                     style={{ animationDelay: `${i * 60}ms` }}
                   >
                     <div className="shrink-0 flex items-center justify-center w-9 h-9 rounded bg-zinc-950 border border-zinc-800 group-hover:border-zinc-700 transition-colors">
                       <Icon className={`w-4 h-4 ${a.icon}`} />
                     </div>
-
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <span className="font-mono text-[9px] text-zinc-700">{code}</span>
@@ -218,7 +202,6 @@ export default function HomePage() {
                       </div>
                       <p className="font-mono text-[10px] text-zinc-600 truncate">{sub}</p>
                     </div>
-
                     <ChevronRight className="w-3.5 h-3.5 text-zinc-700 group-hover:text-zinc-500 shrink-0 transition-colors" />
                   </Link>
                 )
@@ -231,12 +214,13 @@ export default function HomePage() {
         <section className="container mx-auto px-4 pb-16">
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-4">
 
-            {/* Ambient signal feed — 3 cols */}
+            {/* Live threat feed — 3 cols */}
             <div className="md:col-span-3 os-panel-in" style={{ animationDelay: "320ms" }}>
               <OSWindow label="signal.feed" title="live · ambient" status="active">
                 <AmbientFeed
-                  entries={AMBIENT_ENTRIES}
-                  interval={4000}
+                  entries={STATIC_ENTRIES}
+                  liveEntries={liveEntries}
+                  interval={8000}
                   maxLines={6}
                 />
                 <div className="mt-4 pt-3 border-t border-zinc-800">
@@ -256,34 +240,24 @@ export default function HomePage() {
               <OSWindow label="comms.channel" title="encrypted" status="idle" className="h-full">
                 <div className="flex flex-col h-full gap-4">
                   <div>
-                    <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-1">
-                      open channel
-                    </p>
+                    <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-1">open channel</p>
                     <p className="text-zinc-400 text-sm leading-relaxed">
                       Discussing opportunities, collaborations, or security work.
                     </p>
                   </div>
-
                   <div className="mt-auto space-y-2">
                     <Link
                       href="/contact"
                       className="flex items-center justify-between w-full rounded border border-emerald-900 bg-emerald-950/30 px-3 py-2.5 font-mono text-xs text-emerald-400 hover:bg-emerald-950/60 hover:border-emerald-800 transition-all"
                     >
-                      <span className="flex items-center gap-2">
-                        <Mail className="w-3.5 h-3.5" />
-                        SEND ENCRYPTED MESSAGE
-                      </span>
+                      <span className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" />SEND ENCRYPTED MESSAGE</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
-
                     <Link
                       href="/personnel"
                       className="flex items-center justify-between w-full rounded border border-zinc-800 bg-zinc-900/40 px-3 py-2.5 font-mono text-xs text-zinc-500 hover:text-zinc-300 hover:border-zinc-700 transition-all"
                     >
-                      <span className="flex items-center gap-2">
-                        <User className="w-3.5 h-3.5" />
-                        VIEW FULL DOSSIER
-                      </span>
+                      <span className="flex items-center gap-2"><User className="w-3.5 h-3.5" />VIEW FULL DOSSIER</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
@@ -294,36 +268,28 @@ export default function HomePage() {
         </section>
 
         {/* ── SYSTEM FOOTER ─────────────────────────────────── */}
-        <footer className="border-t border-zinc-900 py-4">
+        <footer className="border-t border-zinc-900/60 py-4 backdrop-blur-sm">
           <div className="container mx-auto px-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <span className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest">
                 GOODNBAD.EXE © {new Date().getFullYear()} — All systems nominal
               </span>
               <div className="flex items-center gap-4">
-                <Link
-                  href="https://github.com/Goodnbadexe"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-mono text-[10px] text-zinc-700 hover:text-zinc-500 uppercase tracking-widest transition-colors"
-                >
-                  GitHub
-                </Link>
-                <Link
-                  href="https://www.linkedin.com/in/hamzah-al-ramli-505"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-mono text-[10px] text-zinc-700 hover:text-zinc-500 uppercase tracking-widest transition-colors"
-                >
-                  LinkedIn
-                </Link>
-                <Link
-                  href="/files/hamzah-al-ramli-resume.pdf"
-                  target="_blank"
-                  className="font-mono text-[10px] text-zinc-700 hover:text-emerald-600 uppercase tracking-widest transition-colors"
-                >
-                  Resume ↗
-                </Link>
+                {[
+                  { href: "https://github.com/Goodnbadexe", label: "GitHub",   external: true  },
+                  { href: "https://www.linkedin.com/in/hamzah-al-ramli-505", label: "LinkedIn", external: true  },
+                  { href: "/files/hamzah-al-ramli-resume.pdf", label: "Resume ↗", external: true },
+                ].map(({ href, label, external }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    target={external ? "_blank" : undefined}
+                    rel={external ? "noopener noreferrer" : undefined}
+                    className="font-mono text-[10px] text-zinc-700 hover:text-zinc-400 uppercase tracking-widest transition-colors"
+                  >
+                    {label}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
