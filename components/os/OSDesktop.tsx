@@ -25,13 +25,19 @@ interface OSDesktopProps {
  * Sub-pages should use skipBoot={true} so they don't replay the boot.
  */
 export function OSDesktop({ children, skipBoot = false, className }: OSDesktopProps) {
-  const [state, setState] = useState<"booting" | "entering" | "ready">("booting")
+  // null = not yet determined (avoids flash before sessionStorage is checked)
+  // "booting"  → BootSequence playing, children hidden
+  // "entering" → BootSequence done, children fading in
+  // "ready"    → fully visible
+  const [state, setState] = useState<"booting" | "entering" | "ready" | null>(null)
 
   useEffect(() => {
-    // If skipBoot or already booted this session, go straight to ready
     if (skipBoot || sessionStorage.getItem(BOOT_SEEN_KEY)) {
+      // Already booted this session — show content immediately, no overlay
       setState("ready")
-      return
+    } else {
+      // First visit — play the boot sequence
+      setState("booting")
     }
   }, [skipBoot])
 
@@ -43,6 +49,7 @@ export function OSDesktop({ children, skipBoot = false, className }: OSDesktopPr
 
   return (
     <>
+      {/* Only mount BootSequence when we're actively booting */}
       {state === "booting" && (
         <BootSequence onComplete={handleBootComplete} />
       )}
@@ -50,7 +57,8 @@ export function OSDesktop({ children, skipBoot = false, className }: OSDesktopPr
       <div
         className={cn(
           "min-h-screen bg-zinc-950 transition-opacity duration-700",
-          state === "booting" ? "opacity-0" : "opacity-100",
+          // Hidden while booting or before state is known; visible once done
+          state === null || state === "booting" ? "opacity-0" : "opacity-100",
           className
         )}
       >
