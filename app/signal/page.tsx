@@ -1,138 +1,105 @@
-import Link from "next/link"
 import type { Metadata } from "next"
-import type { ReactNode } from "react"
-import { ArrowRight, Activity, BriefcaseBusiness, CheckCircle2, Radio, Shield } from "lucide-react"
+import { Radio, Shield } from "lucide-react"
 import { OSPageShell } from "@/components/os/OSPageShell"
 import { OSWindow } from "@/components/os"
-import { signalEntries, signalFilters, signalSummary, type SignalEntry } from "@/lib/content/signal"
+import { SignalFeedSection } from "@/components/signal/SignalFeedSection"
+import { aggregateSignalFeed } from "@/lib/signal-feed/aggregate"
+
+// Revalidate every 5 minutes (ISR) — individual fetches cache at their own rates
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: "Signal Feed | Hamzah Al-Ramli",
   description:
-    "A clean activity feed for Hamzah Al-Ramli: projects, credentials, site updates, and current professional signals.",
+    "Live cyber threat intelligence: CISA advisories, known exploited vulnerabilities, malware IOCs, and security news from trusted official sources.",
   alternates: {
     canonical: "https://www.goodnbad.info/signal",
   },
 }
 
-const typeStyles: Record<SignalEntry["type"], { icon: ReactNode; className: string }> = {
-  Project: {
-    icon: <BriefcaseBusiness className="h-4 w-4" />,
-    className: "border-blue-900 bg-blue-950/30 text-blue-300",
-  },
-  Credential: {
-    icon: <Shield className="h-4 w-4" />,
-    className: "border-yellow-900 bg-yellow-950/25 text-yellow-300",
-  },
-  System: {
-    icon: <Activity className="h-4 w-4" />,
-    className: "border-emerald-900 bg-emerald-950/25 text-emerald-300",
-  },
-  Career: {
-    icon: <CheckCircle2 className="h-4 w-4" />,
-    className: "border-zinc-700 bg-zinc-950/50 text-zinc-300",
-  },
-}
+export default async function SignalPage() {
+  const { items, fetchedAt, sourceErrors } = await aggregateSignalFeed()
 
-export default function SignalPage() {
   return (
-    <OSPageShell osName="signal.feed" label="Activity Feed">
+    <OSPageShell osName="signal.feed" label="Cyber Threat Intelligence">
       <div className="container mx-auto max-w-5xl px-4 py-8 md:py-12">
-        <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-          <OSWindow label="activity.feed" title="clean signal" status="active" className="os-panel-in">
-            <div>
-              <div className="flex items-center gap-2 text-yellow-400">
-                <Radio className="h-5 w-5" />
-                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
-                  Signal feed
-                </p>
-              </div>
-              <h1 className="mt-3 text-3xl font-semibold leading-tight text-zinc-100 md:text-5xl">
-                {signalSummary.title}
-              </h1>
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-300 md:text-base">
-                {signalSummary.description}
-              </p>
-            </div>
-          </OSWindow>
 
-          <OSWindow label="feed.controls" title="simple filters" status="idle" className="os-panel-in">
-            <div className="space-y-4">
+        {/* Header */}
+        <section className="mb-4">
+          <OSWindow label="signal.feed" title="live · threat intelligence" status="active" className="os-panel-in">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
-                  Feed status
-                </p>
-                <h2 className="mt-2 text-xl font-semibold text-zinc-100">{signalSummary.status}</h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-400">
-                  This page shows selected updates only. It is intentionally quiet so visitors can understand progress quickly.
+                <div className="flex items-center gap-2 text-emerald-500 mb-2">
+                  <Radio className="h-5 w-5" />
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
+                    Signal Feed
+                  </p>
+                </div>
+                <h1 className="text-2xl font-semibold leading-tight text-zinc-100 md:text-3xl">
+                  Cyber Threat Intelligence
+                </h1>
+                <p className="mt-2 text-sm leading-7 text-zinc-400 max-w-2xl">
+                  Live signals from CISA advisories, known exploited vulnerabilities, malware indicators,
+                  and security news — sourced from trusted official feeds, refreshed automatically.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {signalFilters.map((filter) => (
-                  <span
-                    key={filter}
-                    className="rounded border border-zinc-800 bg-zinc-950/45 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-zinc-400"
-                  >
-                    {filter}
-                  </span>
-                ))}
+
+              {/* Live indicator */}
+              <div className="shrink-0 flex items-center gap-2 rounded border border-emerald-900/60 bg-emerald-950/25 px-3 py-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)] animate-pulse shrink-0" />
+                <div>
+                  <p className="font-mono text-[10px] text-emerald-600 uppercase tracking-widest">Live feed</p>
+                  <p className="font-mono text-[9px] text-zinc-700 mt-0.5">Auto-refreshes · 5 min cache</p>
+                </div>
               </div>
             </div>
-          </OSWindow>
-        </section>
 
-        <section className="mt-4">
-          <OSWindow label="recent.activity" title="meaningful updates" status="active" className="os-panel-in">
-            <div className="space-y-3">
-              {signalEntries.map((entry) => (
-                <SignalRow key={entry.id} entry={entry} />
+            {/* Source legend */}
+            <div className="mt-5 pt-4 border-t border-zinc-800 flex flex-wrap gap-3">
+              {[
+                { label: "CISA KEV",      dot: "bg-red-500",     desc: "Known Exploited"  },
+                { label: "CISA Advisory", dot: "bg-amber-500",   desc: "Official Advisory" },
+                { label: "MSRC",          dot: "bg-blue-500",    desc: "Microsoft Patch"  },
+                { label: "ThreatFox",     dot: "bg-orange-500",  desc: "Malware IOC"      },
+                { label: "URLhaus",       dot: "bg-orange-400",  desc: "Malicious URL"    },
+                { label: "BleepingComputer", dot: "bg-yellow-500", desc: "Security News"  },
+              ].map(({ label, dot, desc }) => (
+                <span key={label} className="flex items-center gap-1.5 text-[10px] text-zinc-600 font-mono">
+                  <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${dot}`} />
+                  {label}
+                  <span className="text-zinc-800">— {desc}</span>
+                </span>
               ))}
             </div>
           </OSWindow>
         </section>
+
+        {/* How it works — safety disclaimer */}
+        <section className="mb-4">
+          <OSWindow label="feed.info" title="sourcing" status="idle" className="os-panel-in">
+            <div className="flex items-start gap-3">
+              <Shield className="h-4 w-4 text-zinc-600 shrink-0 mt-0.5" />
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                All items link directly to their original source page. Titles are never rewritten.
+                Summaries are only shown when provided by the source.
+                This feed does not claim zero false positives.
+              </p>
+            </div>
+          </OSWindow>
+        </section>
+
+        {/* Live feed */}
+        <section>
+          <OSWindow label="threat.signals" title={`${items.length} signals active`} status={items.length > 0 ? "active" : "idle"} className="os-panel-in">
+            <SignalFeedSection
+              initialItems={items}
+              fetchedAt={fetchedAt}
+              sourceErrors={sourceErrors}
+            />
+          </OSWindow>
+        </section>
+
       </div>
     </OSPageShell>
-  )
-}
-
-function SignalRow({ entry }: { entry: SignalEntry }) {
-  const type = typeStyles[entry.type]
-
-  const content = (
-    <article className="group rounded-md border border-zinc-800 bg-zinc-950/40 p-4 transition hover:border-zinc-700 hover:bg-zinc-950/70">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest ${type.className}`}>
-              {type.icon}
-              {entry.type}
-            </span>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
-              {entry.date}
-            </span>
-          </div>
-          <h2 className="mt-3 text-base font-semibold text-zinc-100">{entry.title}</h2>
-          <p className="mt-2 text-sm leading-6 text-zinc-400">{entry.summary}</p>
-        </div>
-        {entry.href && (
-          <ArrowRight className="h-4 w-4 shrink-0 text-zinc-700 transition group-hover:text-yellow-400" />
-        )}
-      </div>
-    </article>
-  )
-
-  if (!entry.href) {
-    return content
-  }
-
-  return (
-    <Link
-      href={entry.href}
-      target={entry.href.startsWith("http") ? "_blank" : undefined}
-      rel={entry.href.startsWith("http") ? "noopener noreferrer" : undefined}
-      className="block"
-    >
-      {content}
-    </Link>
   )
 }

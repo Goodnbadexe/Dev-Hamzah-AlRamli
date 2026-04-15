@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from "react"
+import { useCallback, useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import dynamic from "next/dynamic"
@@ -10,6 +10,7 @@ import { GlitchText } from "@/components/glitch-text"
 import { cn } from "@/lib/utils"
 import type { FeedEntry } from "@/components/os"
 import type { ThreatEvent } from "@/app/api/threats/route"
+import { MobileSignalOverlay } from "@/components/signal/MobileSignalOverlay"
 
 // Globe — SSR-safe lazy load
 const ThreatGlobe = dynamic(
@@ -74,8 +75,17 @@ function nowTs() {
 // Page
 // ---------------------------------------------------------------------------
 export default function HomePage() {
-  const [liveEntries, setLiveEntries] = useState<FeedEntry[]>([])
+  const [liveEntries,  setLiveEntries]  = useState<FeedEntry[]>([])
   const [globeInspect, setGlobeInspect] = useState(false)
+  // Detect mobile on mount (no SSR mismatch — starts false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener("resize", check, { passive: true })
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   // Each globe drip fires this — converts attack → ambient feed entry
   const handleAttack = useCallback((attack: ThreatEvent) => {
@@ -331,6 +341,14 @@ export default function HomePage() {
           </div>
         </section>
       </main>
+
+      {/* ── MOBILE SIGNAL OVERLAY ─────────────────────────── */}
+      {/* On mobile, globe inspect mode shows SIGNAL.FEED fullscreen instead of
+          the compressed right-panel layout used on desktop. Content is hidden
+          by the overlay (z-50 covers everything including OSTaskbar). */}
+      {globeInspect && isMobile && (
+        <MobileSignalOverlay onClose={() => setGlobeInspect(false)} />
+      )}
 
       {/* ── SYSTEM FOOTER ─────────────────────────────────── */}
       <footer className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-900/70 bg-zinc-950/35 py-3 backdrop-blur-sm">
