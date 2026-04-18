@@ -1,4 +1,4 @@
-export type DeploymentStatus = "Live" | "Case study" | "Archived"
+export type DeploymentStatus = "Live" | "Case study" | "Archived" | "Rebuilding"
 
 export type Deployment = {
   slug: string
@@ -81,7 +81,7 @@ export const deployments: Deployment[] = [
     code: "DEP-003",
     name: "Magic Browser",
     shortName: "Magic Browser",
-    status: "Live",
+    status: "Rebuilding",
     category: "Web experiment",
     year: "2024",
     href: "https://goodnbadexe.github.io/MagicB/",
@@ -92,8 +92,8 @@ export const deployments: Deployment[] = [
     why:
       "It mattered as an early product-thinking exercise: the goal was to move beyond a normal static page and design a more exploratory interaction model.",
     result:
-      "Shipped as a public GitHub Pages deployment and became a useful proof point for interface prototyping.",
-    tools: ["HTML", "CSS", "JavaScript", "GitHub Pages", "Interaction design"],
+      "Originally shipped as a GitHub Pages deployment. Being redeployed with an automated build pipeline.",
+    tools: ["React", "Vite", "Framer Motion", "Tailwind CSS", "GitHub Pages"],
     highlights: [
       "Custom browser-inspired UI.",
       "Public deployment with direct visitor access.",
@@ -186,6 +186,62 @@ export const deployments: Deployment[] = [
     lessons: [
       "Games expose UI state issues quickly.",
       "Small playful builds are useful for practicing interaction polish.",
+    ],
+  },
+  {
+    slug: "raining-characters",
+    code: "DEP-007",
+    name: "Raining Characters",
+    shortName: "Raining Characters",
+    status: "Live",
+    category: "Visual experiment",
+    year: "2024",
+    href: "https://v0-raining-characters-ten-livid.vercel.app/",
+    summary:
+      "An animated character rain effect inspired by the Matrix — built as a visual front-end experiment.",
+    what:
+      "A single-page visual demo with cascading animated characters rendered in the browser.",
+    why:
+      "A quick creative experiment to explore canvas or DOM-based animation with a recognizable visual idea.",
+    result:
+      "Published as a Vercel deployment and served as early evidence of animation-focused front-end thinking.",
+    tools: ["React", "Vercel", "CSS animation", "Frontend prototyping"],
+    highlights: [
+      "Visually striking animation concept.",
+      "Fast iteration from idea to deployed experiment.",
+      "Demonstrates creative front-end thinking beyond utility UIs.",
+    ],
+    lessons: [
+      "Visual demos communicate personality in ways text cannot.",
+      "Even a simple animation experiment is worth shipping publicly.",
+    ],
+  },
+  {
+    slug: "hos-first-website",
+    code: "DEP-008",
+    name: "HOS — First Website",
+    shortName: "HOS",
+    status: "Archived",
+    category: "Origin project",
+    year: "2023",
+    href: "https://goodnbadexe.github.io/HOS/",
+    summary:
+      "The first public website — a milestone that marks the beginning of the Goodnbad.exe web journey.",
+    what:
+      "An early static website hosted on GitHub Pages, representing the first complete public deployment.",
+    why:
+      "It represents the starting point: the first time an idea went from local files to a live URL accessible to anyone.",
+    result:
+      "A permanent reference point in the portfolio — kept live as an honest record of where the work started.",
+    tools: ["HTML", "CSS", "JavaScript", "GitHub Pages"],
+    highlights: [
+      "First fully deployed public project.",
+      "Foundation for all subsequent web work.",
+      "Demonstrates the full arc from beginner project to OS-grade portfolio.",
+    ],
+    lessons: [
+      "Every expert started with a first website.",
+      "Keeping early work visible shows confidence and growth.",
     ],
   },
 ]

@@ -101,7 +101,12 @@ function DeploymentCard({ deployment }: { deployment: Deployment }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded border border-blue-900 bg-blue-950/30 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-blue-300">
+              <span className={`rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-widest ${
+                deployment.status === "Live"        ? "border-emerald-900 bg-emerald-950/30 text-emerald-400" :
+                deployment.status === "Rebuilding" ? "border-amber-900 bg-amber-950/30 text-amber-400" :
+                deployment.status === "Archived"   ? "border-zinc-800 bg-zinc-900/30 text-zinc-500" :
+                                                     "border-blue-900 bg-blue-950/30 text-blue-300"
+              }`}>
                 {deployment.status}
               </span>
               <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
