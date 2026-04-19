@@ -855,6 +855,12 @@ Complexity: O(1) styling
   color: #10b981;
 }
 
+/* Simple fade-in for deferred content (globe, embeds) */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .os-panel-in,
   .os-stagger > *,

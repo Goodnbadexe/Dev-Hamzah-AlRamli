@@ -16,6 +16,9 @@ import {
 import { OSPageShell } from "@/components/os/OSPageShell"
 import { OSWindow } from "@/components/os"
 import { deployments, getDeploymentBySlug, type Deployment } from "@/lib/content/deployments"
+import { SketchfabEmbed } from "@/components/embeds/SketchfabEmbed"
+import { CodePenEmbed } from "@/components/embeds/CodePenEmbed"
+import { BlogspotFeed } from "@/components/embeds/BlogspotFeed"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -123,6 +126,8 @@ export default async function MissionFilePage({ params }: Props) {
           </OSWindow>
         </section>
 
+        <DeploymentMedia slug={deployment.slug} href={deployment.href} />
+
         <section className="mt-4 grid gap-4 lg:grid-cols-3">
           <ProjectSection
             icon={<Boxes className="h-5 w-5" />}
@@ -182,6 +187,41 @@ export default async function MissionFilePage({ params }: Props) {
       </div>
     </OSPageShell>
   )
+}
+
+/**
+ * DeploymentMedia — renders a context-aware embed for deployments that have one
+ * (Sketchfab 3D, CodePen pen, Blogspot feed). Falls back to nothing otherwise.
+ */
+function DeploymentMedia({ slug, href }: { slug: string; href?: string }) {
+  if (slug === "sketchfab-3d" && href) {
+    return (
+      <section className="mt-4">
+        <OSWindow label="sketchfab.viewer" title="interactive · 3d models" status="active" className="os-panel-in">
+          <SketchfabEmbed profileUrl={href} />
+        </OSWindow>
+      </section>
+    )
+  }
+  if (slug === "codepen-jjmnvvq" && href) {
+    return (
+      <section className="mt-4">
+        <OSWindow label="codepen.live" title="live · creative pen" status="active" className="os-panel-in">
+          <CodePenEmbed penUrl={href} />
+        </OSWindow>
+      </section>
+    )
+  }
+  if (slug === "blogspot") {
+    return (
+      <section className="mt-4">
+        <OSWindow label="blog.feed" title="latest · posts" status="active" className="os-panel-in">
+          <BlogspotFeed host="goodnbadexe.blogspot.com" limit={6} />
+        </OSWindow>
+      </section>
+    )
+  }
+  return null
 }
 
 function ProjectSection({
