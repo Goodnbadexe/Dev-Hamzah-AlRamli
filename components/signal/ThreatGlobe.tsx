@@ -223,8 +223,11 @@ export function ThreatGlobe({ interactive = false, onAttack, onGlobeClick, showW
   const [rings, setRings] = useState<{ lat: number; lng: number; color: string; maxR: number; id: string }[]>([])
   const [viewport, setViewport] = useState({ width: width ?? 1440, height: height ?? 900 })
   const [dayPhase, setDayPhase] = useState(0)
-  const dripRef    = useRef<ReturnType<typeof setInterval> | null>(null)
-  const poolIdxRef = useRef(0)
+  const dripRef      = useRef<ReturnType<typeof setInterval> | null>(null)
+  const poolIdxRef   = useRef(0)
+  const cloudMeshRef = useRef<THREE.Mesh | null>(null)
+  const cloudAnimRef = useRef<number>(0)
+  const sunLightRef  = useRef<THREE.DirectionalLight | null>(null)
 
   const dripMs  = interactive ? DRIP_MS_INTERACTIVE  : DRIP_MS_BACKGROUND
   const maxArcs = interactive ? MAX_ARCS_INTERACTIVE : MAX_ARCS_BACKGROUND
@@ -302,13 +305,52 @@ export function ThreatGlobe({ interactive = false, onAttack, onGlobeClick, showW
     if (!globeRef.current) return
     globeRef.current.pointOfView({ lat: 29, lng: 44, altitude: interactive ? 1.85 : 1.72 }, 1200)
 
+    // NASA-realistic material — let the Blue Marble texture speak naturally
     const material = globeRef.current.globeMaterial?.()
     if (material) {
-      material.color = new THREE.Color("#132033")
-      material.emissive = new THREE.Color("#030712")
-      material.emissiveIntensity = 0.65
-      material.shininess = 3
-      material.needsUpdate = true
+      material.color             = new THREE.Color("#ffffff")   // no colour tint
+      material.emissive          = new THREE.Color("#030a14")
+      material.emissiveIntensity = 0.04                         // barely any self-glow
+      material.shininess         = 22                           // ocean specular sheen
+      material.needsUpdate       = true
+    }
+
+    // Three.js scene: sun directional light + cloud sphere
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const scene = (globeRef.current as any).scene?.()
+    if (scene) {
+      // Warm directional sun — positioned at current UTC solar angle
+      const now   = new Date()
+      const phase = (now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds()) / 86400
+      const angle = (0.5 - phase) * 2 * Math.PI
+      const sun   = new THREE.DirectionalLight("#fff8ea", 1.8)
+      sun.position.set(Math.cos(angle) * 300, 70, Math.sin(angle) * 300)
+      scene.add(sun)
+      sunLightRef.current = sun
+
+      // Cloud sphere — radius 101.5 sits just outside the globe surface (radius 100)
+      const loader = new THREE.TextureLoader()
+      loader.load(
+        "//unpkg.com/three-globe/example/img/earth-clouds.png",
+        (cloudTex) => {
+          const cloudGeo  = new THREE.SphereGeometry(101.5, 64, 64)
+          const cloudMat  = new THREE.MeshPhongMaterial({
+            map: cloudTex,
+            transparent: true,
+            opacity: 0.78,
+            depthWrite: false,
+          })
+          const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat)
+          scene.add(cloudMesh)
+          cloudMeshRef.current = cloudMesh
+
+          const rotateCloud = () => {
+            if (cloudMeshRef.current) cloudMeshRef.current.rotation.y += 0.00011
+            cloudAnimRef.current = requestAnimationFrame(rotateCloud)
+          }
+          rotateCloud()
+        }
+      )
     }
 
     const ctrl = globeRef.current.controls()
@@ -341,12 +383,29 @@ export function ThreatGlobe({ interactive = false, onAttack, onGlobeClick, showW
   }, [])
 
   useEffect(() => {
+    // Move sun to real-time UTC solar longitude so day/night terminator is accurate
+    if (sunLightRef.current) {
+      const angle = (0.5 - dayPhase) * 2 * Math.PI
+      sunLightRef.current.position.set(Math.cos(angle) * 300, 70, Math.sin(angle) * 300)
+    }
+    // Very subtle emissive pulse — the directional sun does the heavy lifting now
     const material = globeRef.current?.globeMaterial?.()
     if (!material) return
-    const pulse = 0.48 + Math.sin(dayPhase * Math.PI * 2) * 0.12
-    material.emissiveIntensity = interactive ? pulse : pulse + 0.1
+    material.emissiveIntensity = 0.04 + Math.sin(dayPhase * Math.PI * 2) * 0.02
     material.needsUpdate = true
-  }, [dayPhase, interactive])
+  }, [dayPhase])
+
+  // Cloud mesh + animation cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (cloudAnimRef.current) cancelAnimationFrame(cloudAnimRef.current)
+      if (cloudMeshRef.current) {
+        cloudMeshRef.current.geometry.dispose()
+        ;(cloudMeshRef.current.material as THREE.MeshPhongMaterial).dispose()
+        cloudMeshRef.current = null
+      }
+    }
+  }, [])
 
   const points = useMemo<ThreatPoint[]>(() => {
     const active = arcs.length ? arcs : pool.slice(0, 24)
@@ -419,8 +478,8 @@ export function ThreatGlobe({ interactive = false, onAttack, onGlobeClick, showW
         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
         backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
         backgroundColor="rgba(0,0,0,0)"
-        atmosphereColor="#22d3ee"
-        atmosphereAltitude={interactive ? 0.18 : 0.16}
+        atmosphereColor="#4a9eda"
+        atmosphereAltitude={interactive ? 0.24 : 0.20}
 
         // Arcs
         arcsData={arcs}
