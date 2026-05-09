@@ -35,33 +35,33 @@ export function BootSequence({ onComplete, className }: BootSequenceProps) {
   const [showRedacted, setShowRedacted]   = useState(false)
   const [exiting, setExiting]             = useState(false)
   const completedRef = useRef(false)
+  // Keep latest onComplete in a ref so the effect never needs it as a dep
+  const onCompleteRef = useRef(onComplete)
+  useEffect(() => { onCompleteRef.current = onComplete }, [onComplete])
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = []
 
-    // Reveal each log line at its scheduled delay
     BOOT_LINES.forEach(({ delay }, idx) => {
       timers.push(setTimeout(() => {
         setVisibleLines(prev => [...prev, idx])
       }, delay))
     })
 
-    // Show the classified file resolved banner
     timers.push(setTimeout(() => setShowRedacted(true), 1900))
-
-    // Start exit fade
     timers.push(setTimeout(() => setExiting(true), EXIT_DELAY))
 
-    // Signal completion to parent
     timers.push(setTimeout(() => {
       if (!completedRef.current) {
         completedRef.current = true
-        onComplete()
+        onCompleteRef.current()
       }
     }, DONE_DELAY))
 
     return () => timers.forEach(clearTimeout)
-  }, [onComplete])
+  // Empty deps — runs once on mount, uses ref for callback (immune to prop churn)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div

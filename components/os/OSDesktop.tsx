@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { BootSequence } from "./BootSequence"
 import { cn } from "@/lib/utils"
 
@@ -13,17 +13,6 @@ interface OSDesktopProps {
   className?: string
 }
 
-/**
- * OSDesktop — the top-level state machine for the Goodnbad OS experience.
- *
- * States:
- *   booting   → BootSequence overlay is visible above the live desktop
- *   entering  → BootSequence has completed
- *   ready     → full desktop is visible and interactive
- *
- * The boot sequence runs once per browser session (sessionStorage flag).
- * Sub-pages should use skipBoot={true} so they don't replay the boot.
- */
 export function OSDesktop({ children, skipBoot = false, className }: OSDesktopProps) {
   // null = not yet determined (avoids flash before sessionStorage is checked)
   // "booting"  → BootSequence playing, children hidden
@@ -41,11 +30,14 @@ export function OSDesktop({ children, skipBoot = false, className }: OSDesktopPr
     }
   }, [skipBoot])
 
-  function handleBootComplete() {
+  // Stable reference — must not change across renders or BootSequence's effect
+  // will teardown and restart its timers every time the page re-renders
+  // (e.g. ThreatGlobe onAttack calls setLiveEntries which bubbles up here).
+  const handleBootComplete = useCallback(() => {
     sessionStorage.setItem(BOOT_SEEN_KEY, "1")
     setState("entering")
     setTimeout(() => setState("ready"), 200)
-  }
+  }, [])
 
   return (
     <>
