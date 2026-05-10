@@ -144,6 +144,11 @@ export default function Home() {
                 <Brain className="mr-2 h-4 w-4" /> Cybersecurity AI
               </Link>
             </Button>
+            <Button className="bg-emerald-500 hover:bg-emerald-600 text-black font-bold hidden md:flex" asChild>
+              <Link href="/services">
+                <Lock className="mr-2 h-4 w-4" /> Hire Me
+              </Link>
+            </Button>
 
             <MobileNav
               showTerminal={showMobileTerminal}
@@ -170,6 +175,24 @@ export default function Home() {
             </p>
           </div>
         </section>
+
+        {/* Hire Me Banner */}
+        <div className="container mx-auto px-4 mb-6 relative z-10">
+          <Link href="/services" className="group block">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-6 py-4 hover:bg-emerald-500/15 hover:border-emerald-500/50 transition-all duration-300">
+              <div className="flex items-center gap-3 text-center sm:text-left">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <div>
+                  <span className="text-emerald-400 font-bold text-sm md:text-base">Available for Security Engagements</span>
+                  <p className="text-zinc-400 text-xs mt-0.5">Penetration testing · Security audits · Microsoft Azure hardening · NCA/SAMA compliance</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 bg-emerald-500 text-black font-bold text-sm px-4 py-2 rounded group-hover:bg-emerald-400 transition-colors shrink-0">
+                <Lock className="h-4 w-4" /> View Services & Pricing
+              </div>
+            </div>
+          </Link>
+        </div>
 
         {/* Arrow Indicator */}
         <div className="flex justify-center mb-8 relative z-10">
