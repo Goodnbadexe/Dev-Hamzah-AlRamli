@@ -11,6 +11,8 @@ import Link from 'next/link'
 import { MatrixBackground } from '@/components/matrix-background'
 import { FullscreenButton } from '@/components/fullscreen'
 import { InteractiveHackerElements, FloatingBinaryBackground } from '@/components/interactive-elements'
+import { ThreatStats } from '@/components/threat-stats'
+import { LiveThreatFeed } from '@/components/live-threat-feed'
 
 export default function SecurityPage() {
   const [lang, setLang] = useState<'en' | 'ar'>('en')
@@ -108,6 +110,10 @@ export default function SecurityPage() {
       }} />
       <div className="container mx-auto px-4 py-12 relative z-10 animate-slide-in-up">
         <FullscreenButton />
+        {/* Threat Stats Bar */}
+        <div className="mb-10">
+          <ThreatStats />
+        </div>
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <img src="/images/newlogovector.png" alt="Goodnbad.exe" width={40} height={40} className="rounded-full bg-zinc-800 p-0.5" />
@@ -138,18 +144,33 @@ export default function SecurityPage() {
           </div>
         </div>
 
-        <Tabs defaultValue="attacks" className="mt-12" onValueChange={(v:any)=>setActiveTab(v)}>
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto bg-zinc-800/50 mb-12">
-            <TabsTrigger value="attacks" className="data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 transition-all duration-300">{s.tabAttacks}</TabsTrigger>
-            <TabsTrigger value="hackers" className="data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 transition-all duration-300">{s.tabHackers}</TabsTrigger>
-          </TabsList>
-          <TabsContent value="attacks" className="mt-8">
-            {renderGrid(attacks)}
-          </TabsContent>
-          <TabsContent value="hackers" className="mt-8">
-            {renderGrid(hackers)}
-          </TabsContent>
-        </Tabs>
+        {/* 2-col layout: atlas content + live feed */}
+        <div className="flex flex-col lg:flex-row gap-8 mt-12">
+          {/* Main content */}
+          <div className="flex-1 min-w-0">
+            <Tabs defaultValue="attacks" className="" onValueChange={(v:any)=>setActiveTab(v)}>
+              <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto bg-zinc-800/50 mb-12">
+                <TabsTrigger value="attacks" className="data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 transition-all duration-300">{s.tabAttacks}</TabsTrigger>
+                <TabsTrigger value="hackers" className="data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 transition-all duration-300">{s.tabHackers}</TabsTrigger>
+              </TabsList>
+              <TabsContent value="attacks" className="mt-8">
+                {renderGrid(attacks)}
+              </TabsContent>
+              <TabsContent value="hackers" className="mt-8">
+                {renderGrid(hackers)}
+              </TabsContent>
+            </Tabs>
+          </div>
+          {/* Live threat feed sidebar */}
+          <div className="w-full lg:w-80 xl:w-96 shrink-0">
+            <div className="sticky top-6">
+              <div className="text-[10px] font-mono text-zinc-500 tracking-widest uppercase mb-2 pl-1">Live Intel Feed</div>
+              <div className="h-[520px]">
+                <LiveThreatFeed />
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="mt-20">
           <h2 className="text-3xl font-semibold mb-8 text-center animate-slide-in-up">{s.casesTitle}</h2>

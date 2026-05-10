@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import { MatrixBackground } from '@/components/matrix-background';
 import { GlitchText } from '@/components/glitch-text';
+import { OSINTCapabilities } from '@/components/osint-capabilities';
+import { AgentConsole } from '@/components/agent-console';
 
 export default function CybersecurityAIPage() {
   const [isScanning, setIsScanning] = useState(false);
@@ -386,6 +388,36 @@ export default function CybersecurityAIPage() {
               Explore Microsoft Security Suite
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* OSINT Capabilities Section */}
+      <section className="container mx-auto py-20 px-4 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <GlitchText text="OSINT & Reconnaissance" />
+            </h2>
+            <p className="text-zinc-400 text-lg">
+              Open-source intelligence modules for passive and active reconnaissance
+            </p>
+          </div>
+          <OSINTCapabilities />
+        </div>
+      </section>
+
+      {/* Agent Network Section */}
+      <section className="container mx-auto py-20 px-4 relative z-10 bg-zinc-900/30">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <GlitchText text="Deployed Agent Network" />
+            </h2>
+            <p className="text-zinc-400 text-lg">
+              Autonomous security agents operating across the threat landscape
+            </p>
+          </div>
+          <AgentConsole />
         </div>
       </section>
 
