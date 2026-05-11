@@ -192,28 +192,66 @@ interface FormData {
   company: string
   service: string
   message: string
+  preferredDate: string
+  preferredTime: string
+}
+
+type SubmitState = 'idle' | 'sending' | 'success' | 'error'
+
+// Earliest selectable date: tomorrow
+function minDate() {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return d.toISOString().slice(0, 10)
+}
+
+// Build ISO datetime string from date + time inputs (AST = UTC+3)
+function toISO(date: string, time: string) {
+  return `${date}T${time}:00+03:00`
 }
 
 export default function ServicesPage() {
-  const [form, setForm] = useState<FormData>({ name: '', email: '', company: '', service: '', message: '' })
-  const [sending, setSending] = useState(false)
+  const [form, setForm] = useState<FormData>({
+    name: '', email: '', company: '', service: '', message: '',
+    preferredDate: '', preferredTime: '10:00',
+  })
+  const [submitState, setSubmitState] = useState<SubmitState>('idle')
+  const [meetLink, setMeetLink] = useState('')
+
+  const set = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setForm(f => ({ ...f, [field]: e.target.value }))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name || !form.email || !form.service) {
-      toast.error('Please fill in name, email, and service.')
+    if (!form.name || !form.email || !form.service || !form.preferredDate) {
+      toast.error('Please fill in name, email, service, and preferred date.')
       return
     }
-    setSending(true)
-    // Mailto fallback — replace with a real form backend (Formspree, Resend, etc.)
-    const subject = encodeURIComponent(`[Services Inquiry] ${form.service} — ${form.company || form.name}`)
-    const body = encodeURIComponent(
-      `Name: ${form.name}\nEmail: ${form.email}\nCompany: ${form.company}\nService: ${form.service}\n\nMessage:\n${form.message}`
-    )
-    window.open(`mailto:alramli.hamzah@gmail.com?subject=${subject}&body=${body}`)
-    toast.success('Opening your email client — send the message to complete your inquiry.', { duration: 6000 })
-    setSending(false)
-    setForm({ name: '', email: '', company: '', service: '', message: '' })
+
+    setSubmitState('sending')
+    try {
+      const res = await fetch('/api/book-meeting', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          company: form.company,
+          service: form.service,
+          message: form.message,
+          startISO: toISO(form.preferredDate, form.preferredTime),
+          durationMins: 45,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data.error ?? 'Booking failed')
+      setMeetLink(data.meetLink)
+      setSubmitState('success')
+      toast.success('Meeting booked! Check your email for the calendar invite.', { duration: 8000 })
+    } catch (err: any) {
+      setSubmitState('error')
+      toast.error(err.message ?? 'Something went wrong. Please try again.')
+    }
   }
 
   return (
@@ -374,88 +412,118 @@ export default function ServicesPage() {
 
             <Card className="bg-zinc-900/80 border border-zinc-700">
               <CardContent className="pt-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Your Name *</label>
-                      <input
-                        type="text"
-                        value={form.name}
-                        onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                        placeholder="Hamzah Al-Ramli"
-                        className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono"
-                        required
-                      />
+                {submitState === 'success' ? (
+                  <div className="text-center py-8 space-y-4">
+                    <div className="flex justify-center">
+                      <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+                        <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+                      </div>
                     </div>
+                    <h3 className="text-xl font-bold text-white">Meeting Booked!</h3>
+                    <p className="text-zinc-400 text-sm max-w-sm mx-auto">
+                      A calendar invite with a Google Meet link has been sent to your email.
+                      Please <strong className="text-white">accept the invite</strong> to confirm your slot.
+                    </p>
+                    {meetLink && (
+                      <a
+                        href={meetLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 bg-emerald-500 text-black font-bold px-6 py-3 rounded text-sm"
+                      >
+                        <Phone className="h-4 w-4" /> Open Meeting Link
+                      </a>
+                    )}
                     <div>
-                      <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Email *</label>
-                      <input
-                        type="email"
-                        value={form.email}
-                        onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                        placeholder="you@company.com"
-                        className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono"
-                        required
-                      />
+                      <button
+                        onClick={() => { setSubmitState('idle'); setMeetLink('') }}
+                        className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors mt-2"
+                      >
+                        Book another session
+                      </button>
                     </div>
                   </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Your Name *</label>
+                        <input type="text" value={form.name} onChange={set('name')} placeholder="Your full name"
+                          className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono" required />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Email *</label>
+                        <input type="email" value={form.email} onChange={set('email')} placeholder="you@company.com"
+                          className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono" required />
+                      </div>
+                    </div>
 
-                  <div>
-                    <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Company / Organization</label>
-                    <input
-                      type="text"
-                      value={form.company}
-                      onChange={e => setForm(f => ({ ...f, company: e.target.value }))}
-                      placeholder="Acme Corp Ltd."
-                      className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Company / Organization</label>
+                      <input type="text" value={form.company} onChange={set('company')} placeholder="Acme Corp Ltd."
+                        className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono" />
+                    </div>
 
-                  <div>
-                    <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Service Needed *</label>
-                    <select
-                      value={form.service}
-                      onChange={e => setForm(f => ({ ...f, service: e.target.value }))}
-                      className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono"
-                      required
-                    >
-                      <option value="">Select a service...</option>
-                      <option value="Penetration Testing">Penetration Testing</option>
-                      <option value="Security Audit (NCA/SAMA/ISO)">Security Audit (NCA/SAMA/ISO)</option>
-                      <option value="Microsoft Security Setup">Microsoft Security Setup (Azure/M365)</option>
-                      <option value="Security Monitoring Retainer">Security Monitoring Retainer</option>
-                      <option value="Security Awareness Training">Security Awareness Training</option>
-                      <option value="Incident Response">Incident Response</option>
-                      <option value="Startup Shield Package">Startup Shield Package</option>
-                      <option value="Business Armor Package">Business Armor Package</option>
-                      <option value="Enterprise Guard Package">Enterprise Guard — Custom Quote</option>
-                      <option value="Other / Not Sure">Other / Not Sure</option>
-                    </select>
-                  </div>
+                    <div>
+                      <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Service Needed *</label>
+                      <select value={form.service} onChange={set('service')}
+                        className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono" required>
+                        <option value="">Select a service...</option>
+                        <option value="Penetration Testing">Penetration Testing</option>
+                        <option value="Security Audit (NCA/SAMA/ISO)">Security Audit (NCA/SAMA/ISO)</option>
+                        <option value="Microsoft Security Setup (Azure/M365)">Microsoft Security Setup (Azure/M365)</option>
+                        <option value="Security Monitoring Retainer">Security Monitoring Retainer</option>
+                        <option value="Security Awareness Training">Security Awareness Training</option>
+                        <option value="Incident Response">Incident Response</option>
+                        <option value="Startup Shield Package">Startup Shield Package</option>
+                        <option value="Business Armor Package">Business Armor Package</option>
+                        <option value="Enterprise Guard — Custom Quote">Enterprise Guard — Custom Quote</option>
+                        <option value="Other / Not Sure">Other / Not Sure</option>
+                      </select>
+                    </div>
 
-                  <div>
-                    <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Tell Me About Your Situation</label>
-                    <textarea
-                      value={form.message}
-                      onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-                      rows={4}
-                      placeholder="Brief description of your environment, what you're worried about, any compliance requirements, timeline..."
-                      className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono resize-none"
-                    />
-                  </div>
+                    {/* Preferred meeting time */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Preferred Date *</label>
+                        <input type="date" value={form.preferredDate} onChange={set('preferredDate')} min={minDate()}
+                          className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono" required />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Preferred Time (AST)</label>
+                        <select value={form.preferredTime} onChange={set('preferredTime')}
+                          className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono">
+                          {['09:00','09:30','10:00','10:30','11:00','11:30','12:00',
+                            '13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'].map(t => (
+                            <option key={t} value={t}>{t} AST</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-zinc-600 font-mono -mt-2">45-minute session · Google Meet link sent to your email</p>
 
-                  <Button
-                    type="submit"
-                    disabled={sending}
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-bold py-3 text-base"
-                  >
-                    {sending ? 'Sending...' : '→ Send Inquiry'}
-                  </Button>
+                    <div>
+                      <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase tracking-widest">Tell Me About Your Situation</label>
+                      <textarea value={form.message} onChange={set('message')} rows={4}
+                        placeholder="Brief description of your environment, what you're worried about, any compliance requirements, timeline..."
+                        className="w-full bg-black border border-zinc-700 rounded px-3 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors font-mono resize-none" />
+                    </div>
 
-                  <p className="text-center text-xs text-zinc-600">
-                    I respond within 24 hours. No spam, no obligation.
-                  </p>
-                </form>
+                    <Button type="submit" disabled={submitState === 'sending'}
+                      className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-bold py-3 text-base">
+                      {submitState === 'sending' ? (
+                        <span className="flex items-center gap-2 justify-center">
+                          <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                          Booking meeting...
+                        </span>
+                      ) : '→ Book Free Consultation'}
+                    </Button>
+
+                    <p className="text-center text-xs text-zinc-600">
+                      You'll receive a Google Calendar invite + Meet link immediately. No spam, no obligation.
+                    </p>
+                  </form>
+                )}
               </CardContent>
             </Card>
 
