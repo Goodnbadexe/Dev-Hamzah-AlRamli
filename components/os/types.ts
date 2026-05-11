@@ -11,6 +11,9 @@ export type OSAppId =
   | 'signal'
   | 'contact'
   | 'terminal'
+  | 'services'
+  | 'news'
+  | 'security'
 
 export type AestheticZone =
   | 'window'    // interactive, app-like — OSWindow chrome
@@ -78,6 +81,33 @@ export const OS_APPS: OSApp[] = [
     desc:   'Interactive command layer. If you know, you know.',
     zone:   'window',
     code:   '05',
+  },
+  {
+    id:     'services',
+    osName: 'services.dll',
+    label:  'Hire Me · Packages',
+    route:  '/services',
+    desc:   'Security engagements, pricing, and booking. Direct line to a paid engagement.',
+    zone:   'window',
+    code:   '06',
+  },
+  {
+    id:     'news',
+    osName: 'news.feed',
+    label:  'Threat Intel',
+    route:  '/news',
+    desc:   'Live CISA Known Exploited Vulnerabilities feed and global threat map.',
+    zone:   'feed',
+    code:   '07',
+  },
+  {
+    id:     'security',
+    osName: 'atlas.sys',
+    label:  'Security Atlas',
+    route:  '/security',
+    desc:   'Attacks, threat actors, real-world incidents — bilingual EN/AR atlas.',
+    zone:   'dossier',
+    code:   '08',
   },
 ]
 
