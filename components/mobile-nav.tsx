@@ -47,6 +47,7 @@ export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
           <nav className="flex-1 overflow-auto py-6 px-4">
             <ul className="space-y-6">
               {[
+                { href: "/services", label: "Hire Me", highlight: true },
                 { href: "#about", label: "About" },
                 { href: "#skills", label: "Skills" },
                 { href: "#projects", label: "Projects" },
@@ -54,11 +55,17 @@ export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
                 { href: "#portfolio", label: "Portfolio" },
                 { href: "#contact", label: "Contact" },
                 { href: "/news", label: "News" },
+                { href: "/security", label: "Security Atlas" },
+                { href: "/cybersecurity-ai", label: "Cybersecurity AI" },
               ].map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-lg font-medium text-zinc-200 hover:text-emerald-400 transition-colors flex items-center"
+                    className={`text-lg font-medium transition-colors flex items-center ${
+                      (item as any).highlight
+                        ? "text-emerald-400 hover:text-emerald-300 font-bold"
+                        : "text-zinc-200 hover:text-emerald-400"
+                    }`}
                     onClick={() => setOpen(false)}
                   >
                     <span className="text-emerald-500 mr-2">›</span>
