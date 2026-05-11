@@ -150,6 +150,91 @@ async function fetchFeodo(): Promise<ThreatEvent[]> {
 }
 
 // ---------------------------------------------------------------------------
+// URLhaus (Abuse.ch) — FREE, ~29k recent malware URLs with hostname/IP, no key
+// Uses ip-api.com batch endpoint to geolocate (free, 100 IPs/call, 15 req/min)
+// ---------------------------------------------------------------------------
+const URLHAUS_URL = "https://urlhaus.abuse.ch/downloads/json_recent/"
+const IP_API_BATCH = "http://ip-api.com/batch"
+
+const IP_RE = /^https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?/i
+
+interface UrlhausEntry {
+  dateadded: string
+  url: string
+  url_status: string
+  threat: string
+  tags: string[] | null
+}
+
+function tagToType(tags: string[] | null, threat: string): string {
+  if (!tags) return threat.includes("malware") ? "Emotet" : "Recon"
+  const flat = tags.join(",").toLowerCase()
+  if (flat.includes("mozi") || flat.includes("mirai")) return "Mirai"
+  if (flat.includes("emotet") || flat.includes("qakbot") || flat.includes("trickbot")) return "Emotet"
+  if (flat.includes("cobaltstrike") || flat.includes("metasploit")) return "RCE"
+  if (flat.includes("phish")) return "Phishing"
+  if (flat.includes("ransom") || flat.includes("conti") || flat.includes("lockbit")) return "Ransomware"
+  if (flat.includes("scan") || flat.includes("recon")) return "PortScan"
+  return "Recon"
+}
+
+async function fetchUrlhaus(): Promise<ThreatEvent[]> {
+  const res = await fetch(URLHAUS_URL, { next: { revalidate: 600 } })
+  if (!res.ok) throw new Error(`URLhaus ${res.status}`)
+  const raw: Record<string, UrlhausEntry[]> = await res.json()
+
+  // Flatten, filter to online IP-based URLs, take recent 80
+  const online: Array<{ ip: string; entry: UrlhausEntry }> = []
+  for (const arr of Object.values(raw)) {
+    for (const entry of arr) {
+      if (entry.url_status !== "online") continue
+      const m = entry.url.match(IP_RE)
+      if (m) online.push({ ip: m[1], entry })
+      if (online.length >= 80) break
+    }
+    if (online.length >= 80) break
+  }
+  if (online.length === 0) return []
+
+  // Batch geolocate via ip-api.com (free, no key)
+  const batch = online.slice(0, 50).map((o) => o.ip)
+  const geoRes = await fetch(IP_API_BATCH, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(batch),
+    next: { revalidate: 600 },
+  })
+  if (!geoRes.ok) throw new Error(`ip-api ${geoRes.status}`)
+  const geo: Array<{ status: string; lat?: number; lon?: number; countryCode?: string; query: string }> = await geoRes.json()
+
+  const seed = Math.floor(Date.now() / 30_000)
+  return geo
+    .filter((g) => g.status === "success" && g.lat != null && g.lon != null)
+    .map((g, i) => {
+      const meta = online.find((o) => o.ip === g.query)?.entry
+      const tgtCode = TARGETS[(i + seed) % TARGETS.length]
+      const tgt = COORDS[tgtCode]!
+      const typ = tagToType(meta?.tags ?? null, meta?.threat ?? "malware_download")
+      const cnt = Math.floor(rng(seed + i) * 4000) + 200
+      const sev: ThreatEvent["severity"] =
+        cnt > 3000 ? "critical" : cnt > 1800 ? "high" : cnt > 800 ? "medium" : "low"
+      return {
+        id: `urlhaus-${g.query}-${i}`,
+        srcLat: g.lat! + (rng(seed + i * 3) - 0.5) * 2,
+        srcLng: g.lon! + (rng(seed + i * 5) - 0.5) * 2,
+        tgtLat: tgt.lat + (rng(seed + i * 7) - 0.5) * 2,
+        tgtLng: tgt.lng + (rng(seed + i * 9) - 0.5) * 2,
+        srcCountry: g.countryCode ?? "??",
+        tgtCountry: tgtCode,
+        type: typ,
+        count: cnt,
+        severity: sev,
+        timestamp: meta?.dateadded ?? new Date().toISOString(),
+      }
+    })
+}
+
+// ---------------------------------------------------------------------------
 // GreyNoise GNQL — commented out (GNQL requires paid plan)
 // Uncomment + set GREYNOISE_API_KEY env var if you upgrade
 // ---------------------------------------------------------------------------
@@ -170,19 +255,32 @@ async function fetchFeodo(): Promise<ThreatEvent[]> {
 export async function GET() {
   const seed = Math.floor(Date.now() / 30_000) // changes every 30 s
 
-  // Priority: Feodo Tracker (real C2 data, no key) → synthetic fallback
+  // Priority: URLhaus (~29k entries) → Feodo Tracker → synthetic fallback
+  try {
+    const threats = await fetchUrlhaus()
+    if (threats.length >= 5) {
+      return NextResponse.json(
+        { threats, generatedAt: new Date().toISOString(), source: "urlhaus" },
+        { headers: { "Cache-Control": "public, max-age=600, stale-while-revalidate=120" } }
+      )
+    }
+  } catch (err) {
+    console.error("[/api/threats] URLhaus failed:", (err as Error).message)
+  }
+
   try {
     const threats = await fetchFeodo()
-    return NextResponse.json(
-      { threats, generatedAt: new Date().toISOString(), source: "feodo-tracker" },
-      { headers: { "Cache-Control": "public, max-age=300, stale-while-revalidate=60" } }
-    )
-  } catch {
-    // Feodo unreachable — synthetic feed always works
+    if (threats.length > 0) {
+      return NextResponse.json(
+        { threats, generatedAt: new Date().toISOString(), source: "feodo-tracker" },
+        { headers: { "Cache-Control": "public, max-age=300, stale-while-revalidate=60" } }
+      )
+    }
+  } catch (err) {
+    console.error("[/api/threats] Feodo failed:", (err as Error).message)
   }
 
   const threats = synthetic(seed)
-
   return NextResponse.json(
     { threats, generatedAt: new Date().toISOString(), source: "synthetic-osint" },
     { headers: { "Cache-Control": "public, max-age=30, stale-while-revalidate=10" } }
