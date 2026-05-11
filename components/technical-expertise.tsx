@@ -17,6 +17,7 @@ type Category = {
   icon: React.ElementType;
   skills: Skill[];
   extraContent?: React.ReactNode;
+  colorClass?: string; // offense | defense | automation | cloud
 };
 
 const EXPERTISE_CATEGORIES: Category[] = [
@@ -24,6 +25,7 @@ const EXPERTISE_CATEGORIES: Category[] = [
     id: "programming",
     title: "🧠 Programming Languages",
     icon: Terminal,
+    colorClass: "tech-exp__item--automation",
     skills: [
       { name: "Python", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg", url: "https://www.python.org" },
       { name: "Java", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg", url: "https://www.java.com" },
@@ -39,6 +41,7 @@ const EXPERTISE_CATEGORIES: Category[] = [
     id: "frontend",
     title: "🎨 Frontend & Frameworks",
     icon: Code,
+    colorClass: "tech-exp__item--automation",
     skills: [
       { name: "React", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg", url: "https://reactjs.org/" },
       { name: "Next.js", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg", url: "https://nextjs.org/" },
@@ -54,6 +57,7 @@ const EXPERTISE_CATEGORIES: Category[] = [
     id: "backend",
     title: "🗄️ Backend & Databases",
     icon: Server,
+    colorClass: "tech-exp__item--defense",
     skills: [
       { name: "Node.js", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original-wordmark.svg", url: "https://nodejs.org" },
       { name: "Windows Server", icon: "https://www.svgrepo.com/show/303229/microsoft-sql-server-logo.svg", url: "https://learn.microsoft.com/en-us/windows-server/" },
@@ -68,6 +72,7 @@ const EXPERTISE_CATEGORIES: Category[] = [
     id: "devops",
     title: "☁️ DevOps & Cloud",
     icon: Globe,
+    colorClass: "tech-exp__item--cloud",
     skills: [
       { name: "Docker", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original-wordmark.svg", url: "https://www.docker.com/" },
       { name: "AWS", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg", url: "https://aws.amazon.com" },
@@ -95,6 +100,7 @@ const EXPERTISE_CATEGORIES: Category[] = [
     id: "mobile",
     title: "📱 Mobile & Game Dev",
     icon: FileCode,
+    colorClass: "tech-exp__item--offense",
     skills: [
       { name: "Android", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/android/android-original-wordmark.svg", url: "https://developer.android.com" },
       { name: "React Native", icon: "https://reactnative.dev/img/header_logo.svg", url: "https://reactnative.dev/" },
@@ -106,6 +112,7 @@ const EXPERTISE_CATEGORIES: Category[] = [
     id: "design",
     title: "🎨 UI/UX & Design",
     icon: Braces,
+    colorClass: "tech-exp__item--offense",
     skills: [
       { name: "Figma", icon: "https://www.vectorlogo.zone/logos/figma/figma-icon.svg", url: "https://www.figma.com/" },
       { name: "Illustrator", icon: "https://www.vectorlogo.zone/logos/adobe_illustrator/adobe_illustrator-icon.svg", url: "https://www.adobe.com/products/illustrator.html" },
@@ -136,7 +143,7 @@ export function TechnicalExpertise() {
         return (
           <div
             key={category.id}
-            className="tech-exp__item"
+            className={`tech-exp__item${category.colorClass ? ` ${category.colorClass}` : ""}`}
             style={{ ["--tech-exp-delay" as never]: `${index * 90}ms` }}
           >
             <div className="tech-exp__itemInner">

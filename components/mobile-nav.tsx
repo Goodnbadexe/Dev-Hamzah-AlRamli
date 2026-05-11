@@ -53,6 +53,7 @@ export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
                 { href: "#experience", label: "Experience" },
                 { href: "#portfolio", label: "Portfolio" },
                 { href: "#contact", label: "Contact" },
+                { href: "/news", label: "News" },
               ].map((item) => (
                 <li key={item.href}>
                   <Link

@@ -13,6 +13,7 @@ import { FullscreenButton } from '@/components/fullscreen'
 import { InteractiveHackerElements, FloatingBinaryBackground } from '@/components/interactive-elements'
 import { ThreatStats } from '@/components/threat-stats'
 import { LiveThreatFeed } from '@/components/live-threat-feed'
+import { ThreatGlobe } from '@/components/threat-globe'
 
 export default function SecurityPage() {
   const [lang, setLang] = useState<'en' | 'ar'>('en')
@@ -142,6 +143,18 @@ export default function SecurityPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Live Threat Globe */}
+        <div className="mb-10 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-mono text-sm font-semibold text-white uppercase tracking-widest">Global Threat Map</span>
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
+              <span className="font-mono text-[10px] text-red-400">LIVE</span>
+            </div>
+          </div>
+          <ThreatGlobe height={340} />
         </div>
 
         {/* 2-col layout: atlas content + live feed */}
