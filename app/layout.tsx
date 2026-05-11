@@ -4,6 +4,8 @@ import { Inter } from "next/font/google"
 import { Noto_Kufi_Arabic } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { FullscreenButton } from "@/components/fullscreen"
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata } from "next"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -161,6 +163,8 @@ export default function RootLayout({
           {children}
           <FullscreenButton />
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
