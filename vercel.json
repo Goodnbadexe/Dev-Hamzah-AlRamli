@@ -5,7 +5,7 @@
   "crons": [
     {
       "path": "/api/cron/meeting-reminders",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 8 * * *"
     }
   ]
 }
