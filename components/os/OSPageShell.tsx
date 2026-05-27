@@ -69,7 +69,7 @@ export function OSPageShell({ osName, label, children, className }: OSPageShellP
         )}
       >
         {/* Route identity header — monospace breadcrumb, always visible */}
-        <div className="border-b border-zinc-900 px-4 py-2 flex items-center gap-3">
+        <div className="border-b border-zinc-900/80 bg-zinc-950/30 px-4 py-2 flex items-center gap-3 backdrop-blur-sm">
           <span className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest select-none">
             goodnbad://
           </span>
@@ -77,8 +77,12 @@ export function OSPageShell({ osName, label, children, className }: OSPageShellP
             {osName}
           </span>
           <span className="h-3 w-px bg-zinc-800 shrink-0" />
-          <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest select-none">
+          <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest select-none">
             {label}
+          </span>
+          <span className="ml-auto flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
+            <span className="font-mono text-[9px] text-zinc-700 uppercase tracking-widest select-none hidden sm:block">active</span>
           </span>
         </div>
 

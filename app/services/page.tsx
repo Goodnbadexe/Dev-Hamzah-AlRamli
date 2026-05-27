@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { GlitchText } from '@/components/glitch-text'
 import { MatrixBackground } from '@/components/matrix-background'
 import { toast } from 'sonner'
@@ -200,114 +199,126 @@ export default function ServicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-black text-white relative overflow-hidden">
+    <div className="min-h-screen bg-[#09090b] text-white relative overflow-hidden">
       <MatrixBackground />
 
       {/* Header */}
-      <header className="container mx-auto py-6 px-4 relative z-10">
+      <header className="container mx-auto py-5 px-4 relative z-10 border-b border-zinc-900">
         <nav className="flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/images/newlogovector.png" alt="Goodnbad.exe" width={40} height={40} className="rounded-full bg-zinc-800 p-0.5" />
-            <GlitchText text="Goodnbad.exe" className="font-bold text-lg" />
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <img src="/images/newlogovector.png" alt="Goodnbad.exe" width={34} height={34} className="rounded-full bg-zinc-800/60 p-0.5 ring-1 ring-zinc-700 group-hover:ring-emerald-800 transition-all" />
+            <GlitchText text="Goodnbad.exe" className="font-mono font-semibold text-sm text-emerald-400" />
           </Link>
-          <Button variant="outline" className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/20" asChild>
-            <Link href="/"><ArrowLeft className="mr-2 h-4 w-4" /> Portfolio</Link>
+          <Button variant="ghost" size="sm" className="border border-zinc-800 text-zinc-400 hover:text-zinc-100 hover:border-zinc-600 font-mono text-xs" asChild>
+            <Link href="/"><ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> PORTFOLIO</Link>
           </Button>
         </nav>
       </header>
 
       <main className="relative z-10">
         {/* Hero */}
-        <section className="container mx-auto px-4 py-16 text-center">
-          <Badge className="mb-4 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            <Zap className="w-3 h-3 mr-1" /> Available for Hire
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+        <section className="container mx-auto px-4 pt-16 pb-12 max-w-4xl">
+          <div className="inline-flex items-center gap-2 rounded border border-emerald-800/60 bg-emerald-950/25 px-3 py-1.5 font-mono text-[10px] text-emerald-400 uppercase tracking-widest mb-6">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_4px_theme(colors.emerald.500)]" />
+            Available for Hire
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             <GlitchText text="Security Services" />
           </h1>
-          <p className="text-xl text-zinc-300 max-w-2xl mx-auto mb-8 leading-relaxed">
+          <p className="text-lg text-zinc-400 max-w-2xl mb-8 leading-relaxed">
             Certified cybersecurity professional based in Riyadh. I help Saudi and GCC businesses find vulnerabilities,
             achieve compliance, and stay protected — in Arabic and English.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center mb-4">
-            <div className="flex items-center gap-2 text-sm text-zinc-400">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" /> CEH Certified
-            </div>
-            <div className="flex items-center gap-2 text-sm text-zinc-400">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" /> CompTIA Security+
-            </div>
-            <div className="flex items-center gap-2 text-sm text-zinc-400">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" /> Microsoft Azure Security
-            </div>
-            <div className="flex items-center gap-2 text-sm text-zinc-400">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" /> NCA / SAMA Familiar
-            </div>
+          <div className="flex flex-wrap gap-3 mb-8">
+            {["CEH (pursuing)", "CompTIA Security+", "Microsoft Azure Security", "NCA / SAMA Familiar"].map(cert => (
+              <span key={cert} className="inline-flex items-center gap-1.5 font-mono text-[11px] text-zinc-400 border border-zinc-800 rounded px-2.5 py-1">
+                <CheckCircle2 className="h-3 w-3 text-emerald-500" />{cert}
+              </span>
+            ))}
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-            <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 text-black font-bold" asChild>
-              <a href="#inquiry"><Mail className="mr-2 h-4 w-4" /> Get a Free Quote</a>
-            </Button>
-            <Button size="lg" variant="outline" className="border-zinc-600 text-zinc-300 hover:border-zinc-400" asChild>
-              <a href="tel:+966508501717"><Phone className="mr-2 h-4 w-4" /> +966 50 850 1717</a>
-            </Button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a
+              href="#inquiry"
+              className="inline-flex items-center justify-center gap-2 rounded bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-3 text-sm transition-all duration-200 hover:shadow-[0_0_24px_rgba(16,185,129,0.35)]"
+            >
+              <Mail className="h-4 w-4" /> Get a Free Quote
+            </a>
+            <a
+              href="tel:+966508501717"
+              className="inline-flex items-center justify-center gap-2 rounded border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white font-mono px-5 py-3 text-sm transition-all duration-200"
+            >
+              <Phone className="h-4 w-4" /> +966 50 850 1717
+            </a>
           </div>
         </section>
 
         {/* Services Grid */}
-        <section className="container mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3"><GlitchText text="What I Offer" /></h2>
-            <p className="text-zinc-400">Every engagement comes with a clear scope, fixed timeline, and real deliverables.</p>
+        <section className="container mx-auto px-4 pb-16 max-w-6xl">
+          <div className="flex items-center gap-4 mb-8">
+            <div>
+              <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-1">Engagements</p>
+              <h2 className="text-2xl font-bold text-zinc-100"><GlitchText text="What I Offer" /></h2>
+            </div>
+            <span className="h-px flex-1 bg-gradient-to-r from-zinc-800 to-transparent hidden sm:block" />
+            <p className="text-xs text-zinc-600 font-mono shrink-0 hidden sm:block">clear scope · fixed timeline · real deliverables</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {SERVICES.map((s) => (
-              <Card key={s.id} className={`bg-zinc-900/60 border ${s.border} hover:brightness-110 transition-all duration-300 flex flex-col`}>
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-3">
-                    <span className={s.color}>{s.icon}</span>
-                    <Badge className={`text-[10px] font-mono border ${s.badge}`}>{s.tag}</Badge>
+              <div
+                key={s.id}
+                className={`group relative flex flex-col rounded-md border ${s.border} bg-zinc-900/50 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]`}
+              >
+                {/* Top accent line */}
+                <span className={`absolute top-0 left-0 right-0 h-px opacity-60 group-hover:opacity-100 transition-opacity`}
+                  style={{ background: `linear-gradient(90deg, transparent, currentColor, transparent)` }}
+                />
+                <div className="p-5 flex-1 flex flex-col">
+                  <div className="flex items-start justify-between mb-4">
+                    <span className={`${s.color} transition-transform duration-200 group-hover:scale-110`}>{s.icon}</span>
+                    <span className={`font-mono text-[9px] border rounded px-2 py-0.5 uppercase tracking-widest ${s.badge}`}>{s.tag}</span>
                   </div>
-                  <CardTitle className="text-white">{s.title}</CardTitle>
-                  <CardDescription className="text-zinc-400 text-sm">{s.subtitle}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col flex-1">
-                  <p className="text-zinc-300 text-sm mb-4 leading-relaxed">{s.description}</p>
-                  <ul className="space-y-2 mb-6 flex-1">
+                  <h3 className="text-base font-semibold text-zinc-100 mb-1">{s.title}</h3>
+                  <p className="font-mono text-[11px] text-zinc-500 mb-3">{s.subtitle}</p>
+                  <p className="text-zinc-400 text-xs mb-4 leading-relaxed flex-1">{s.description}</p>
+                  <ul className="space-y-1.5 mb-5">
                     {s.deliverables.map((d) => (
-                      <li key={d} className="flex items-start gap-2 text-xs text-zinc-400">
-                        <CheckCircle2 className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${s.color}`} />
+                      <li key={d} className="flex items-start gap-2 text-xs text-zinc-500">
+                        <span className={`mt-1.5 h-1 w-1 rounded-full shrink-0 ${s.color.replace('text-', 'bg-').replace('-400', '-500')}`} />
                         {d}
                       </li>
                     ))}
                   </ul>
-                  <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
-                    <div className="flex items-center gap-1 text-xs text-zinc-500">
-                      <Clock className="h-3 w-3" /> {s.duration}
-                    </div>
-                    <Button size="sm" variant="outline" className={`border text-xs ${s.border} ${s.color} hover:opacity-80`} asChild>
-                      <a href="#inquiry">Inquire <ChevronRight className="h-3 w-3 ml-1" /></a>
-                    </Button>
+                  <div className="flex items-center justify-between pt-4 border-t border-zinc-800/70">
+                    <span className="flex items-center gap-1.5 font-mono text-[10px] text-zinc-600">
+                      <Clock className="h-3 w-3" />{s.duration}
+                    </span>
+                    <a
+                      href="#inquiry"
+                      className={`inline-flex items-center gap-1 font-mono text-[11px] ${s.color} border ${s.border} rounded px-2.5 py-1 transition-all duration-200 hover:opacity-80`}
+                    >
+                      Inquire <ChevronRight className="h-3 w-3" />
+                    </a>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </section>
 
         {/* Lead Capture Form */}
-        <section id="inquiry" className="container mx-auto px-4 py-20">
-          <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-10">
-              <Badge className="mb-4 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                <FileText className="w-3 h-3 mr-1" /> Free Consultation
-              </Badge>
-              <h2 className="text-3xl font-bold mb-3"><GlitchText text="Request a Quote" /></h2>
-              <p className="text-zinc-400">
+        <section id="inquiry" className="container mx-auto px-4 py-16 max-w-2xl">
+          <div>
+            <div className="mb-8">
+              <div className="inline-flex items-center gap-2 rounded border border-emerald-800/50 bg-emerald-950/20 px-3 py-1.5 font-mono text-[10px] text-emerald-500 uppercase tracking-widest mb-4">
+                <FileText className="w-3 h-3" /> Free Consultation
+              </div>
+              <h2 className="text-3xl font-bold mb-2"><GlitchText text="Request a Quote" /></h2>
+              <p className="text-zinc-500 text-sm">
                 Tell me what you need. I'll respond within 24 hours with a scoped proposal.
               </p>
             </div>
 
-            <Card className="bg-zinc-900/80 border border-zinc-700">
+            <Card className="bg-zinc-900/70 border border-zinc-800 shadow-[0_0_60px_rgba(0,0,0,0.4)]">
               <CardContent className="pt-6">
                 {submitState === 'success' ? (
                   <div className="text-center py-8 space-y-4">
@@ -422,16 +433,16 @@ export default function ServicesPage() {
             </Card>
 
             {/* Trust signals */}
-            <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+            <div className="mt-6 grid grid-cols-3 gap-3">
               {[
-                { icon: <Clock className="h-5 w-5" />, label: '24h Response', sub: 'Guaranteed' },
-                { icon: <Users className="h-5 w-5" />, label: 'Arabic & English', sub: 'Bilingual' },
-                { icon: <Shield className="h-5 w-5" />, label: 'NDA Available', sub: 'Confidential' },
+                { icon: <Clock className="h-4 w-4" />, label: '24h Response', sub: 'Guaranteed' },
+                { icon: <Users className="h-4 w-4" />, label: 'Arabic & English', sub: 'Bilingual' },
+                { icon: <Shield className="h-4 w-4" />, label: 'NDA Available', sub: 'Confidential' },
               ].map(t => (
-                <div key={t.label} className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
-                  <div className="text-emerald-400 flex justify-center mb-2">{t.icon}</div>
-                  <div className="text-sm font-semibold text-white">{t.label}</div>
-                  <div className="text-xs text-zinc-500">{t.sub}</div>
+                <div key={t.label} className="rounded-md border border-zinc-800 bg-zinc-950/50 p-3 text-center">
+                  <div className="text-emerald-500 flex justify-center mb-2">{t.icon}</div>
+                  <div className="font-mono text-xs font-semibold text-zinc-200">{t.label}</div>
+                  <div className="font-mono text-[10px] text-zinc-600 mt-0.5">{t.sub}</div>
                 </div>
               ))}
             </div>
@@ -440,13 +451,22 @@ export default function ServicesPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800 py-8 relative z-10">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-zinc-500">
-          <span>© {new Date().getFullYear()} Hamzah Al-Ramli — Goodnbad.exe</span>
-          <div className="flex gap-6">
-            <Link href="/" className="hover:text-zinc-300 transition-colors">Portfolio</Link>
-            <Link href="/security" className="hover:text-zinc-300 transition-colors">Security Atlas</Link>
-            <a href="mailto:alramli.hamzah@gmail.com" className="hover:text-zinc-300 transition-colors">Email</a>
+      <footer className="border-t border-zinc-900 py-6 relative z-10 mt-8">
+        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-3">
+          <span className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest">
+            GOODNBAD.EXE © {new Date().getFullYear()}
+          </span>
+          <div className="flex gap-5">
+            {[
+              { href: "/",         label: "Portfolio"      },
+              { href: "/security", label: "Security Atlas" },
+              { href: "/personnel",label: "Dossier"        },
+              { href: "mailto:alramli.hamzah@gmail.com", label: "Email" },
+            ].map(({ href, label }) => (
+              <Link key={href} href={href} className="font-mono text-[10px] text-zinc-700 hover:text-zinc-400 uppercase tracking-widest transition-colors">
+                {label}
+              </Link>
+            ))}
           </div>
         </div>
       </footer>

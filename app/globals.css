@@ -1064,6 +1064,42 @@ Complexity: O(1) styling
   to   { opacity: 1; }
 }
 
+/* App launcher card — slide up with scale for staggered entrance */
+@keyframes card-enter {
+  0%   { opacity: 0; transform: translateY(14px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.card-enter {
+  animation: card-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Hero identity panel — scale-in from slightly below */
+@keyframes hero-enter {
+  0%   { opacity: 0; transform: translateY(20px) scale(0.985); }
+  100% { opacity: 1; transform: translateY(0)    scale(1);     }
+}
+
+.hero-enter {
+  animation: hero-enter 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Shimmer sweep — used on OSWindow title bar */
+@keyframes shimmer-sweep {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* App launcher glow ring on hover */
+@keyframes ring-pulse {
+  0%  , 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+  50%         { box-shadow: 0 0 0 2px rgba(16,185,129,0.12); }
+}
+
+.app-card-hover:hover {
+  animation: ring-pulse 2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .os-panel-in,
   .os-stagger > *,
