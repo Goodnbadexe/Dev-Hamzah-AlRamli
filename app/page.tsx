@@ -44,7 +44,7 @@ const APP_ITEMS = [
   { href: "/signal",     code: "03", label: "SIGNAL",     sub: "Live activity · Feed",            Icon: Radio,     accent: "yellow"  },
   { href: "/contact",    code: "04", label: "CONTACT",    sub: "Encrypted channel",               Icon: Mail,      accent: "purple"  },
   { href: "/terminal",   code: "05", label: "TERMINAL",   sub: "Command interface",               Icon: Terminal,  accent: "zinc"    },
-  { href: "/services",   code: "06", label: "HIRE ME",    sub: "Packages · Pricing · Booking",    Icon: Briefcase, accent: "red"     },
+  { href: "/services",   code: "06", label: "HIRE ME",    sub: "Services · Booking",              Icon: Briefcase, accent: "red"     },
   { href: "/news",       code: "07", label: "THREAT INTEL",sub: "Live CISA feed · Globe",         Icon: Newspaper, accent: "cyan"    },
   { href: "/security",   code: "08", label: "ATLAS",      sub: "Attacks · Actors · Incidents",    Icon: Shield,    accent: "emerald" },
 ]

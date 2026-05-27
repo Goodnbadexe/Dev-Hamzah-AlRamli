@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 import {
   Shield, Search, Monitor, BookOpen, ArrowLeft,
   CheckCircle2, Zap, Users, AlertTriangle, Lock,
-  Mail, Phone, Clock, Star, ChevronRight, FileText
+  Mail, Phone, Clock, ChevronRight, FileText
 } from 'lucide-react'
 
 const SERVICES = [
@@ -24,7 +24,6 @@ const SERVICES = [
     tag: 'Most Requested',
     title: 'Penetration Testing',
     subtitle: 'Find your weaknesses before attackers do',
-    price: 'From SAR 2,500',
     duration: '3–7 business days',
     description: 'Full-scope ethical hacking engagement: web apps, network infrastructure, or internal systems. Detailed report with CVSS scores, proof-of-concept, and remediation steps.',
     deliverables: [
@@ -44,7 +43,6 @@ const SERVICES = [
     tag: 'NCA / SAMA Ready',
     title: 'Security Audit',
     subtitle: 'Compliance-ready security assessment',
-    price: 'From SAR 1,800',
     duration: '2–5 business days',
     description: 'Structured review of your security posture mapped to NCA ECC, SAMA CSF, or ISO 27001. Identifies gaps and gives you a prioritized roadmap to compliance.',
     deliverables: [
@@ -64,7 +62,6 @@ const SERVICES = [
     tag: 'Microsoft Certified',
     title: 'Microsoft Security Setup',
     subtitle: 'Harden your Azure & M365 environment',
-    price: 'From SAR 2,200',
     duration: '2–4 business days',
     description: 'Configure Entra ID, Defender for Cloud, Sentinel SIEM, conditional access policies, and MFA. Turn your Microsoft stack into a security-first environment.',
     deliverables: [
@@ -84,7 +81,6 @@ const SERVICES = [
     tag: 'Monthly Retainer',
     title: 'Security Monitoring',
     subtitle: 'Eyes on your infrastructure 24/7',
-    price: 'From SAR 3,000/mo',
     duration: 'Ongoing',
     description: 'Monthly retainer: threat monitoring, SIEM alert triage, monthly security report, incident response on-call, and proactive vulnerability alerts.',
     deliverables: [
@@ -104,7 +100,6 @@ const SERVICES = [
     tag: 'Teams & Corporates',
     title: 'Security Awareness Training',
     subtitle: 'Your people are your biggest risk',
-    price: 'From SAR 1,500',
     duration: 'Half or full day',
     description: 'Live training sessions for employees covering phishing, social engineering, password hygiene, incident reporting, and safe remote work. Arabic & English.',
     deliverables: [
@@ -124,7 +119,6 @@ const SERVICES = [
     tag: 'Emergency Available',
     title: 'Incident Response',
     subtitle: 'Breach? Call now, not later.',
-    price: 'From SAR 4,000',
     duration: 'As needed',
     description: 'Rapid response to active breaches, ransomware, data leaks, or account compromise. Containment, forensic analysis, root cause identification, and recovery plan.',
     deliverables: [
@@ -133,55 +127,6 @@ const SERVICES = [
       'Forensic timeline reconstruction',
       'Root cause analysis report',
       'Recovery & hardening plan',
-    ],
-  },
-]
-
-const PACKAGES = [
-  {
-    name: 'Startup Shield',
-    price: 'SAR 3,500',
-    period: 'one-time',
-    color: 'border-zinc-700',
-    highlight: false,
-    description: 'For small businesses and startups getting security-serious for the first time.',
-    includes: [
-      'Security Audit (basic scope)',
-      'Microsoft 365 hardening checklist',
-      'Employee phishing awareness (1 session)',
-      'Executive risk report',
-      '30-day email support',
-    ],
-  },
-  {
-    name: 'Business Armor',
-    price: 'SAR 6,800',
-    period: 'one-time',
-    color: 'border-emerald-500/50',
-    highlight: true,
-    badge: 'Most Popular',
-    description: 'Full security assessment + implementation for growing businesses.',
-    includes: [
-      'Penetration test (web + network)',
-      'Full security audit (NCA/SAMA mapped)',
-      'Microsoft Entra ID + Sentinel setup',
-      'Team training session (up to 20 staff)',
-      '60-day remediation support',
-    ],
-  },
-  {
-    name: 'Enterprise Guard',
-    price: 'Custom',
-    period: 'retainer',
-    color: 'border-purple-500/30',
-    highlight: false,
-    description: 'Ongoing security partnership for larger organizations.',
-    includes: [
-      'Everything in Business Armor',
-      'Monthly security monitoring',
-      'Quarterly penetration tests',
-      'Dedicated incident response SLA',
-      'Compliance reporting (NCA/SAMA/ISO)',
     ],
   },
 ]
@@ -336,61 +281,13 @@ export default function ServicesPage() {
                     ))}
                   </ul>
                   <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
-                    <div>
-                      <div className="text-lg font-bold text-white font-mono">{s.price}</div>
-                      <div className="flex items-center gap-1 text-xs text-zinc-500 mt-0.5">
-                        <Clock className="h-3 w-3" /> {s.duration}
-                      </div>
+                    <div className="flex items-center gap-1 text-xs text-zinc-500">
+                      <Clock className="h-3 w-3" /> {s.duration}
                     </div>
                     <Button size="sm" variant="outline" className={`border text-xs ${s.border} ${s.color} hover:opacity-80`} asChild>
                       <a href="#inquiry">Inquire <ChevronRight className="h-3 w-3 ml-1" /></a>
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Packages */}
-        <section className="container mx-auto px-4 py-16 bg-zinc-900/30">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3"><GlitchText text="Bundled Packages" /></h2>
-            <p className="text-zinc-400">Save money by bundling services. Best value for serious security needs.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {PACKAGES.map((pkg) => (
-              <Card key={pkg.name} className={`bg-zinc-900/80 border ${pkg.color} flex flex-col ${pkg.highlight ? 'ring-1 ring-emerald-500/40 shadow-lg shadow-emerald-500/10' : ''}`}>
-                <CardHeader>
-                  {pkg.highlight && (
-                    <div className="flex justify-center mb-3">
-                      <Badge className="bg-emerald-500 text-black text-xs font-bold px-3">
-                        <Star className="h-3 w-3 mr-1" /> {pkg.badge}
-                      </Badge>
-                    </div>
-                  )}
-                  <CardTitle className="text-center text-white">{pkg.name}</CardTitle>
-                  <div className="text-center mt-2">
-                    <span className="text-3xl font-bold font-mono text-emerald-400">{pkg.price}</span>
-                    <span className="text-zinc-500 text-sm ml-1">/ {pkg.period}</span>
-                  </div>
-                  <CardDescription className="text-center text-zinc-400 text-sm mt-2">{pkg.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col flex-1">
-                  <ul className="space-y-3 flex-1">
-                    {pkg.includes.map((item) => (
-                      <li key={item} className="flex items-start gap-2 text-sm text-zinc-300">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    className={`w-full mt-6 ${pkg.highlight ? 'bg-emerald-500 hover:bg-emerald-600 text-black font-bold' : 'border border-zinc-600 bg-transparent text-zinc-300 hover:border-zinc-400'}`}
-                    asChild
-                  >
-                    <a href="#inquiry">Get This Package</a>
-                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -406,7 +303,7 @@ export default function ServicesPage() {
               </Badge>
               <h2 className="text-3xl font-bold mb-3"><GlitchText text="Request a Quote" /></h2>
               <p className="text-zinc-400">
-                Tell me what you need. I'll respond within 24 hours with a scoped proposal and price.
+                Tell me what you need. I'll respond within 24 hours with a scoped proposal.
               </p>
             </div>
 
@@ -475,9 +372,6 @@ export default function ServicesPage() {
                         <option value="Security Monitoring Retainer">Security Monitoring Retainer</option>
                         <option value="Security Awareness Training">Security Awareness Training</option>
                         <option value="Incident Response">Incident Response</option>
-                        <option value="Startup Shield Package">Startup Shield Package</option>
-                        <option value="Business Armor Package">Business Armor Package</option>
-                        <option value="Enterprise Guard — Custom Quote">Enterprise Guard — Custom Quote</option>
                         <option value="Other / Not Sure">Other / Not Sure</option>
                       </select>
                     </div>

@@ -433,7 +433,7 @@ export function ThreatGlobe({ interactive = false, onAttack, onGlobeClick, showW
           d.severity === "critical" ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.05)",
         ]}
         arcAltitude={(d: ThreatEvent) =>
-          d.severity === "critical" ? 0.46 : d.severity === "high" ? 0.34 : 0.22
+          d.severity === "critical" ? 0.18 : d.severity === "high" ? 0.13 : 0.08
         }
         arcStroke={(d: ThreatEvent) =>
           d.severity === "critical" ? 1.15 : d.severity === "high" ? 0.75 : 0.42
