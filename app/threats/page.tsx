@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
-import { Globe2, Volume2, VolumeX, Zap, Shield, Activity } from "lucide-react"
+import { Globe2, Volume2, VolumeX, Zap, Shield, Activity, Satellite } from "lucide-react"
 import { OSDesktop } from "@/components/os/OSDesktop"
 import { OSTaskbar } from "@/components/os/OSTaskbar"
 import type { ThreatEvent } from "@/app/api/threats/route"
@@ -97,6 +97,7 @@ const TYPE_COLOR: Record<string, string> = {
 // ---------------------------------------------------------------------------
 export default function ThreatsPage() {
   const [muted,        setMuted]        = useState(false)
+  const [nasaGibs,     setNasaGibs]     = useState(false)
   const [totalCount,   setTotalCount]   = useState(0)
   const [recentEvents, setRecentEvents] = useState<ThreatEvent[]>([])
   const [topSource,    setTopSource]    = useState<string>("—")
@@ -151,7 +152,7 @@ export default function ThreatsPage() {
 
         {/* Globe — fills remaining viewport */}
         <div className="absolute inset-0 pt-11">
-          <ThreatGlobe interactive onAttack={handleAttack} />
+          <ThreatGlobe interactive onAttack={handleAttack} nasaGibs={nasaGibs} />
         </div>
 
         {/* Subtle edge vignette — keeps HUD text readable */}
@@ -237,6 +238,22 @@ export default function ThreatsPage() {
         {/* ---------------------------------------------------------------- */}
         <div className="absolute bottom-8 right-4 z-10 flex flex-col items-end gap-3">
 
+          {/* NASA GIBS satellite toggle */}
+          <button
+            onClick={() => setNasaGibs(g => !g)}
+            className={`flex items-center gap-2 rounded-full border px-3 py-2
+                       font-mono text-[10px] uppercase tracking-widest
+                       backdrop-blur-sm transition
+                       ${nasaGibs
+                         ? "border-sky-600/70 bg-sky-950/70 text-sky-400 hover:border-sky-500 hover:text-sky-300"
+                         : "border-zinc-700/60 bg-zinc-950/70 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"
+                       }`}
+            aria-label={nasaGibs ? "Switch to Blue Marble" : "Switch to NASA satellite"}
+          >
+            <Satellite className="h-3.5 w-3.5" />
+            {nasaGibs ? "nasa sat" : "blue marble"}
+          </button>
+
           {/* Mute button */}
           <button
             onClick={() => setMuted(m => !m)}
@@ -291,7 +308,7 @@ export default function ThreatsPage() {
         <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
           <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-800 flex items-center gap-1.5">
             <Shield className="h-3 w-3" />
-            NASA Blue Marble · cloud layer · real-time solar angle · Feodo Tracker C2 feed · refreshes every 30s
+            FireHOL real IPs · ip-api.com geo · NASA GIBS satellite · cloud layer · real-time solar angle
           </p>
         </div>
 

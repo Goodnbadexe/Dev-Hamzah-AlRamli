@@ -78,6 +78,16 @@ const TYPES    = ["DDoS","Bruteforce","Ransomware","SQLi","RCE","Recon","Phishin
 // ---------------------------------------------------------------------------
 function rng(n: number) { const x = Math.sin(n) * 10000; return x - Math.floor(x) }
 
+/** Seeded Fisher-Yates — reproducible random sample per time window */
+function shuffleSeed<T>(arr: T[], seed: number): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng(seed + i) * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
 function synthetic(seed: number, count = 40): ThreatEvent[] {
   return Array.from({ length: count }, (_, i) => {
     const s   = seed + i * 7
@@ -109,8 +119,88 @@ function synthetic(seed: number, count = 40): ThreatEvent[] {
 }
 
 // ---------------------------------------------------------------------------
+// FireHOL real-IP feeds via Global Threat Map pre-processed JSON
+// + ip-api.com batch geolocation (free, no auth, 100 IPs/req)
+// Data window: 30 min cache, seeded sample rotates each window
+// ---------------------------------------------------------------------------
+const FIREHOL_BASE = "https://raw.githubusercontent.com/Cybersight-Security/Global-Threat-Map/main/data"
+
+const FIREHOL_FEEDS = [
+  { file: "firehol_level1.json",     sev: "critical" as const, types: ["DDoS","RCE","Ransomware"],       n: 20 },
+  { file: "firehol_abusers_1d.json", sev: "high"     as const, types: ["Bruteforce","PortScan","SQLi"],  n: 15 },
+  { file: "firehol_level2.json",     sev: "medium"   as const, types: ["Recon","Phishing","Bruteforce"], n: 15 },
+]
+
+async function fetchFirehol(): Promise<ThreatEvent[]> {
+  const windowSeed = Math.floor(Date.now() / 1_800_000) // rotates every 30 min
+
+  const feedData = await Promise.all(
+    FIREHOL_FEEDS.map(f =>
+      fetch(`${FIREHOL_BASE}/${f.file}`, { next: { revalidate: 1800 } })
+        .then(r => r.ok ? r.json() as Promise<{ ips: string[] }> : { ips: [] })
+        .catch(() => ({ ips: [] }))
+    )
+  )
+
+  // Build batch: sample N IPs from each feed
+  const batch: Array<{ ip: string; feedIdx: number }> = []
+  feedData.forEach((data, fi) => {
+    shuffleSeed(data.ips, windowSeed + fi).slice(0, FIREHOL_FEEDS[fi].n)
+      .forEach(ip => batch.push({ ip, feedIdx: fi }))
+  })
+
+  if (batch.length === 0) throw new Error("FireHOL feeds empty")
+
+  // Batch geolocate — free tier uses HTTP (no HTTPS on /batch without key)
+  const geoRes = await fetch(
+    "http://ip-api.com/batch?fields=status,query,countryCode,country,lat,lon",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(batch.map(b => ({ query: b.ip }))),
+    }
+  )
+  if (!geoRes.ok) throw new Error(`ip-api ${geoRes.status}`)
+
+  const geoData: Array<{
+    status: string; query: string
+    countryCode: string; country: string
+    lat: number; lon: number
+  }> = await geoRes.json()
+
+  const tickSeed = Math.floor(Date.now() / 30_000)
+  const events: ThreatEvent[] = []
+
+  geoData.forEach((geo, i) => {
+    if (geo.status !== "success" || !geo.lat || !geo.lon) return
+    const feed    = FIREHOL_FEEDS[batch[i].feedIdx]
+    const tgtCode = TARGETS[(i + tickSeed + 3) % TARGETS.length]
+    const tgt     = COORDS[tgtCode] ?? COORDS.US
+    const typ     = feed.types[Math.floor(rng(tickSeed + i * 3) * feed.types.length)]
+    const count   = Math.floor(rng(tickSeed + i * 7) * 8000) + 200
+
+    events.push({
+      id:         `fh-${geo.query}`,
+      srcLat:     geo.lat,
+      srcLng:     geo.lon,
+      tgtLat:     tgt.lat + (rng(tickSeed + i * 11) - 0.5) * 3,
+      tgtLng:     tgt.lng + (rng(tickSeed + i * 13) - 0.5) * 3,
+      srcCountry: geo.countryCode || geo.country,
+      tgtCountry: tgtCode,
+      type:       typ,
+      count,
+      severity:   feed.sev,
+      timestamp:  new Date().toISOString(),
+    })
+  })
+
+  if (events.length < 10) throw new Error("Too few geolocated IPs")
+  return events
+}
+
+// ---------------------------------------------------------------------------
 // Feodo Tracker (Abuse.ch) — FREE real botnet C2 data, no API key
-// Always enabled — falls back to synthetic if fetch fails
+// Falls back to synthetic if fetch fails
 // ---------------------------------------------------------------------------
 async function fetchFeodo(): Promise<ThreatEvent[]> {
   const res = await fetch(
@@ -168,21 +258,28 @@ async function fetchFeodo(): Promise<ThreatEvent[]> {
 // Route handler
 // ---------------------------------------------------------------------------
 export async function GET() {
-  const seed = Math.floor(Date.now() / 30_000) // changes every 30 s
+  const seed = Math.floor(Date.now() / 30_000)
 
-  // Priority: Feodo Tracker (real C2 data, no key) → synthetic fallback
+  // Priority 1: FireHOL real geolocated IPs (Global Threat Map feeds + ip-api.com)
+  try {
+    const threats = await fetchFirehol()
+    return NextResponse.json(
+      { threats, generatedAt: new Date().toISOString(), source: "firehol-geolocated" },
+      { headers: { "Cache-Control": "public, max-age=1800, stale-while-revalidate=300" } }
+    )
+  } catch { /* fall through */ }
+
+  // Priority 2: Feodo Tracker (real C2 botnet, country-level geo)
   try {
     const threats = await fetchFeodo()
     return NextResponse.json(
       { threats, generatedAt: new Date().toISOString(), source: "feodo-tracker" },
       { headers: { "Cache-Control": "public, max-age=300, stale-while-revalidate=60" } }
     )
-  } catch {
-    // Feodo unreachable — synthetic feed always works
-  }
+  } catch { /* fall through */ }
 
+  // Priority 3: Synthetic fallback — always works
   const threats = synthetic(seed)
-
   return NextResponse.json(
     { threats, generatedAt: new Date().toISOString(), source: "synthetic-osint" },
     { headers: { "Cache-Control": "public, max-age=30, stale-while-revalidate=10" } }

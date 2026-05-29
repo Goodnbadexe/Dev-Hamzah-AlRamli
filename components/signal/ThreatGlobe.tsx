@@ -206,17 +206,33 @@ const CABLE_PATHS: CablePath[] = [
   },
 ]
 
+// NASA GIBS VIIRS True Colour — 2048×1024, free, no key, ~2-day lag
+const NASA_GIBS_URL = (() => {
+  const d = new Date()
+  d.setDate(d.getDate() - 2)
+  const date = d.toISOString().split("T")[0]
+  return (
+    `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi` +
+    `?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0` +
+    `&LAYERS=VIIRS_SNPP_CorrectedReflectance_TrueColor&STYLES=` +
+    `&CRS=CRS:84&BBOX=-180,-90,180,90&WIDTH=2048&HEIGHT=1024` +
+    `&FORMAT=image/jpeg&TIME=${date}`
+  )
+})()
+
 interface Props {
   interactive?: boolean
   onAttack?: (attack: ThreatEvent) => void
   onGlobeClick?: () => void
   showWorldLayers?: boolean
+  /** Use NASA GIBS near-real-time satellite imagery instead of Blue Marble */
+  nasaGibs?: boolean
   /** Width / height override (defaults to window dimensions) */
   width?: number
   height?: number
 }
 
-export function ThreatGlobe({ interactive = false, onAttack, onGlobeClick, showWorldLayers = false, width, height }: Props) {
+export function ThreatGlobe({ interactive = false, onAttack, onGlobeClick, showWorldLayers = false, nasaGibs = false, width, height }: Props) {
   const globeRef   = useRef<any>(null)
   const [pool, setPool]   = useState<ThreatEvent[]>([])
   const [arcs, setArcs]   = useState<ThreatEvent[]>([])
@@ -395,6 +411,15 @@ export function ThreatGlobe({ interactive = false, onAttack, onGlobeClick, showW
     material.needsUpdate = true
   }, [dayPhase])
 
+  // Re-tune material when texture mode switches (GIBS real-sat vs Blue Marble)
+  useEffect(() => {
+    const material = globeRef.current?.globeMaterial?.()
+    if (!material) return
+    material.emissiveIntensity = nasaGibs ? 0.03 : 0.04
+    material.shininess         = nasaGibs ? 8 : 22
+    material.needsUpdate       = true
+  }, [nasaGibs])
+
   // Cloud mesh + animation cleanup on unmount
   useEffect(() => {
     return () => {
@@ -473,9 +498,9 @@ export function ThreatGlobe({ interactive = false, onAttack, onGlobeClick, showW
         width={w}
         height={h}
 
-        // Globe
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+        // Globe — Blue Marble default or NASA GIBS near-real-time satellite
+        globeImageUrl={nasaGibs ? NASA_GIBS_URL : "//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"}
+        bumpImageUrl={nasaGibs ? undefined : "//unpkg.com/three-globe/example/img/earth-topology.png"}
         backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
         backgroundColor="rgba(0,0,0,0)"
         atmosphereColor="#4a9eda"
