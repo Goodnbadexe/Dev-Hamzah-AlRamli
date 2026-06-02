@@ -106,7 +106,7 @@ export function OSTaskbar({ className }: OSTaskbarProps) {
 
       <nav
         aria-label="Primary navigation"
-        className="flex md:hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto"
+        className="flex md:hidden min-w-0 flex-1 items-stretch gap-1 overflow-x-auto"
       >
         {NAV_ITEMS.map(({ href, label, code, shortLabel }) => {
           const active = pathname === href || (href !== "/" && pathname.startsWith(href))
@@ -115,7 +115,7 @@ export function OSTaskbar({ className }: OSTaskbarProps) {
               key={href}
               href={href}
               className={cn(
-                "shrink-0 rounded px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors",
+                "shrink-0 rounded px-3 font-mono text-[10px] uppercase tracking-widest transition-colors flex items-center",
                 active
                   ? "bg-emerald-950/40 text-emerald-400"
                   : "text-zinc-500 hover:bg-zinc-900/60 hover:text-zinc-300"
