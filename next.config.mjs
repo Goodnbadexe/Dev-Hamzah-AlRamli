@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    unoptimized: true,
+    // NOTE: unoptimized was previously true, disabling all image compression and
+    // resizing. Re-enabled Next.js image optimization. If any remote image hosts
+    // are added later, list them under `remotePatterns` here.
   },
   async redirects() {
     return [

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "Hamzah Al-Ramli (Goodnbad) is a cybersecurity and automation-focused systems architect based in Saudi Arabia.",
   alternates: {
-    canonical: "https://www.goodnbad.info/about",
+    canonical: "https://www.goodnbad.info/personnel",
   },
 }
 

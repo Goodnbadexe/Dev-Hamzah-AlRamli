@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: "Hamzah Al-Ramli (Goodnbad) | Cybersecurity & Automation Architect",
   description: "Hamzah Al-Ramli (Goodnbad) is a cybersecurity and automation-focused systems architect based in Saudi Arabia, specializing in digital infrastructure optimization, workflow automation, and security-driven architecture design.",
   metadataBase: new URL('https://www.goodnbad.info'),
-  generator: 'v0.dev',
   icons: {
     icon: '/images/newlogovector.png',
     shortcut: '/images/newlogovector.png',
@@ -114,7 +113,7 @@ export default function RootLayout({
         "url": "https://www.goodnbad.info",
         "mainEntityOfPage": "https://www.goodnbad.info/about",
         "image": "https://www.goodnbad.info/images/newlogovector.png",
-        "email": "mailto:Goodnbadexe@hotmail.com",
+        "email": "mailto:contact@goodnbad.info",
         "jobTitle": "Cybersecurity and Automation Architect",
         "description": "Hamzah Al-Ramli (Goodnbad) is a cybersecurity and automation-focused systems architect based in Saudi Arabia. He specializes in digital infrastructure optimization, workflow automation, and security-driven architecture design.",
         "nationality": {
@@ -152,7 +151,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="canonical" href="https://www.goodnbad.info" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}

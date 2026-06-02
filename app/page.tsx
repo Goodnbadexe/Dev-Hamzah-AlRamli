@@ -137,25 +137,40 @@ export default function HomePage() {
       {/* Renders a lightweight gradient until idle, then fades in the globe. */}
       {/* ------------------------------------------------------------------ */}
       <div className="fixed inset-0 z-0">
-        {!globeReady && (
+        {/* Mobile: skip WebGL entirely — show animated CSS background */}
+        {isMobile ? (
           <div
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(16,185,129,0.08) 0%, rgba(9,9,11,0) 55%), radial-gradient(ellipse 100% 100% at 50% 50%, #0a0a0c 40%, #000 100%)",
+                "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(16,185,129,0.10) 0%, rgba(9,9,11,0) 55%), radial-gradient(ellipse 100% 100% at 50% 50%, #0a0a0c 40%, #000 100%)",
+              animation: "pulse 6s ease-in-out infinite alternate",
             }}
             aria-hidden
           />
-        )}
-        {globeReady && (
-          <div className="absolute inset-0 animate-[fadeIn_700ms_ease-out_forwards]" style={{ opacity: 0 }}>
-            <ThreatGlobe
-              interactive={globeInspect}
-              showWorldLayers
-              onAttack={handleAttack}
-              onGlobeClick={() => setGlobeInspect(true)}
-            />
-          </div>
+        ) : (
+          <>
+            {!globeReady && (
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(16,185,129,0.08) 0%, rgba(9,9,11,0) 55%), radial-gradient(ellipse 100% 100% at 50% 50%, #0a0a0c 40%, #000 100%)",
+                }}
+                aria-hidden
+              />
+            )}
+            {globeReady && (
+              <div className="absolute inset-0 animate-[fadeIn_700ms_ease-out_forwards]" style={{ opacity: 0 }}>
+                <ThreatGlobe
+                  interactive={globeInspect}
+                  showWorldLayers
+                  onAttack={handleAttack}
+                  onGlobeClick={() => setGlobeInspect(true)}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 
