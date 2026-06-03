@@ -22,6 +22,9 @@ const DONE_DELAY = 3200   // ms — when the parent is told we're done
 
 interface BootSequenceProps {
   onComplete: () => void
+  /** Render inside the parent box (absolute) instead of a fixed overlay, and
+   *  stay visible without auto-fading — used by the loader preview. */
+  embedded?: boolean
   className?: string
 }
 
@@ -30,7 +33,7 @@ interface BootSequenceProps {
  * Full-screen overlay that plays a boot log, then resolves into the OS.
  * Designed to be cinematic but not excessive — under 3 seconds total.
  */
-export function BootSequence({ onComplete, className }: BootSequenceProps) {
+export function BootSequence({ onComplete, embedded = false, className }: BootSequenceProps) {
   const [visibleLines, setVisibleLines] = useState<number[]>([])
   const [showRedacted, setShowRedacted]   = useState(false)
   const [exiting, setExiting]             = useState(false)
@@ -49,14 +52,18 @@ export function BootSequence({ onComplete, className }: BootSequenceProps) {
     })
 
     timers.push(setTimeout(() => setShowRedacted(true), 1900))
-    timers.push(setTimeout(() => setExiting(true), EXIT_DELAY))
 
-    timers.push(setTimeout(() => {
-      if (!completedRef.current) {
-        completedRef.current = true
-        onCompleteRef.current()
-      }
-    }, DONE_DELAY))
+    // In embedded (preview) mode, hold the final frame: don't fade out or
+    // signal completion — the preview owns replay via remount.
+    if (!embedded) {
+      timers.push(setTimeout(() => setExiting(true), EXIT_DELAY))
+      timers.push(setTimeout(() => {
+        if (!completedRef.current) {
+          completedRef.current = true
+          onCompleteRef.current()
+        }
+      }, DONE_DELAY))
+    }
 
     return () => timers.forEach(clearTimeout)
   // Empty deps — runs once on mount, uses ref for callback (immune to prop churn)
@@ -66,7 +73,8 @@ export function BootSequence({ onComplete, className }: BootSequenceProps) {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[100] flex flex-col items-center justify-center bg-zinc-950",
+        embedded ? "absolute inset-0" : "fixed inset-0 z-[100]",
+        "flex flex-col items-center justify-center bg-zinc-950",
         "transition-opacity duration-500",
         exiting ? "opacity-0 pointer-events-none" : "opacity-100",
         className

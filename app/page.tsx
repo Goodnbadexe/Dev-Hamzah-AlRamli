@@ -1,15 +1,16 @@
 'use client'
 
-import { useCallback, useState, useEffect } from "react"
+import { useCallback, useState, useEffect, type ElementType } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import dynamic from "next/dynamic"
-import { ArrowRight, Shield, Terminal, Layers, Radio, Mail, User, ChevronRight, Maximize2, X } from "lucide-react"
+import { ArrowRight, Shield, Terminal, Layers, Radio, Mail, User, ChevronRight, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun, ChevronDown } from "lucide-react"
 import { OSDesktop, OSTaskbar, OSWindow, AmbientFeed } from "@/components/os"
 import { GlitchText } from "@/components/glitch-text"
 import { cn } from "@/lib/utils"
 import type { FeedEntry } from "@/components/os"
-import type { ThreatEvent } from "@/app/api/threats/route"
+import type { ThreatIoc } from "@/app/api/threats/route"
+import { IocInspector } from "@/components/signal/IocInspector"
 import { MobileSignalOverlay } from "@/components/signal/MobileSignalOverlay"
 
 // Globe — deferred: only loads after initial paint (via requestIdleCallback)
@@ -46,15 +47,22 @@ const APP_ITEMS = [
   { href: "/terminal",   code: "05", label: "TERMINAL",   sub: "Command interface",               Icon: Terminal,accent: "zinc"    },
 ]
 
-const ACCENT: Record<string, { border: string; dot: string; icon: string; hover: string }> = {
-  emerald: { border: "hover:border-emerald-800", dot: "bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]", icon: "text-emerald-500", hover: "group-hover:text-emerald-400" },
-  blue:    { border: "hover:border-blue-800",    dot: "bg-blue-500 shadow-[0_0_6px_theme(colors.blue.500)]",       icon: "text-blue-400",    hover: "group-hover:text-blue-300"    },
-  yellow:  { border: "hover:border-yellow-800",  dot: "bg-yellow-500 shadow-[0_0_6px_theme(colors.yellow.500)]",   icon: "text-yellow-400",  hover: "group-hover:text-yellow-300"  },
-  purple:  { border: "hover:border-purple-800",  dot: "bg-purple-500 shadow-[0_0_6px_theme(colors.purple.500)]",   icon: "text-purple-400",  hover: "group-hover:text-purple-300"  },
-  zinc:    { border: "hover:border-zinc-600",    dot: "bg-zinc-500",                                                icon: "text-zinc-400",    hover: "group-hover:text-zinc-300"    },
+// Single-accent system (per the homepage concept): every module is neutral and
+// only lights emerald on hover. Color now means something — emerald = you.
+// The `accent` keys on APP_ITEMS all resolve to this one style.
+const NEUTRAL_ACCENT = {
+  border: "hover:border-emerald-800/80",
+  dot:    "bg-zinc-600",
+  icon:   "text-zinc-400 group-hover:text-emerald-400",
+  hover:  "group-hover:text-emerald-300",
 }
+const ACCENT: Record<string, typeof NEUTRAL_ACCENT> = new Proxy(
+  {},
+  { get: () => NEUTRAL_ACCENT },
+) as Record<string, typeof NEUTRAL_ACCENT>
 
-const WORLD_LAYERS = [
+// All layer labels (used to seed the default active set)
+const ALL_LAYER_LABELS = [
   "Tech HQ",
   "Accelerators",
   "Cloud Regions",
@@ -68,9 +76,213 @@ const WORLD_LAYERS = [
   "Day / Night",
 ]
 
+type LayerConfig = {
+  label: string
+  Icon: ElementType
+  color: string
+  glowColor: string
+}
+
+type LayerGroup = {
+  category: string
+  layers: LayerConfig[]
+}
+
+const LAYER_GROUPS: LayerGroup[] = [
+  {
+    category: "Infrastructure",
+    layers: [
+      { label: "Tech HQ",         Icon: Building2,     color: "#a78bfa", glowColor: "rgba(167,139,250,.5)" },
+      { label: "Accelerators",    Icon: Rocket,        color: "#22c55e", glowColor: "rgba(34,197,94,.45)"  },
+      { label: "Cloud Regions",   Icon: Cloud,         color: "#38bdf8", glowColor: "rgba(56,189,248,.5)"  },
+      { label: "AI Data Centers", Icon: Database,      color: "#88aaff", glowColor: "rgba(136,170,255,.5)" },
+      { label: "Undersea Cables", Icon: Cable,         color: "#22d3ee", glowColor: "rgba(34,211,238,.5)"  },
+    ],
+  },
+  {
+    category: "Threats",
+    layers: [
+      { label: "Cyber Threats",    Icon: Zap,          color: "#ff0044", glowColor: "rgba(255,0,68,.55)"   },
+      { label: "Internet Outages", Icon: WifiOff,      color: "#ff2020", glowColor: "rgba(255,32,32,.5)"   },
+      { label: "Fires",            Icon: Flame,        color: "#fb923c", glowColor: "rgba(251,146,60,.5)"  },
+      { label: "Natural Events",   Icon: AlertTriangle,color: "#facc15", glowColor: "rgba(250,204,21,.45)" },
+    ],
+  },
+  {
+    category: "Events",
+    layers: [
+      { label: "Tech Events",     Icon: Calendar,      color: "#44aaff", glowColor: "rgba(68,170,255,.5)"  },
+    ],
+  },
+  {
+    category: "Display",
+    layers: [
+      { label: "Day / Night",     Icon: Sun,           color: "#fbbf24", glowColor: "rgba(251,191,36,.5)"  },
+    ],
+  },
+]
+
+const LS_KEY = "goodnbad_active_layers"
+
+function loadActiveLayers(): Set<string> {
+  if (typeof window === "undefined") return new Set(ALL_LAYER_LABELS)
+  try {
+    const raw = localStorage.getItem(LS_KEY)
+    if (!raw) return new Set(ALL_LAYER_LABELS)
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return new Set(parsed as string[])
+  } catch { /* ignore */ }
+  return new Set(ALL_LAYER_LABELS)
+}
+
+function saveActiveLayers(layers: Set<string>) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(Array.from(layers)))
+  } catch { /* ignore */ }
+}
+
 function nowTs() {
   const d = new Date()
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+}
+
+// ---------------------------------------------------------------------------
+// Layer Config Panel
+// ---------------------------------------------------------------------------
+interface LayerPanelProps {
+  activeLayers: Set<string>
+  onToggle: (label: string) => void
+}
+
+function LayerPanel({ activeLayers, onToggle }: LayerPanelProps) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div className="fixed left-4 top-16 z-20 hidden lg:block">
+      {/* Collapsed pill */}
+      {!expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="flex items-center gap-2 rounded border border-zinc-800 bg-zinc-950/70 px-3 py-1.5 font-mono text-[9px] uppercase tracking-widest text-zinc-500 backdrop-blur-sm transition-all hover:border-zinc-700 hover:text-zinc-300"
+        >
+          <Layers className="h-3 w-3" />
+          LAYERS
+          <span className="ml-1 text-[8px] text-zinc-600">
+            {activeLayers.size}/{ALL_LAYER_LABELS.length}
+          </span>
+          <ChevronDown className="h-3 w-3" />
+        </button>
+      )}
+
+      {/* Expanded panel */}
+      {expanded && (
+        <div
+          className="w-[220px] rounded-md border border-zinc-800 bg-zinc-950/85 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
+          style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.04)" }}
+        >
+          {/* Panel header */}
+          <div className="flex items-center justify-between border-b border-zinc-800/80 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <Layers className="h-3 w-3 text-zinc-500" />
+              <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">World Layers</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              className="text-zinc-600 hover:text-zinc-300 transition-colors"
+              aria-label="Collapse layer panel"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+
+          {/* Layer groups */}
+          <div className="p-2 space-y-3">
+            {LAYER_GROUPS.map((group) => (
+              <div key={group.category}>
+                <p className="px-1 mb-1.5 font-mono text-[8px] uppercase tracking-widest text-zinc-700">
+                  {group.category}
+                </p>
+                <div className="space-y-1">
+                  {group.layers.map(({ label, Icon, color, glowColor }) => {
+                    const isActive = activeLayers.has(label)
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => onToggle(label)}
+                        className={[
+                          "w-full flex items-center gap-2 rounded px-2 py-1.5 font-mono text-[10px] transition-all duration-150",
+                          "border",
+                          isActive
+                            ? "border-zinc-700/60 bg-zinc-900/60"
+                            : "border-transparent bg-transparent opacity-40 hover:opacity-60",
+                          "hover:border-zinc-700/80 hover:bg-zinc-900/70",
+                        ].join(" ")}
+                        style={isActive ? { boxShadow: `inset 0 0 0 1px ${glowColor}` } : undefined}
+                      >
+                        <span
+                          className="flex h-4 w-4 shrink-0 items-center justify-center rounded"
+                          style={
+                            isActive
+                              ? { color, textShadow: `0 0 6px ${glowColor}` }
+                              : { color: "#52525b" }
+                          }
+                        >
+                          <Icon className="h-3 w-3" />
+                        </span>
+                        <span
+                          className="flex-1 text-left"
+                          style={isActive ? { color, textShadow: `0 0 8px ${glowColor}` } : { color: "#71717a" }}
+                        >
+                          {label}
+                        </span>
+                        {/* Active indicator dot */}
+                        <span
+                          className={[
+                            "h-1.5 w-1.5 rounded-full shrink-0 transition-all duration-150",
+                            isActive ? "animate-pulse" : "opacity-0",
+                          ].join(" ")}
+                          style={isActive ? { backgroundColor: color, boxShadow: `0 0 4px ${glowColor}` } : undefined}
+                        />
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Footer — reset all */}
+          <div className="border-t border-zinc-800/80 px-3 py-2 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                ALL_LAYER_LABELS.forEach((l) => { if (!activeLayers.has(l)) onToggle(l) })
+              }}
+              className="font-mono text-[8px] uppercase tracking-widest text-zinc-700 hover:text-zinc-400 transition-colors"
+            >
+              all on
+            </button>
+            <span className="font-mono text-[8px] text-zinc-800">·</span>
+            <button
+              type="button"
+              onClick={() => {
+                ALL_LAYER_LABELS.forEach((l) => { if (activeLayers.has(l)) onToggle(l) })
+              }}
+              className="font-mono text-[8px] uppercase tracking-widest text-zinc-700 hover:text-zinc-400 transition-colors"
+            >
+              all off
+            </button>
+            <span className="ml-auto font-mono text-[8px] text-zinc-700">
+              {activeLayers.size}/{ALL_LAYER_LABELS.length}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -78,12 +290,16 @@ function nowTs() {
 // ---------------------------------------------------------------------------
 export default function HomePage() {
   const [liveEntries,  setLiveEntries]  = useState<FeedEntry[]>([])
+  const [recentIocs,   setRecentIocs]   = useState<ThreatIoc[]>([])
+  const [hoveredIoc,   setHoveredIoc]   = useState<ThreatIoc | null>(null)
   const [globeInspect, setGlobeInspect] = useState(false)
   // Detect mobile on mount (no SSR mismatch — starts false)
   const [isMobile, setIsMobile] = useState(false)
   // Globe is deferred until the browser is idle (or user taps inspect).
   // This makes the homepage TTI ~300-500ms faster on mobile.
   const [globeReady, setGlobeReady] = useState(false)
+  // Layer state — initialised to all layers on; loaded from localStorage on mount
+  const [activeLayers, setActiveLayers] = useState<Set<string>>(() => new Set(ALL_LAYER_LABELS))
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -119,15 +335,38 @@ export default function HomePage() {
     if (globeInspect) setGlobeReady(true)
   }, [globeInspect])
 
-  // Each globe drip fires this — converts attack → ambient feed entry
-  const handleAttack = useCallback((attack: ThreatEvent) => {
+  // Load persisted layer preferences from localStorage on mount
+  useEffect(() => {
+    setActiveLayers(loadActiveLayers())
+  }, [])
+
+  // Toggle a single layer in/out of the active set
+  const handleLayerToggle = useCallback((label: string) => {
+    setActiveLayers((prev) => {
+      const next = new Set(prev)
+      if (next.has(label)) {
+        next.delete(label)
+      } else {
+        next.add(label)
+      }
+      saveActiveLayers(next)
+      return next
+    })
+  }, [])
+
+  // Each globe drip fires this — converts an IOC → ambient feed entry + rail.
+  const handleIoc = useCallback((ioc: ThreatIoc) => {
     const entry: FeedEntry = {
       ts:     nowTs(),
       type:   "threat",
-      label:  `${attack.type}: ${attack.srcCountry} → ${attack.tgtCountry}`,
-      detail: `${attack.count.toLocaleString()} events · ${attack.severity}`,
+      label:  `${ioc.type.replace("_", " ")}: ${ioc.country}`,
+      detail: `${ioc.source} · ${ioc.severity}`,
     }
     setLiveEntries(prev => [entry, ...prev].slice(0, 20))
+    setRecentIocs(prev => {
+      if (prev[0]?.id === ioc.id) return prev
+      return [ioc, ...prev].slice(0, 12)
+    })
   }, [])
 
   return (
@@ -165,7 +404,10 @@ export default function HomePage() {
                 <ThreatGlobe
                   interactive={globeInspect}
                   showWorldLayers
-                  onAttack={handleAttack}
+                  activeLayers={activeLayers}
+                  nightMode={activeLayers.has("Day / Night")}
+                  onIoc={handleIoc}
+                  onIocSelect={setHoveredIoc}
                   onGlobeClick={() => setGlobeInspect(true)}
                 />
               </div>
@@ -180,8 +422,8 @@ export default function HomePage() {
         style={{
           background:
             globeInspect
-              ? "radial-gradient(ellipse 80% 75% at 38% 50%, rgba(9,9,11,0.12) 0%, rgba(9,9,11,0.62) 100%)"
-              : "radial-gradient(ellipse 85% 85% at 50% 50%, rgba(9,9,11,0.35) 0%, rgba(9,9,11,0.82) 100%)",
+              ? "radial-gradient(ellipse 80% 75% at 38% 50%, rgba(9,9,11,0.08) 0%, rgba(9,9,11,0.5) 100%)"
+              : "radial-gradient(120% 90% at 72% 44%, rgba(9,9,11,0) 0%, rgba(9,9,11,0.32) 58%, rgba(9,9,11,0.72) 100%)",
         }}
       />
 
@@ -190,16 +432,10 @@ export default function HomePage() {
       {/* ------------------------------------------------------------------ */}
       <OSTaskbar />
 
-      <div className="fixed left-4 top-16 z-20 hidden max-w-[340px] flex-wrap gap-2 lg:flex">
-        {WORLD_LAYERS.map((layer) => (
-          <span
-            key={layer}
-            className="rounded border border-zinc-800 bg-zinc-950/55 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-zinc-500 backdrop-blur-sm"
-          >
-            {layer}
-          </span>
-        ))}
-      </div>
+      <LayerPanel activeLayers={activeLayers} onToggle={handleLayerToggle} />
+
+      {/* Live IOC surface — side rail + slide-to-center inspector */}
+      <IocInspector recent={recentIocs} hovered={hoveredIoc} railHidden={globeInspect || isMobile} />
 
       <button
         type="button"
@@ -262,11 +498,14 @@ export default function HomePage() {
                     <span className="h-px flex-1 bg-zinc-800" />
                     <span className="font-mono text-[10px] text-emerald-700 uppercase tracking-widest">verified</span>
                   </div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-zinc-100 leading-tight">
+                  <h1 className={cn(
+                    "font-bold text-zinc-100 tracking-tight leading-[0.95]",
+                    globeInspect ? "text-2xl" : "text-3xl sm:text-4xl md:text-5xl"
+                  )}>
                     <GlitchText text="Goodnbad.exe" />
                   </h1>
-                  <p className="text-zinc-400 text-sm mt-0.5">
-                    Hamzah Al-Ramli — Cybersecurity & Automation Architect
+                  <p className="text-zinc-300 text-sm sm:text-base mt-1.5">
+                    Hamzah Al-Ramli — <span className="text-zinc-100 font-semibold">Cybersecurity &amp; Automation Architect</span>
                   </p>
                   <p className="font-mono text-[11px] text-zinc-600 mt-2">
                     Riyadh, SA · CEH (pursuing) · Security+ (pursuing) · Taylor's University BSc CS

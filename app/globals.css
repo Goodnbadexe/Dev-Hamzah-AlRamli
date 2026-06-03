@@ -281,7 +281,7 @@ Complexity: O(1) styling
 
 /* Arabic Typography Enhancements */
 [lang="ar"] {
-  font-family: 'Noto Kufi Arabic', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-arabic), 'Noto Kufi Arabic', system-ui, -apple-system, sans-serif;
   line-height: 1.7;
 }
 
@@ -616,7 +616,7 @@ Complexity: O(1) styling
   left: -1.6rem;
   top: 50%;
   transform: translateY(-50%);
-  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+  font-family: var(--font-mono), ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
   font-size: 0.65rem;
   color: rgba(16, 185, 129, 0.7);
   opacity: 0;
@@ -653,7 +653,7 @@ Complexity: O(1) styling
 }
 
 .about-stat-value {
-  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+  font-family: var(--font-mono), ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
   font-size: 2rem;
   font-weight: 700;
   color: rgb(16, 185, 129);
@@ -663,7 +663,7 @@ Complexity: O(1) styling
 }
 
 .about-stat-label {
-  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+  font-family: var(--font-mono), ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
   font-size: 0.6875rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -718,7 +718,7 @@ Complexity: O(1) styling
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+  font-family: var(--font-mono), ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.15em;

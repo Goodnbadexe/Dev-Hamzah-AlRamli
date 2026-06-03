@@ -21,7 +21,7 @@ import dynamic from "next/dynamic"
 import { Globe2, Volume2, VolumeX, Zap, Shield, Activity } from "lucide-react"
 import { OSDesktop } from "@/components/os/OSDesktop"
 import { OSTaskbar } from "@/components/os/OSTaskbar"
-import type { ThreatEvent } from "@/app/api/threats/route"
+import type { ThreatIoc } from "@/app/api/threats/route"
 
 const ThreatGlobe = dynamic(
   () => import("@/components/signal/ThreatGlobe").then((m) => ({ default: m.ThreatGlobe })),
@@ -31,7 +31,7 @@ const ThreatGlobe = dynamic(
 // ---------------------------------------------------------------------------
 // Web Audio ping — no library, no audio file, zero overhead
 // ---------------------------------------------------------------------------
-function playPing(severity: ThreatEvent["severity"], muted: boolean) {
+function playPing(severity: ThreatIoc["severity"], muted: boolean) {
   if (muted || typeof window === "undefined") return
   try {
     const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
@@ -82,15 +82,14 @@ const SEV: Record<string, { text: string; dot: string }> = {
 }
 
 const TYPE_COLOR: Record<string, string> = {
-  DDoS:       "text-red-400",
-  Bruteforce: "text-orange-400",
-  Ransomware: "text-purple-400",
-  SQLi:       "text-blue-400",
-  RCE:        "text-pink-400",
-  Recon:      "text-emerald-400",
-  Phishing:   "text-yellow-400",
-  PortScan:   "text-teal-400",
+  c2_server:     "text-rose-400",
+  malware_host:  "text-orange-400",
+  phishing:      "text-yellow-400",
+  malicious_url: "text-sky-400",
+  ransomware:    "text-violet-400",
 }
+
+const typeLabel = (t: string) => t.replace("_", " ").toUpperCase()
 
 // ---------------------------------------------------------------------------
 // Page
@@ -98,26 +97,26 @@ const TYPE_COLOR: Record<string, string> = {
 export default function ThreatsPage() {
   const [muted,        setMuted]        = useState(false)
   const [totalCount,   setTotalCount]   = useState(0)
-  const [recentEvents, setRecentEvents] = useState<ThreatEvent[]>([])
+  const [recentEvents, setRecentEvents] = useState<ThreatIoc[]>([])
   const [topSource,    setTopSource]    = useState<string>("—")
-  const [lastEvent,    setLastEvent]    = useState<ThreatEvent | null>(null)
+  const [lastEvent,    setLastEvent]    = useState<ThreatIoc | null>(null)
   const [tickerOn,     setTickerOn]     = useState(false)
   const tickerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const sourceCounts = useRef<Record<string, number>>({})
 
-  // Called by ThreatGlobe each time a new arc fires
-  const handleAttack = useCallback((attack: ThreatEvent) => {
-    playPing(attack.severity, muted)
+  // Called by ThreatGlobe on each IOC drip
+  const handleIoc = useCallback((ioc: ThreatIoc) => {
+    playPing(ioc.severity, muted)
 
     setTotalCount(c => c + 1)
 
-    setRecentEvents(prev => [attack, ...prev].slice(0, 6))
+    setRecentEvents(prev => (prev[0]?.id === ioc.id ? prev : [ioc, ...prev].slice(0, 6)))
 
-    sourceCounts.current[attack.srcCountry] = (sourceCounts.current[attack.srcCountry] ?? 0) + 1
+    sourceCounts.current[ioc.country] = (sourceCounts.current[ioc.country] ?? 0) + 1
     const top = Object.entries(sourceCounts.current).sort((a, b) => b[1] - a[1])[0]
     setTopSource(top ? top[0] : "—")
 
-    setLastEvent(attack)
+    setLastEvent(ioc)
     setTickerOn(true)
     if (tickerRef.current) clearTimeout(tickerRef.current)
     tickerRef.current = setTimeout(() => setTickerOn(false), 4000)
@@ -151,7 +150,7 @@ export default function ThreatsPage() {
 
         {/* Globe — fills remaining viewport */}
         <div className="absolute inset-0 pt-11">
-          <ThreatGlobe interactive onAttack={handleAttack} />
+          <ThreatGlobe interactive onIoc={handleIoc} />
         </div>
 
         {/* Subtle edge vignette — keeps HUD text readable */}
@@ -222,11 +221,11 @@ export default function ThreatsPage() {
               style={{ opacity: 1 - i * 0.13 }}
             >
               <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${SEV[ev.severity]?.dot ?? "bg-zinc-600"}`} />
-              <span className={`font-mono text-[10px] font-semibold shrink-0 w-20 ${TYPE_COLOR[ev.type] ?? "text-zinc-400"}`}>
-                {ev.type}
+              <span className={`font-mono text-[10px] font-semibold shrink-0 w-24 ${TYPE_COLOR[ev.type] ?? "text-zinc-400"}`}>
+                {typeLabel(ev.type)}
               </span>
               <span className="font-mono text-[10px] text-zinc-500 truncate">
-                {ev.srcCountry} → {ev.tgtCountry}
+                {ev.country} · {ev.source}
               </span>
             </div>
           ))}
@@ -265,18 +264,18 @@ export default function ThreatsPage() {
                 <Zap className="h-3 w-3 shrink-0 mt-0.5" />
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-semibold">{lastEvent.type}</span>
+                    <span className="font-semibold">{typeLabel(lastEvent.type)}</span>
                     <span className={`text-[9px] uppercase tracking-widest ${SEV[lastEvent.severity]?.text}`}>
                       {lastEvent.severity}
                     </span>
                   </div>
                   <div className="mt-0.5 text-zinc-500">
-                    {lastEvent.srcCountry}
-                    <span className="mx-1 text-zinc-700">→</span>
-                    {lastEvent.tgtCountry}
+                    {lastEvent.country}
+                    <span className="mx-1 text-zinc-700">·</span>
+                    {lastEvent.source}
                   </div>
-                  <div className="mt-0.5 text-[9px] text-zinc-700">
-                    {lastEvent.count.toLocaleString()} events detected
+                  <div className="mt-0.5 truncate text-[9px] text-zinc-700 max-w-[200px]">
+                    {lastEvent.ref ?? lastEvent.malware ?? "indicator of compromise"}
                   </div>
                 </div>
               </div>
@@ -291,7 +290,7 @@ export default function ThreatsPage() {
         <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
           <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-800 flex items-center gap-1.5">
             <Shield className="h-3 w-3" />
-            Feodo Tracker C2 feed · synthetic fallback · data refreshes every 30s
+            Feodo · URLhaus · C2IntelFeeds · Ransomware.live — live IOCs, geo-located, 14-day window
           </p>
         </div>
 

@@ -45,12 +45,12 @@ export const signalEntries: SignalEntry[] = [
     href: `/deployments/${deployment.slug}`,
   })),
   ...certifications.slice(0, 3).map((certification) => ({
-    id: certification.credentialId,
+    id: certification.credentialId ?? certification.name,
     date: certification.date,
     type: "Credential" as const,
     title: certification.name,
     summary: `${certification.issuer} credential added to the professional profile.`,
-    href: certification.href,
+    href: certification.href ?? "/personnel",
   })),
   {
     id: "current-role",
