@@ -9,8 +9,8 @@ export async function GET() {
     'Disallow: /debug',
     'Disallow: /flags',
     'Disallow: /lab',
-    'Disallow: /memory',
     'Disallow: /test-ctf',
+    '',
     'Sitemap: https://www.goodnbad.info/sitemap.xml',
     '',
   ].join('\n')

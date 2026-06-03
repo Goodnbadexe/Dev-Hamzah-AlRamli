@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import { Noto_Kufi_Arabic } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { FullscreenButton } from "@/components/fullscreen"
+import { PortfolioAssistant } from "@/components/portfolio-assistant"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata } from "next"
@@ -15,10 +16,9 @@ const notoKufiArabic = Noto_Kufi_Arabic({
 })
 
 export const metadata: Metadata = {
-  title: "Hamzah Al-Ramli (Goodnbad) | Cybersecurity & Automation Architect",
-  description: "Hamzah Al-Ramli (Goodnbad) is a cybersecurity and automation-focused systems architect based in Saudi Arabia, specializing in digital infrastructure optimization, workflow automation, and security-driven architecture design.",
+  title: "Hamzah Al-Ramli (Goodnbad) | Cybersecurity Expert & Creative Multimedia Designer",
+  description: "Hamzah Al-Ramli (Goodnbad) — cybersecurity expert and creative multimedia designer based in Saudi Arabia. Threat intelligence, malware analysis, brand design, full-stack development, and AI-augmented systems.",
   metadataBase: new URL('https://www.goodnbad.info'),
-  generator: 'v0.dev',
   icons: {
     icon: '/images/newlogovector.png',
     shortcut: '/images/newlogovector.png',
@@ -76,6 +76,7 @@ export const metadata: Metadata = {
     canonical: 'https://www.goodnbad.info',
     languages: {
       'en-US': 'https://www.goodnbad.info',
+      'ar-SA': 'https://www.goodnbad.info',
     },
   },
   category: 'cybersecurity',
@@ -94,7 +95,9 @@ export const metadata: Metadata = {
     'geo.region': 'SA',
     'geo.placename': 'Saudi Arabia',
     'geo.position': '24.7136;46.6753',
-    'ICBM': '24.7136, 46.6753'
+    'ICBM': '24.7136, 46.6753',
+    'description:ar': 'حمزة الرملي — مهندس أمن سيبراني وأتمتة ذكاء اصطناعي في المملكة العربية السعودية. خبرة في استخبارات التهديدات والأتمتة الأمنية.',
+    'keywords:ar': 'أمن سيبراني السعودية، خبير أمن معلومات، اختبار اختراق، حمزة الرملي'
   }
 }
 
@@ -114,27 +117,37 @@ export default function RootLayout({
         "url": "https://www.goodnbad.info",
         "mainEntityOfPage": "https://www.goodnbad.info/about",
         "image": "https://www.goodnbad.info/images/newlogovector.png",
-        "email": "mailto:Goodnbadexe@hotmail.com",
-        "jobTitle": "Cybersecurity and Automation Architect",
-        "description": "Hamzah Al-Ramli (Goodnbad) is a cybersecurity and automation-focused systems architect based in Saudi Arabia. He specializes in digital infrastructure optimization, workflow automation, and security-driven architecture design.",
+        "email": "mailto:contact@goodnbad.info",
+        "jobTitle": "Cybersecurity Expert & Creative Multimedia Designer",
+        "description": "Hamzah Al-Ramli (Goodnbad) is a cybersecurity expert and creative multimedia designer based in Saudi Arabia. He specialises in threat intelligence, malware analysis, OSINT, graphic design, brand identity, and full-stack development.",
         "nationality": {
           "@type": "Country",
           "name": "Saudi Arabia"
         },
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "SA",
+          "addressRegion": "Riyadh"
+        },
         "knowsAbout": [
           "Cybersecurity",
+          "Threat Intelligence",
+          "OSINT",
+          "Penetration Testing",
           "Ethical Hacking",
+          "Security Architecture",
+          "NCA ECC Compliance",
+          "Microsoft Azure Security",
+          "AI Automation",
           "Workflow Automation",
           "n8n",
           "AI Agents",
-          "Systems Architecture",
-          "Digital Infrastructure",
-          "IT Optimization",
-          "Process Engineering"
+          "Systems Architecture"
         ],
         "sameAs": [
           "https://www.linkedin.com/in/hamzah-al-ramli-505",
-          "https://github.com/Goodnbadexe"
+          "https://github.com/Goodnbadexe",
+          "https://www.crunchbase.com/person/hamzah-al-ramli"
         ]
       },
       {
@@ -152,7 +165,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="canonical" href="https://www.goodnbad.info" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -162,6 +174,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           {children}
           <FullscreenButton />
+          <PortfolioAssistant />
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

@@ -1,11 +1,16 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { ArrowLeft, RefreshCw, Shield, AlertTriangle, ExternalLink, Calendar, Database, Zap, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { ThreatGlobe } from '@/components/threat-globe'
+
+const ThreatGlobe = dynamic(
+  () => import('@/components/threat-globe').then((m) => ({ default: m.ThreatGlobe })),
+  { ssr: false, loading: () => null }
+)
 
 interface NewsItem {
   id: string
@@ -74,6 +79,14 @@ export default function NewsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'critical' | 'high'>('all')
   const [refreshing, setRefreshing] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check, { passive: true })
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const fetchNews = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true)
@@ -149,7 +162,13 @@ export default function NewsPage() {
               </div>
               <span className="font-mono text-xs text-zinc-500">Real-time attack vector visualization</span>
             </div>
-            <ThreatGlobe height={380} />
+            {isMobile ? (
+              <div className="flex h-[120px] items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950/60">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">Globe — desktop only</span>
+              </div>
+            ) : (
+              <ThreatGlobe height={380} />
+            )}
           </div>
 
           {/* Stats */}

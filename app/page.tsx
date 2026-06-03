@@ -4,7 +4,7 @@ import { useCallback, useState, useEffect, type ElementType } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import dynamic from "next/dynamic"
-import { ArrowRight, Shield, Terminal, Layers, Radio, Mail, User, ChevronRight, Maximize2, X, Briefcase, Newspaper, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun, ChevronDown } from "lucide-react"
+import { ArrowRight, Shield, Terminal, Layers, Radio, Mail, User, ChevronRight, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun, ChevronDown } from "lucide-react"
 import { OSDesktop, OSTaskbar, OSWindow, AmbientFeed } from "@/components/os"
 import { GlitchText } from "@/components/glitch-text"
 import { cn } from "@/lib/utils"
@@ -40,14 +40,11 @@ const STATIC_ENTRIES: FeedEntry[] = [
 // App launcher
 // ---------------------------------------------------------------------------
 const APP_ITEMS = [
-  { href: "/personnel",  code: "01", label: "PERSONNEL",  sub: "Dossier · CV · Clearance",      Icon: User,      accent: "emerald" },
-  { href: "/deployments",code: "02", label: "DEPLOYMENTS",sub: "Mission files · Architecture",   Icon: Layers,    accent: "blue"    },
-  { href: "/signal",     code: "03", label: "SIGNAL",     sub: "Live activity · Feed",            Icon: Radio,     accent: "yellow"  },
-  { href: "/contact",    code: "04", label: "CONTACT",    sub: "Encrypted channel",               Icon: Mail,      accent: "purple"  },
-  { href: "/terminal",   code: "05", label: "TERMINAL",   sub: "Command interface",               Icon: Terminal,  accent: "zinc"    },
-  { href: "/services",   code: "06", label: "HIRE ME",    sub: "Services · Booking",              Icon: Briefcase, accent: "red"     },
-  { href: "/news",       code: "07", label: "THREAT INTEL",sub: "Live CISA feed · Globe",         Icon: Newspaper, accent: "cyan"    },
-  { href: "/security",   code: "08", label: "ATLAS",      sub: "Attacks · Actors · Incidents",    Icon: Shield,    accent: "emerald" },
+  { href: "/personnel",  code: "01", label: "PERSONNEL",  sub: "Dossier · CV · Clearance",      Icon: User,    accent: "emerald" },
+  { href: "/deployments",code: "02", label: "DEPLOYMENTS",sub: "Mission files · Architecture",   Icon: Layers,  accent: "blue"    },
+  { href: "/signal",     code: "03", label: "SIGNAL",     sub: "Live activity · Feed",            Icon: Radio,   accent: "yellow"  },
+  { href: "/contact",    code: "04", label: "CONTACT",    sub: "Encrypted channel",               Icon: Mail,    accent: "purple"  },
+  { href: "/terminal",   code: "05", label: "TERMINAL",   sub: "Command interface",               Icon: Terminal,accent: "zinc"    },
 ]
 
 // Single-accent system (per the homepage concept): every module is neutral and
@@ -379,28 +376,43 @@ export default function HomePage() {
       {/* Renders a lightweight gradient until idle, then fades in the globe. */}
       {/* ------------------------------------------------------------------ */}
       <div className="fixed inset-0 z-0">
-        {!globeReady && (
+        {/* Mobile: skip WebGL entirely — show animated CSS background */}
+        {isMobile ? (
           <div
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(16,185,129,0.08) 0%, rgba(9,9,11,0) 55%), radial-gradient(ellipse 100% 100% at 50% 50%, #0a0a0c 40%, #000 100%)",
+                "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(16,185,129,0.10) 0%, rgba(9,9,11,0) 55%), radial-gradient(ellipse 100% 100% at 50% 50%, #0a0a0c 40%, #000 100%)",
+              animation: "pulse 6s ease-in-out infinite alternate",
             }}
             aria-hidden
           />
-        )}
-        {globeReady && (
-          <div className="absolute inset-0 animate-[fadeIn_700ms_ease-out_forwards]">
-            <ThreatGlobe
-              interactive={globeInspect}
-              showWorldLayers
-              activeLayers={activeLayers}
-              nightMode={activeLayers.has("Day / Night")}
-              onIoc={handleIoc}
-              onIocSelect={setHoveredIoc}
-              onGlobeClick={() => setGlobeInspect(true)}
-            />
-          </div>
+        ) : (
+          <>
+            {!globeReady && (
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(16,185,129,0.08) 0%, rgba(9,9,11,0) 55%), radial-gradient(ellipse 100% 100% at 50% 50%, #0a0a0c 40%, #000 100%)",
+                }}
+                aria-hidden
+              />
+            )}
+            {globeReady && (
+              <div className="absolute inset-0 animate-[fadeIn_700ms_ease-out_forwards]" style={{ opacity: 0 }}>
+                <ThreatGlobe
+                  interactive={globeInspect}
+                  showWorldLayers
+                  activeLayers={activeLayers}
+                  nightMode={activeLayers.has("Day / Night")}
+                  onIoc={handleIoc}
+                  onIocSelect={setHoveredIoc}
+                  onGlobeClick={() => setGlobeInspect(true)}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -464,7 +476,7 @@ export default function HomePage() {
               label="personnel.identity"
               title="GOODNBAD.EXE — ACTIVE SESSION"
               status="active"
-              className={cn("hero-enter transition-all duration-700", globeInspect && "bg-zinc-950/70")}
+              className={cn("os-panel-in transition-all duration-700", globeInspect && "bg-zinc-950/70")}
             >
               <div className={cn("flex gap-6 items-start", globeInspect ? "flex-col" : "flex-col sm:flex-row sm:items-center")}>
                 {/* Avatar */}
@@ -534,10 +546,9 @@ export default function HomePage() {
         {/* ── APP LAUNCHER ──────────────────────────────────── */}
         <section className={cn(globeInspect ? "px-0 pb-3" : "container mx-auto px-4 pb-10")}>
           <div className={cn(globeInspect ? "w-full pointer-events-auto" : "max-w-4xl mx-auto")}>
-            <div className="mb-4 flex items-center gap-3" style={{ animationDelay: "180ms" }}>
+            <div className="mb-4 flex items-center gap-3">
               <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">os.modules</span>
-              <span className="h-px flex-1 bg-gradient-to-r from-zinc-800 via-zinc-900 to-transparent" />
-              <span className="font-mono text-[9px] text-zinc-700 uppercase tracking-widest">{APP_ITEMS.length} loaded</span>
+              <span className="h-px flex-1 bg-zinc-900" />
             </div>
             <div className={cn("grid grid-cols-1 gap-3", !globeInspect && "sm:grid-cols-2 lg:grid-cols-3")}>
               {APP_ITEMS.map(({ href, code, label, sub, Icon, accent }, i) => {
@@ -547,33 +558,26 @@ export default function HomePage() {
                     key={href}
                     href={href}
                     className={[
-                      "group relative flex items-center gap-4 rounded-md border border-zinc-800",
-                      "bg-zinc-900/75 px-4 py-3.5 backdrop-blur-md overflow-hidden",
-                      "transition-all duration-250",
-                      "hover:bg-zinc-900/95 hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)]",
-                      "hover:-translate-y-px",
-                      a.border, "card-enter",
+                      "group flex items-center gap-4 rounded-md border border-zinc-800",
+                      "bg-zinc-900/75 px-4 py-3.5 transition-all duration-200 backdrop-blur-md",
+                      "hover:bg-zinc-900/95 hover:shadow-md",
+                      a.border, "os-panel-in",
                     ].join(" ")}
-                    style={{ animationDelay: `${i * 55}ms` }}
+                    style={{ animationDelay: `${i * 60}ms` }}
                   >
-                    {/* Subtle sweep on hover */}
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[linear-gradient(105deg,transparent_30%,rgba(255,255,255,0.025)_50%,transparent_70%)]"
-                    />
-                    <div className={`shrink-0 flex items-center justify-center w-9 h-9 rounded bg-zinc-950 border border-zinc-800 group-hover:border-zinc-600 transition-all duration-250 group-hover:shadow-[0_0_12px_rgba(0,0,0,0.4)]`}>
-                      <Icon className={`w-4 h-4 ${a.icon} transition-transform duration-250 group-hover:scale-110`} />
+                    <div className="shrink-0 flex items-center justify-center w-9 h-9 rounded bg-zinc-950 border border-zinc-800 group-hover:border-zinc-700 transition-colors">
+                      <Icon className={`w-4 h-4 ${a.icon}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <span className="font-mono text-[9px] text-zinc-700">{code}</span>
-                        <span className={`font-mono text-xs font-semibold text-zinc-300 uppercase tracking-wide ${a.hover} transition-colors duration-200`}>
+                        <span className={`font-mono text-xs font-semibold text-zinc-300 uppercase tracking-wide ${a.hover} transition-colors`}>
                           {label}
                         </span>
                       </div>
-                      <p className="font-mono text-[10px] text-zinc-600 truncate group-hover:text-zinc-500 transition-colors duration-200">{sub}</p>
+                      <p className="font-mono text-[10px] text-zinc-600 truncate">{sub}</p>
                     </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-zinc-700 group-hover:text-zinc-400 group-hover:translate-x-0.5 shrink-0 transition-all duration-200" />
+                    <ChevronRight className="w-3.5 h-3.5 text-zinc-700 group-hover:text-zinc-500 shrink-0 transition-colors" />
                   </Link>
                 )
               })}
@@ -586,7 +590,7 @@ export default function HomePage() {
           <div className={cn("grid grid-cols-1 gap-4", globeInspect ? "w-full pointer-events-auto" : "max-w-4xl mx-auto md:grid-cols-5")}>
 
             {/* Live threat feed — 3 cols */}
-            <div className={cn("card-enter", !globeInspect && "md:col-span-3")} style={{ animationDelay: "380ms" }}>
+            <div className={cn("os-panel-in", !globeInspect && "md:col-span-3")} style={{ animationDelay: "320ms" }}>
               <OSWindow label="signal.feed" title="live · ambient" status="active">
                 <AmbientFeed
                   entries={STATIC_ENTRIES}
@@ -607,7 +611,7 @@ export default function HomePage() {
             </div>
 
             {/* Contact CTA — 2 cols */}
-            <div className={cn("card-enter", !globeInspect && "md:col-span-2")} style={{ animationDelay: "460ms" }}>
+            <div className={cn("os-panel-in", !globeInspect && "md:col-span-2")} style={{ animationDelay: "400ms" }}>
               <OSWindow label="comms.channel" title="encrypted" status="idle" className="h-full">
                 <div className="flex flex-col h-full gap-4">
                   <div>

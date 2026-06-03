@@ -1,0 +1,38 @@
+# Hamzah Al-Ramli — goodnbad.info
+# Cybersecurity and AI Automation Architect — Saudi Arabia
+
+## Identity
+Name: Hamzah Al-Ramli
+Handle: goodnbad / goodnbad.exe / goodnbad505
+Location: Saudi Arabia (Riyadh area)
+Role: Cybersecurity and AI Automation Architect
+Contact: contact@goodnbad.info
+Site: https://www.goodnbad.info
+
+## Expertise
+- Threat intelligence and OSINT (live feeds at /security and /signal)
+- Security architecture and penetration testing
+- Microsoft Azure security and Entra ID hardening
+- AI automation and agentic workflow systems
+- NCA ECC / SAMA cybersecurity framework compliance
+- Malware analysis and incident response
+
+## Live Resources
+- Global threat map (real-time WebGL): https://www.goodnbad.info/security
+- CISA KEV + OSINT intelligence feed: https://www.goodnbad.info/news
+- Signal intelligence aggregator: https://www.goodnbad.info/signal
+- Project deployments: https://www.goodnbad.info/deployments
+- HORUS-EYE monitoring platform: https://www.goodnbad.info/horus
+
+## Services
+Cybersecurity consulting, penetration testing, security architecture design,
+Azure/Entra ID hardening, AI automation, security awareness training.
+See: https://www.goodnbad.info/services
+
+## Certifications
+Google Cybersecurity Certificate, IBM Cybersecurity Assessment, CompTIA Security+,
+Microsoft Azure security certifications.
+
+## Press / Collaboration
+For media enquiries, academic citations, or partnership:
+contact@goodnbad.info
