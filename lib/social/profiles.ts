@@ -9,7 +9,8 @@ export type SocialProfile = {
 export const PERSONAL_BRAND = {
   name: "Hamzah Al-Ramli",
   alias: "Goodnbad.exe",
-  title: "Cybersecurity & Automation Architect",
+  title: "Cybersecurity Expert & Creative Multimedia Designer",
+  tagline: "Stay curious. Break limits. Build meaning.",
   location: "Riyadh, Saudi Arabia",
   fallbackAvatar: "/placeholder-user.jpg",
 }

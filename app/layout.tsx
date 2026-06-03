@@ -16,8 +16,8 @@ const notoKufiArabic = Noto_Kufi_Arabic({
 })
 
 export const metadata: Metadata = {
-  title: "Hamzah Al-Ramli (Goodnbad) | Cybersecurity & Automation Architect",
-  description: "Hamzah Al-Ramli (Goodnbad) is a cybersecurity and automation-focused systems architect based in Saudi Arabia, specializing in digital infrastructure optimization, workflow automation, and security-driven architecture design.",
+  title: "Hamzah Al-Ramli (Goodnbad) | Cybersecurity Expert & Creative Multimedia Designer",
+  description: "Hamzah Al-Ramli (Goodnbad) — cybersecurity expert and creative multimedia designer based in Saudi Arabia. Threat intelligence, malware analysis, brand design, full-stack development, and AI-augmented systems.",
   metadataBase: new URL('https://www.goodnbad.info'),
   icons: {
     icon: '/images/newlogovector.png',
@@ -118,8 +118,8 @@ export default function RootLayout({
         "mainEntityOfPage": "https://www.goodnbad.info/about",
         "image": "https://www.goodnbad.info/images/newlogovector.png",
         "email": "mailto:contact@goodnbad.info",
-        "jobTitle": "Cybersecurity and Automation Architect",
-        "description": "Hamzah Al-Ramli (Goodnbad) is a cybersecurity and automation-focused systems architect based in Saudi Arabia. He specializes in digital infrastructure optimization, workflow automation, and security-driven architecture design.",
+        "jobTitle": "Cybersecurity Expert & Creative Multimedia Designer",
+        "description": "Hamzah Al-Ramli (Goodnbad) is a cybersecurity expert and creative multimedia designer based in Saudi Arabia. He specialises in threat intelligence, malware analysis, OSINT, graphic design, brand identity, and full-stack development.",
         "nationality": {
           "@type": "Country",
           "name": "Saudi Arabia"
