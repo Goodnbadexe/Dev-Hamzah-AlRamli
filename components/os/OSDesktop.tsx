@@ -26,8 +26,12 @@ export function OSDesktop({ children, skipBoot = false, loader = "globe", classN
   // "entering" → BootSequence done, children fading in
   // "ready"    → fully visible
   const [state, setState] = useState<"booting" | "entering" | "ready" | null>(null)
+  // The GlobeLoader uses a <canvas>; on mobile we keep WebGL/canvas off the
+  // first paint (perf) and fall back to the canvas-free BootSequence.
+  const [useGlobeLoader, setUseGlobeLoader] = useState(false)
 
   useEffect(() => {
+    setUseGlobeLoader(loader === "globe" && window.innerWidth >= 768)
     if (skipBoot || sessionStorage.getItem(BOOT_SEEN_KEY)) {
       // Already booted this session — show content immediately, no overlay
       setState("ready")
@@ -35,7 +39,7 @@ export function OSDesktop({ children, skipBoot = false, loader = "globe", classN
       // First visit — play the boot sequence
       setState("booting")
     }
-  }, [skipBoot])
+  }, [skipBoot, loader])
 
   // Stable reference — must not change across renders or BootSequence's effect
   // will teardown and restart its timers every time the page re-renders
@@ -48,12 +52,13 @@ export function OSDesktop({ children, skipBoot = false, loader = "globe", classN
 
   return (
     <>
-      {/* Only mount the entry loader when we're actively booting */}
+      {/* Only mount the entry loader when we're actively booting.
+          GlobeLoader on desktop; canvas-free BootSequence on mobile. */}
       {state === "booting" &&
-        (loader === "boot" ? (
-          <BootSequence onComplete={handleBootComplete} />
-        ) : (
+        (useGlobeLoader ? (
           <GlobeLoader onComplete={handleBootComplete} />
+        ) : (
+          <BootSequence onComplete={handleBootComplete} />
         ))}
 
       <div

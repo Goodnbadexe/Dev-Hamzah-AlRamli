@@ -1,6 +1,7 @@
 import { test, expect, devices } from '@playwright/test'
 
-const BASE = 'https://www.goodnbad.info'
+// Defaults to prod; override with E2E_BASE to test a preview or local server.
+const BASE = process.env.E2E_BASE ?? 'https://www.goodnbad.info'
 
 // ─── Core pages load ──────────────────────────────────────────────────────────
 
@@ -46,13 +47,14 @@ test.describe('Redirects', () => {
 test.describe('API routes', () => {
   // Rate-limit aware: Vercel Hobby plan throttles parallel test requests with 429.
   // We treat 200 OR 429 as "route exists and is functioning."
-  test('/api/threats returns threat data', async ({ request }) => {
+  test('/api/threats returns IOC data', async ({ request }) => {
     const res = await request.get(`${BASE}/api/threats`)
     expect([200, 429]).toContain(res.status())
     if (res.status() === 200) {
       const body = await res.json()
-      expect(body).toHaveProperty('threats')
-      expect(Array.isArray(body.threats)).toBe(true)
+      // Contract is now honest IOCs (located indicators), not fabricated src→tgt arcs.
+      expect(body).toHaveProperty('iocs')
+      expect(Array.isArray(body.iocs)).toBe(true)
     }
   })
 
@@ -130,8 +132,9 @@ test.describe('SEO metadata', () => {
     // We verify config rather than live headers — Vercel's bot protection returns
     // 429 for unauthenticated script requests, masking the actual response headers.
     const fs = await import('fs')
+    const path = await import('path')
     const vercelJson = JSON.parse(fs.readFileSync(
-      'G:/Dev-Hamzah-AlRamli/Dev-Hamzah-AlRamli/vercel.json', 'utf8'
+      path.join(process.cwd(), 'vercel.json'), 'utf8'
     ))
     const headers = vercelJson.headers ?? []
     const allValues = headers.flatMap((h: { headers: { key: string }[] }) =>
