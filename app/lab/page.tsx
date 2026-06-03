@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Lock, ShieldCheck, Terminal } from "lucide-react"
 import { OSPageShell } from "@/components/os/OSPageShell"
 import { OSWindow } from "@/components/os"
+import { LoaderPreview } from "./LoaderPreview"
 import { hasLabAccess, unlockLab } from "./actions"
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export default async function LabPage({ searchParams }: Props) {
 
   return (
     <OSPageShell osName="[REDACTED]" label="Restricted Lab">
-      <div className="container mx-auto max-w-3xl px-4 py-12 md:py-20">
+      <div className={`container mx-auto px-4 py-12 md:py-20 ${unlocked ? "max-w-5xl" : "max-w-3xl"}`}>
         {unlocked ? <UnlockedLab /> : <LockedLab error={error} />}
       </div>
     </OSPageShell>
@@ -117,6 +118,9 @@ function UnlockedLab() {
             The gate is live. Future lab experiments can be added here without exposing them to normal visitors or public navigation.
           </p>
         </div>
+
+        {/* Loader preview — basic boot vs. the new globe loader */}
+        <LoaderPreview />
       </div>
     </OSWindow>
   )

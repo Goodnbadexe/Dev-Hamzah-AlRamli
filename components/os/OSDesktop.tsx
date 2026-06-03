@@ -2,18 +2,25 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { BootSequence } from "./BootSequence"
+import { GlobeLoader } from "./GlobeLoader"
 import { cn } from "@/lib/utils"
 
 const BOOT_SEEN_KEY = "goodnbad_boot_v2"
+
+/** Which entry loader to play on first visit. Swap freely — both share the
+ *  same `{ onComplete }` contract. "globe" is the current live default. */
+export type OSLoader = "globe" | "boot"
 
 interface OSDesktopProps {
   children: React.ReactNode
   /** Skip the boot sequence even on first visit — useful for sub-pages */
   skipBoot?: boolean
+  /** Entry loader variant (default: the Globe Loader). */
+  loader?: OSLoader
   className?: string
 }
 
-export function OSDesktop({ children, skipBoot = false, className }: OSDesktopProps) {
+export function OSDesktop({ children, skipBoot = false, loader = "globe", className }: OSDesktopProps) {
   // null = not yet determined (avoids flash before sessionStorage is checked)
   // "booting"  → BootSequence playing, children hidden
   // "entering" → BootSequence done, children fading in
@@ -41,10 +48,13 @@ export function OSDesktop({ children, skipBoot = false, className }: OSDesktopPr
 
   return (
     <>
-      {/* Only mount BootSequence when we're actively booting */}
-      {state === "booting" && (
-        <BootSequence onComplete={handleBootComplete} />
-      )}
+      {/* Only mount the entry loader when we're actively booting */}
+      {state === "booting" &&
+        (loader === "boot" ? (
+          <BootSequence onComplete={handleBootComplete} />
+        ) : (
+          <GlobeLoader onComplete={handleBootComplete} />
+        ))}
 
       <div
         className={cn(
