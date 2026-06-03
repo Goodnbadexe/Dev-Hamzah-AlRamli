@@ -236,7 +236,7 @@ export default function PersonnelPage() {
               {certifications.map((cert, i) => (
                 <Link
                   key={cert.credentialId}
-                  href={cert.href}
+                  href={cert.href ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group relative overflow-hidden rounded border border-zinc-800 bg-zinc-950/40 p-4 transition-all duration-200 hover:border-emerald-900/80 hover:bg-zinc-950/65 hover:shadow-[0_4px_24px_rgba(0,0,0,0.4)]"

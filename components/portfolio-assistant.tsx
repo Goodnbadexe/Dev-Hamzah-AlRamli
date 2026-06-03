@@ -18,33 +18,12 @@ import { useState } from "react"
 import { MessageSquare, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// Lazy-load the heavy agent component only when opened
-import dynamic from "next/dynamic"
-const Agent = dynamic(
-  () => import("@/registry/blocks/agent/agent").then((m) => ({ default: m.Agent })),
-  { ssr: false, loading: () => (
-    <div className="flex h-full items-center justify-center">
-      <span className="font-mono text-xs text-zinc-500 animate-pulse">Initialising…</span>
-    </div>
-  )}
-)
-
-const SYSTEM_PROMPT = `You are the portfolio assistant for Hamzah Al-Ramli (goodnbad.exe) —
-a cybersecurity and automation architect based in Saudi Arabia.
-
-You have full knowledge of his portfolio site (goodnbad.info):
-- /personnel — CV, certifications (Google Cybersecurity, IBM, CompTIA Security+), experience timeline
-- /services — cybersecurity consulting, pen testing, Azure hardening, automation
-- /deployments — live project showcase with architecture
-- /security — live global threat intelligence dashboard
-- /news — real-time CISA KEV feed and cybersecurity news
-- /signal — OSINT signal aggregator
-- /horus — HORUS-EYE threat monitoring project
-- /contact — encrypted contact channel
-
-Answer questions about his skills, availability, certifications, past projects, and services.
-Keep responses concise and professional. Always direct to the relevant page for more detail.
-If asked about pricing, say to use the /contact page for a consultation.`
+// NOTE: the agent UI is TEMPORARILY STUBBED to unblock the build.
+// The original lazy-loaded "@/registry/blocks/agent/agent", which is not
+// committed to the repo, so the build failed on a clean checkout. To restore:
+//   npx shadcn@latest add https://ui.inference.sh/r/agent.json   (creates registry/blocks/agent/agent)
+//   npm install @inferencesh/sdk
+//   restore the dynamic import + the <Agent /> usage below.
 
 export function PortfolioAssistant() {
   const [open, setOpen] = useState(false)
@@ -79,27 +58,16 @@ export function PortfolioAssistant() {
             </span>
           </div>
 
-          {/* Agent component */}
+          {/* Agent component — stubbed until @inferencesh/sdk + registry block are restored */}
           <div className="flex-1 min-h-0">
-            {process.env.NEXT_PUBLIC_INFERENCE_API_KEY ? (
-              <Agent
-                proxyUrl="/api/inference/proxy"
-                agentConfig={{
-                  core_app: { ref: 'openrouter/claude-haiku-45@0fkg6xwb' },
-                  description: 'Portfolio assistant for Hamzah Al-Ramli',
-                  system_prompt: SYSTEM_PROMPT,
-                }}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-32 gap-2 px-4 text-center">
-                <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
-                  Assistant not configured
-                </span>
-                <span className="font-mono text-[9px] text-zinc-700">
-                  Add INFERENCE_API_KEY to Vercel env vars
-                </span>
-              </div>
-            )}
+            <div className="flex flex-col items-center justify-center h-32 gap-2 px-4 text-center">
+              <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
+                Assistant not configured
+              </span>
+              <span className="font-mono text-[9px] text-zinc-700">
+                Restore the inference.sh agent block to enable
+              </span>
+            </div>
           </div>
         </div>
       )}
