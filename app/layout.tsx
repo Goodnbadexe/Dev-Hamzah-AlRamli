@@ -1,6 +1,7 @@
 import type React from "react"
 import "@/app/globals.css"
-import { Inter } from "next/font/google"
+import { Space_Grotesk } from "next/font/google"
+import { JetBrains_Mono } from "next/font/google"
 import { Noto_Kufi_Arabic } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { FullscreenButton } from "@/components/fullscreen"
@@ -9,10 +10,27 @@ import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata } from "next"
 
-const inter = Inter({ subsets: ["latin"] })
-const notoKufiArabic = Noto_Kufi_Arabic({ 
+// Latin display + body — the "Goodnbad OS" homepage concept type system.
+// Self-hosted via next/font (no external request, no FOUT, CSP-clean).
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+  display: "swap",
+})
+// OS-chrome mono labels.
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
+  display: "swap",
+})
+// Arabic stays on Noto Kufi (brand is Arabic-first); scoped via [lang="ar"].
+const notoKufiArabic = Noto_Kufi_Arabic({
   subsets: ["arabic"],
-  weight: ["400", "500", "600", "700"]
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-arabic",
+  display: "swap",
 })
 
 export const metadata: Metadata = {
@@ -170,7 +188,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       </head>
-      <body className={`${inter.className} ${notoKufiArabic.className} pb-24 md:pb-0`}>
+      <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${notoKufiArabic.variable} font-sans pb-24 md:pb-0`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           {children}
           <FullscreenButton />
