@@ -2,16 +2,19 @@
 
 import { useState } from "react"
 import { RotateCcw } from "lucide-react"
-import { BootSequence, GlobeLoader, OSWindow } from "@/components/os"
+import { BootSequence, GlobeLoader, OSLoader, OSWindow } from "@/components/os"
 
 // ---------------------------------------------------------------------------
-// LoaderPreview — side-by-side comparison of the two entry loaders.
-//   • left:  BootSequence  (the "basic" terminal boot — kept, still swappable)
-//   • right: GlobeLoader   (the new live loader, ported from Claude Design)
+// LoaderPreview — showcases the entry loaders.
+//   • top:   OSLoader     — the LIVE merged loader (globe 50% / boot log 50%)
+//   • bottom: the two source pieces it composes, kept as standalone variants:
+//       – GlobeLoader   (globe only, canvas)
+//       – BootSequence  (boot log only, canvas-free)
 // Each runs inside a contained frame; "Replay" remounts via a key bump.
 // ---------------------------------------------------------------------------
 
 const FRAME = "relative h-[360px] overflow-hidden rounded-md border border-zinc-800 bg-zinc-950"
+const FRAME_TALL = "relative h-[560px] overflow-hidden rounded-md border border-zinc-800 bg-zinc-950"
 
 function ReplayButton({ onClick }: { onClick: () => void }) {
   return (
@@ -27,55 +30,72 @@ function ReplayButton({ onClick }: { onClick: () => void }) {
 }
 
 export function LoaderPreview() {
+  const [mergedKey, setMergedKey] = useState(0)
   const [bootKey, setBootKey] = useState(0)
   const [globeKey, setGlobeKey] = useState(0)
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
           Loader experiments
         </p>
         <span className="rounded border border-emerald-500/20 bg-black/60 px-2 py-0.5 font-mono text-[10px] text-emerald-400">
-          GlobeLoader = LIVE
+          OSLoader = LIVE
         </span>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Basic — BootSequence */}
-        <OSWindow label="loader.basic" title="BootSequence" status="idle">
-          <div className="space-y-3">
-            <div className={FRAME}>
-              <BootSequence key={bootKey} embedded onComplete={() => {}} />
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] text-zinc-500">
-                Terminal boot log · the original desktop entry (kept as fallback).
-              </p>
-              <ReplayButton onClick={() => setBootKey((k) => k + 1)} />
-            </div>
+      {/* Merged — the live entry loader */}
+      <OSWindow label="loader.merged" title="OSLoader · 50 / 50" status="active">
+        <div className="space-y-3">
+          <div className={FRAME_TALL}>
+            <OSLoader key={mergedKey} embedded loop />
           </div>
-        </OSWindow>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] text-zinc-500">
+              Globe (top 50%) + boot log (bottom 50%) in one crossfading overlay · adapts to the
+              device: canvas globe on desktop, canvas-free SVG globe on mobile / reduced-motion.
+            </p>
+            <ReplayButton onClick={() => setMergedKey((k) => k + 1)} />
+          </div>
+        </div>
+      </OSWindow>
 
-        {/* New — GlobeLoader */}
-        <OSWindow label="loader.globe" title="GlobeLoader" status="active">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-700">
+        Source pieces (still available standalone)
+      </p>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Globe only */}
+        <OSWindow label="loader.globe" title="GlobeLoader" status="idle">
           <div className="space-y-3">
             <div className={FRAME}>
               <GlobeLoader key={globeKey} embedded loop />
             </div>
             <div className="flex items-center justify-between">
               <p className="text-[11px] text-zinc-500">
-                Orthographic globe + comet whirl · dark/emerald port of the Claude Design loader.
+                Orthographic globe + comet whirl · the canvas top-half of the merged loader.
               </p>
               <ReplayButton onClick={() => setGlobeKey((k) => k + 1)} />
             </div>
           </div>
         </OSWindow>
-      </div>
 
-      <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-700">
-        Swap the live loader anytime via <span className="text-zinc-500">{`<OSDesktop loader="boot" | "globe" />`}</span>
-      </p>
+        {/* Boot log only */}
+        <OSWindow label="loader.boot" title="BootSequence" status="idle">
+          <div className="space-y-3">
+            <div className={FRAME}>
+              <BootSequence key={bootKey} embedded onComplete={() => {}} />
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] text-zinc-500">
+                Terminal boot log · the canvas-free bottom-half of the merged loader.
+              </p>
+              <ReplayButton onClick={() => setBootKey((k) => k + 1)} />
+            </div>
+          </div>
+        </OSWindow>
+      </div>
     </div>
   )
 }
