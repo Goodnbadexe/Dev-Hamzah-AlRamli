@@ -1100,6 +1100,14 @@ Complexity: O(1) styling
   animation: ring-pulse 2s ease-in-out infinite;
 }
 
+/* Canvas-free globe (GlobeRings) — comet dots orbiting the wireframe sphere.
+   Pure rotation so it stays on the compositor; the dot rides this rotation
+   inside a statically tilted/flattened wrapper to trace an elliptical path. */
+@keyframes cometOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .os-panel-in,
   .os-stagger > *,
