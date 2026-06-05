@@ -8,10 +8,14 @@ import { BootLog } from "./BootLog"
 
 // ---------------------------------------------------------------------------
 // OSLoader — the unified entry loader. Merges the two former loaders into one
-// 50/50 composition: the spinning globe owns the top half, the terminal boot
-// log owns the bottom half, and the whole overlay crossfades in and out as a
-// single piece. This replaces the old hard either/or (desktop saw only the
-// globe, mobile saw only the boot log) with one screen where both coexist.
+// 50/50 composition that crossfades in and out as a single piece, replacing the
+// old hard either/or (desktop saw only the globe, mobile saw only the boot log).
+//
+// Layout is responsive:
+//   • desktop (md+) → side-by-side: boot log | globe  (globe on the right, to
+//     echo the homepage's globe-pushed-right placement)
+//   • mobile        → stacked:      globe over boot log  (a horizontal split
+//     would crush the mono boot-log column on a phone — ui-ux-pro-max)
 //
 // Globe variant is chosen for the device, NOT swapped abruptly mid-flight:
 //   • desktop, motion allowed → GlobeCanvas  (2D-context globe)
@@ -74,7 +78,8 @@ export function OSLoader({ onComplete, embedded = false, loop = false, className
       aria-label="Loading"
       className={cn(
         embedded ? "absolute inset-0" : "fixed inset-0 z-[100]",
-        "flex flex-col overflow-hidden bg-zinc-950",
+        // Stacked on mobile, side-by-side (globe right) on desktop.
+        "flex flex-col overflow-hidden bg-zinc-950 md:flex-row-reverse",
         "pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]",
         "transition-opacity duration-500",
         exiting ? "pointer-events-none opacity-0" : "opacity-100",
@@ -84,20 +89,20 @@ export function OSLoader({ onComplete, embedded = false, loop = false, className
       {/* Faint scanline texture to match the OS aesthetic. */}
       <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.04)_2px,rgba(0,0,0,0.04)_4px)]" />
 
-      {/* Top 50% — globe */}
-      <div className="relative flex min-h-0 flex-1 items-center justify-center">
+      {/* Globe — top half (mobile) / right half (desktop) */}
+      <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center">
         {variant === "canvas" ? (
-          <GlobeCanvas className="absolute inset-0" sizeFactor={0.34} />
+          <GlobeCanvas className="absolute inset-0" sizeFactor={0.34} maxRadius={200} />
         ) : (
           <GlobeRings />
         )}
       </div>
 
-      {/* Hairline seam between the two halves */}
-      <div className="mx-auto h-px w-2/3 max-w-md shrink-0 bg-gradient-to-r from-transparent via-emerald-900/40 to-transparent" />
+      {/* Hairline seam between the two halves — horizontal (mobile) / vertical (desktop) */}
+      <div className="mx-auto h-px w-2/3 max-w-md shrink-0 bg-gradient-to-r from-transparent via-emerald-900/40 to-transparent md:mx-0 md:my-auto md:h-2/3 md:w-px md:max-h-md md:bg-gradient-to-b" />
 
-      {/* Bottom 50% — boot log */}
-      <div className="flex min-h-0 flex-1 items-center justify-center px-6">
+      {/* Boot log — bottom half (mobile) / left half (desktop) */}
+      <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center px-6">
         <BootLog />
       </div>
 
