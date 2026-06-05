@@ -79,8 +79,10 @@ function categorizeCVE(v: KevEntry): string {
 }
 
 function getSeverity(v: KevEntry): 'critical' | 'high' | 'medium' {
-  if (v.knownRansomwareCampaignUse === 'Known') return 'critical'
   const desc = v.shortDescription.toLowerCase()
+
+  // Critical: actively weaponized or full-compromise primitives.
+  if (v.knownRansomwareCampaignUse === 'Known') return 'critical'
   if (
     desc.includes('unauthenticated') ||
     desc.includes('remote code execution') ||
@@ -88,5 +90,24 @@ function getSeverity(v: KevEntry): 'critical' | 'high' | 'medium' {
     desc.includes('arbitrary code')
   )
     return 'critical'
-  return 'high'
+
+  // High: serious but typically gated by auth, conditions, or limited scope.
+  if (
+    desc.includes('privilege escalation') ||
+    desc.includes('authentication bypass') ||
+    desc.includes('improper authentication') ||
+    desc.includes('command injection') ||
+    desc.includes('sql injection') ||
+    desc.includes('deserialization') ||
+    desc.includes('use-after-free') ||
+    desc.includes('use after free') ||
+    desc.includes('out-of-bounds') ||
+    desc.includes('buffer overflow') ||
+    desc.includes('server-side request forgery') ||
+    desc.includes('ssrf')
+  )
+    return 'high'
+
+  // Medium: everything else still serious enough to land on the KEV catalog.
+  return 'medium'
 }
