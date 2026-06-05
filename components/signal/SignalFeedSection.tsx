@@ -8,9 +8,9 @@
  * on initial render — only on manual refresh.
  */
 
-import { useState, useCallback, useTransition } from "react"
+import { useState, useCallback, useTransition, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
-import { RefreshCw, ExternalLink, AlertTriangle, Shield, Rss, Wifi } from "lucide-react"
+import { RefreshCw, ExternalLink, AlertTriangle, Shield, Rss, Wifi, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { SignalFeedItem, FeedItemCategory, SignalFeedResponse } from "@/lib/signal-feed/types"
 
@@ -62,6 +62,24 @@ function absTime(iso: string): string {
   }
 }
 
+/**
+ * pickTrending — the single most attention-worthy live signal *right now*.
+ *
+ * Honest proxy from real fields only: the freshest actively-exploited KEV entry
+ * (a KEV listing means exploited in the wild), falling back to the newest item
+ * overall. No invented score — it just surfaces the hottest real signal so it can
+ * be featured. Whatever leads the THREAT WIRE also tends to lead here, since both
+ * draw on CISA KEV.
+ */
+function pickTrending(items: SignalFeedItem[]): SignalFeedItem | null {
+  if (!items.length) return null
+  const kev = items.filter((i) => i.category === "kev")
+  const pool = kev.length ? kev : items
+  return [...pool].sort(
+    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  )[0]
+}
+
 // ---------------------------------------------------------------------------
 // Filter bar
 // ---------------------------------------------------------------------------
@@ -76,7 +94,7 @@ const FILTERS: Array<{ key: FeedItemCategory | "all"; label: string }> = [
 // ---------------------------------------------------------------------------
 // Single feed item
 // ---------------------------------------------------------------------------
-function FeedItem({ item }: { item: SignalFeedItem }) {
+function FeedItem({ item, highlight = false }: { item: SignalFeedItem; highlight?: boolean }) {
   const cat    = CATEGORY_BADGE[item.category]
   const srcClr = SOURCE_BADGE_COLOR[item.sourceBadge] ?? SOURCE_BADGE_COLOR.zinc
   const Icon   = CATEGORY_ICON[item.category]
@@ -86,13 +104,33 @@ function FeedItem({ item }: { item: SignalFeedItem }) {
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group block rounded-md border border-zinc-800 bg-zinc-950/40 p-4 transition-all hover:border-zinc-700 hover:bg-zinc-950/70"
+      className={cn(
+        "group relative block overflow-hidden rounded-md border p-4 transition-all",
+        highlight
+          ? "border-emerald-700/60 bg-emerald-950/15 ring-1 ring-emerald-500/40 shadow-[0_0_28px_-6px_rgba(16,185,129,0.4)] hover:border-emerald-600/70"
+          : "border-zinc-800 bg-zinc-950/40 hover:border-zinc-700 hover:bg-zinc-950/70"
+      )}
     >
+      {/* Trending: moving shimmer line draws the eye even at slot 3 */}
+      {highlight && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent bg-[length:200%_100%] animate-[shimmer-sweep_2.6s_linear_infinite] motion-reduce:animate-none"
+        />
+      )}
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
 
           {/* Badge row */}
           <div className="flex flex-wrap items-center gap-1.5 mb-2">
+            {/* Trending badge — only on the featured signal */}
+            {highlight && (
+              <span className="inline-flex items-center gap-1 rounded border border-emerald-700/70 bg-emerald-950/50 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-emerald-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_theme(colors.emerald.400)] animate-pulse motion-reduce:animate-none" />
+                <TrendingUp className="h-2.5 w-2.5 shrink-0" />
+                Trending
+              </span>
+            )}
             {/* Category badge */}
             <span className={cn(
               "inline-flex items-center gap-1 rounded border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest",
@@ -175,6 +213,19 @@ export function SignalFeedSection({ initialItems, fetchedAt, sourceErrors = [] }
 
   const visible = filter === "all" ? items : items.filter((i) => i.category === filter)
 
+  // The hottest live signal, featured with motion.
+  const trending = useMemo(() => pickTrending(items), [items])
+
+  // Pin the trending signal to the 3rd slot (index 2) of the "all" view. Motion
+  // keeps it noticeable even when it isn't first; other filters highlight it in
+  // place. Needs ≥3 items, otherwise it stays where it naturally falls.
+  const ordered = useMemo(() => {
+    if (filter !== "all" || !trending || visible.length < 3) return visible
+    const rest = visible.filter((i) => i.url !== trending.url)
+    rest.splice(2, 0, trending)
+    return rest
+  }, [visible, trending, filter])
+
   return (
     <div className="space-y-4">
 
@@ -241,8 +292,12 @@ export function SignalFeedSection({ initialItems, fetchedAt, sourceErrors = [] }
         </div>
       ) : (
         <div className="space-y-2">
-          {visible.map((item, i) => (
-            <FeedItem key={`${item.url}-${i}`} item={item} />
+          {ordered.map((item, i) => (
+            <FeedItem
+              key={`${item.url}-${i}`}
+              item={item}
+              highlight={item.url === trending?.url}
+            />
           ))}
         </div>
       )}
