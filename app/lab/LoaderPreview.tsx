@@ -53,8 +53,9 @@ export function LoaderPreview() {
           </div>
           <div className="flex items-center justify-between">
             <p className="text-[11px] text-zinc-500">
-              Globe (top 50%) + boot log (bottom 50%) in one crossfading overlay · adapts to the
-              device: canvas globe on desktop, canvas-free SVG globe on mobile / reduced-motion.
+              Boot log + globe split 50/50 — side-by-side on desktop (globe right), stacked on
+              mobile — in one crossfading overlay. Canvas globe on desktop, canvas-free SVG globe on
+              mobile / reduced-motion.
             </p>
             <ReplayButton onClick={() => setMergedKey((k) => k + 1)} />
           </div>
@@ -74,7 +75,7 @@ export function LoaderPreview() {
             </div>
             <div className="flex items-center justify-between">
               <p className="text-[11px] text-zinc-500">
-                Orthographic globe + comet whirl · the canvas top-half of the merged loader.
+                Orthographic globe + comet whirl · the canvas globe half of the merged loader.
               </p>
               <ReplayButton onClick={() => setGlobeKey((k) => k + 1)} />
             </div>
@@ -89,7 +90,7 @@ export function LoaderPreview() {
             </div>
             <div className="flex items-center justify-between">
               <p className="text-[11px] text-zinc-500">
-                Terminal boot log · the canvas-free bottom-half of the merged loader.
+                Terminal boot log · the canvas-free boot-log half of the merged loader.
               </p>
               <ReplayButton onClick={() => setBootKey((k) => k + 1)} />
             </div>
