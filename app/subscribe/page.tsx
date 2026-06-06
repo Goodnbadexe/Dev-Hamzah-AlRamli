@@ -1,476 +1,419 @@
 'use client'
 
-import { useState, useEffect, useRef } from "react"
-import Link from "next/link"
-import { ArrowRight, CheckCircle2, Clock, Zap, TrendingUp, BookOpen, Wrench } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, BookOpen, Briefcase, Check, CheckCircle2,
+  Clock, Compass, Eye, Gauge, History, Hourglass, Layers, Loader2, Lock, Mail, Rocket,
+  Sparkles, Target, TrendingUp, User, Wrench, Zap, type LucideIcon,
+} from "lucide-react"
+import { QUIZ, QUIZ_TOTAL } from "@/lib/subscribe/quiz"
+import {
+  BUILD_STEPS, PLANS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, checkoutUrl, type Plan,
+} from "@/lib/subscribe/config"
 
-type QuizStep = 0 | 1 | 2 | 3
-
-interface QuizAnswers {
-  goal: string
-  level: string
-  priority: string
+const ICONS: Record<string, LucideIcon> = {
+  user: User, zap: Zap, wrench: Wrench, alert: AlertTriangle, layers: Layers, clock: Clock,
+  eye: Eye, target: Target, trending: TrendingUp, sparkles: Sparkles, gauge: Gauge,
+  compass: Compass, briefcase: Briefcase, book: BookOpen, hourglass: Hourglass, history: History,
+  lock: Lock, rocket: Rocket, id: BadgeCheck, mail: Mail,
 }
 
-const GOALS = [
-  { value: "agent",      ar: "AI Agent",              en: "AI Agent",             icon: Zap         },
-  { value: "automation", ar: "أتمتة (Automation)",    en: "Automation",           icon: Wrench      },
-  { value: "tools",      ar: "أدوات شخصية",           en: "Personal Tools",       icon: BookOpen    },
-  { value: "business",   ar: "مشروع جانبي",           en: "Side Business",        icon: TrendingUp  },
-]
+const OFFER_KEY = "gnb_vault_offer_expires"
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-const LEVELS = [
-  { value: "beginner",     ar: "مبتدئ",       en: "Beginner"     },
-  { value: "intermediate", ar: "متوسط",       en: "Intermediate" },
-  { value: "pro",          ar: "محترف",       en: "Pro"          },
-]
-
-const PRIORITIES = [
-  { value: "time",    ar: "توفير الوقت",      en: "Saving Time"    },
-  { value: "money",   ar: "كسب المال",        en: "Making Money"   },
-  { value: "learn",   ar: "التعلم",           en: "Learning"       },
-  { value: "speed",   ar: "البناء السريع",    en: "Building Fast"  },
-]
-
-const PLANS = [
-  {
-    id:       "trial",
-    ar:       "تجربة أسبوع",
-    en:       "1-WEEK TRIAL",
-    badge:    null,
-    original: 17,
-    price:    9,
-    per:      "1.28 SAR/day",
-    perAr:    "1.28 ر.س / يوم",
-    weeks:    1,
-    accent:   "zinc",
-  },
-  {
-    id:       "month",
-    ar:       "خطة 4 أسابيع",
-    en:       "4-WEEK PLAN",
-    badge:    "SAVE 43%",
-    original: 51,
-    price:    29,
-    per:      "1.03 SAR/day",
-    perAr:    "1.03 ر.س / يوم",
-    weeks:    4,
-    accent:   "emerald",
-  },
-  {
-    id:       "quarter",
-    ar:       "خطة 12 أسبوع",
-    en:       "12-WEEK PLAN",
-    badge:    "SAVE 57%",
-    original: 160,
-    price:    69,
-    per:      "0.82 SAR/day",
-    perAr:    "0.82 ر.س / يوم",
-    weeks:    12,
-    accent:   "emerald",
-  },
-]
-
-const QUIZ_DURATION_MS = 10 * 60 * 1000
-
-function buildPromoCode(answers: QuizAnswers): string {
-  const slug = answers.goal === "agent"
-    ? "ai"
-    : answers.goal === "automation"
-    ? "auto"
-    : answers.goal === "tools"
-    ? "tools"
-    : "biz"
-
-  const now = new Date()
-  const month = now.toLocaleString("en-US", { month: "short" }).toLowerCase()
-  const day = now.getDate()
-
-  return `hamzah_${slug}_${month}${day}`
-}
+type Phase = "intro" | "quiz" | "loading" | "plan" | "done"
 
 function useCountdown(expiresAt: number | null) {
-  const [remaining, setRemaining] = useState<number>(QUIZ_DURATION_MS)
-
+  const [remaining, setRemaining] = useState(PROMO_WINDOW_MS)
   useEffect(() => {
     if (expiresAt === null) return
-
-    const tick = () => {
-      const diff = expiresAt - Date.now()
-      setRemaining(Math.max(0, diff))
-    }
-
+    const tick = () => setRemaining(Math.max(0, expiresAt - Date.now()))
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [expiresAt])
-
   const mins = Math.floor(remaining / 60000)
   const secs = Math.floor((remaining % 60000) / 1000)
-  const expired = remaining === 0
-
   return {
     display: `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`,
-    expired,
-    remaining,
+    expired: remaining === 0,
   }
-}
-
-function QuizOption({
-  selected,
-  onClick,
-  children,
-}: {
-  selected: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        "w-full text-right rounded-md border px-4 py-3.5 transition-all duration-150 text-sm font-medium",
-        selected
-          ? "border-emerald-600 bg-emerald-950/50 text-emerald-300"
-          : "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900",
-      ].join(" ")}
-    >
-      {children}
-    </button>
-  )
-}
-
-function ProgressBar({ step }: { step: number }) {
-  const pct = Math.round(((step) / 3) * 100)
-  return (
-    <div className="w-full h-0.5 bg-zinc-800 rounded-full overflow-hidden">
-      <div
-        className="h-full bg-emerald-500 transition-all duration-500"
-        style={{ width: `${pct}%` }}
-      />
-    </div>
-  )
 }
 
 export default function SubscribePage() {
-  const [step, setStep]           = useState<QuizStep>(0)
-  const [answers, setAnswers]     = useState<Partial<QuizAnswers>>({})
-  const [promoCode, setPromoCode] = useState<string | null>(null)
+  const [phase, setPhase] = useState<Phase>("intro")
+  const [qIndex, setQIndex] = useState(0)
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [promo, setPromo] = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState<number | null>(null)
-  const topRef                    = useRef<HTMLDivElement>(null)
+  const [selected, setSelected] = useState<Plan["id"]>("month")
+  const [submitting, setSubmitting] = useState(false)
+  const topRef = useRef<HTMLDivElement>(null)
 
   const { display: countdown, expired } = useCountdown(expiresAt)
+  const name = answers.name ?? ""
+  const email = answers.email ?? ""
 
-  function scrollTop() {
+  const scrollTop = useCallback(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-  }
+  }, [])
 
-  function selectGoal(v: string) {
-    setAnswers(prev => ({ ...prev, goal: v }))
-  }
-
-  function selectLevel(v: string) {
-    setAnswers(prev => ({ ...prev, level: v }))
-  }
-
-  function selectPriority(v: string) {
-    setAnswers(prev => ({ ...prev, priority: v }))
-  }
-
-  function advance() {
-    if (step === 2) {
-      const full = answers as QuizAnswers
-      const code = buildPromoCode(full)
-      setPromoCode(code)
-      setExpiresAt(Date.now() + QUIZ_DURATION_MS)
-      setStep(3)
-    } else {
-      setStep(prev => (prev + 1) as QuizStep)
+  // Fire-and-forget lead capture (never blocks the funnel).
+  const sendLead = useCallback((plan?: string, code?: string | null) => {
+    if (!answers.name || !EMAIL_RE.test(answers.email ?? "")) return
+    const payload = {
+      name: answers.name,
+      email: answers.email,
+      plan,
+      promo: code ?? promo ?? undefined,
+      answers,
     }
-    scrollTop()
-  }
+    fetch("/api/subscribe/lead", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => {})
+  }, [answers, promo])
 
-  const canAdvance =
-    (step === 0 && !!answers.goal) ||
-    (step === 1 && !!answers.level) ||
-    (step === 2 && !!answers.priority)
+  // Persistent (honest) 10-min offer window — reuse a live one, don't reset it.
+  const startBuild = useCallback(() => {
+    const code = buildPromoCode(answers.name ?? "")
+    setPromo(code)
+    let exp: number
+    try {
+      const stored = Number(localStorage.getItem(OFFER_KEY))
+      exp = stored && stored > Date.now() ? stored : Date.now() + PROMO_WINDOW_MS
+      localStorage.setItem(OFFER_KEY, String(exp))
+    } catch {
+      exp = Date.now() + PROMO_WINDOW_MS
+    }
+    setExpiresAt(exp)
+    sendLead(undefined, code)
+    setPhase("loading")
+    scrollTop()
+  }, [answers, sendLead, scrollTop])
+
+  const q = QUIZ[qIndex]
+  const current = answers[q?.id]
+  const canAdvanceText =
+    q?.type === "text" && (q.field === "email" ? EMAIL_RE.test(current ?? "") : (current ?? "").trim().length > 0)
+
+  const next = useCallback(() => {
+    if (qIndex < QUIZ_TOTAL - 1) {
+      setQIndex((i) => i + 1)
+      scrollTop()
+    } else {
+      startBuild()
+    }
+  }, [qIndex, startBuild, scrollTop])
+
+  const pickSingle = useCallback((qid: string, value: string) => {
+    setAnswers((a) => ({ ...a, [qid]: value }))
+    window.setTimeout(() => next(), 240)
+  }, [next])
+
+  // Loading beat → reveal plan after the build animation.
+  const [buildPct, setBuildPct] = useState(0)
+  const [buildStep, setBuildStep] = useState(0)
+  useEffect(() => {
+    if (phase !== "loading") return
+    setBuildPct(0)
+    setBuildStep(0)
+    const start = Date.now()
+    const DURATION = 2600
+    const id = setInterval(() => {
+      const t = Math.min(1, (Date.now() - start) / DURATION)
+      setBuildPct(Math.round(t * 100))
+      setBuildStep(Math.min(BUILD_STEPS.length - 1, Math.floor(t * BUILD_STEPS.length)))
+      if (t >= 1) {
+        clearInterval(id)
+        setPhase("plan")
+        scrollTop()
+      }
+    }, 90)
+    return () => clearInterval(id)
+  }, [phase, scrollTop])
+
+  const handleGetPlan = useCallback(() => {
+    setSubmitting(true)
+    sendLead(selected, promo)
+    const url = checkoutUrl(selected)
+    if (url) {
+      window.location.href = url
+      return
+    }
+    // No payment link configured yet → honest confirmation, lead already captured.
+    window.setTimeout(() => {
+      setSubmitting(false)
+      setPhase("done")
+      scrollTop()
+    }, 600)
+  }, [selected, promo, sendLead, scrollTop])
+
+  const progressPct = useMemo(() => Math.round((qIndex / QUIZ_TOTAL) * 100), [qIndex])
 
   return (
-    <main className="relative min-h-screen bg-zinc-950 text-zinc-100 pb-20">
+    <main className="relative min-h-screen bg-zinc-950 text-zinc-100 pb-24">
       <div
         className="pointer-events-none fixed inset-0 z-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(16,185,129,0.06) 0%, transparent 60%)",
-        }}
+        style={{ background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(16,185,129,0.07) 0%, transparent 60%)" }}
         aria-hidden
       />
 
-      <div ref={topRef} className="relative z-10 mx-auto max-w-lg px-4 pt-12 sm:pt-16">
+      <div ref={topRef} className="relative z-10 mx-auto max-w-lg px-4 pt-10 sm:pt-14">
 
-        <div className="mb-8 text-center">
-          <span className="inline-block font-mono text-[10px] uppercase tracking-widest text-emerald-700 border border-emerald-900 rounded px-2 py-0.5 mb-4">
-            repo vault
+        {/* Brand header */}
+        <div className="mb-7 text-center">
+          <span className="mb-3 inline-block rounded border border-emerald-900 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-emerald-700">
+            goodnbad · {PRODUCT.brandEn}
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-zinc-100 leading-tight mb-1" dir="rtl">
-            خزينة المستودعات السرية
+          <h1 className="mb-1 text-2xl font-bold leading-tight text-zinc-100 sm:text-3xl" dir="rtl">
+            {PRODUCT.brandAr}
           </h1>
-          <p className="text-zinc-500 text-sm font-mono leading-snug">
-            Curated underground GitHub repos — updated weekly.
+          <p className="font-mono text-sm leading-snug text-zinc-500">
+            Curated AI tools & underground repos — a weekly toolkit, built around you.
           </p>
         </div>
 
-        {step < 3 && (
-          <div className="mb-6 space-y-2">
-            <ProgressBar step={step} />
-            <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest text-center">
-              {step + 1} / 3
-            </p>
-          </div>
-        )}
-
-        {step === 0 && (
-          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both]">
-            <div className="rounded-md border border-zinc-800 bg-zinc-900/50 p-5 backdrop-blur-sm mb-4">
-              <p className="text-right text-base font-semibold text-zinc-200 mb-1" dir="rtl">
-                ماذا تريد أن تبني؟
+        {/* ── INTRO ──────────────────────────────────────────────────────── */}
+        {phase === "intro" && (
+          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5 text-center">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 backdrop-blur-sm">
+              <Rocket className="mx-auto mb-4 h-7 w-7 text-emerald-500" />
+              <h2 className="text-xl font-bold text-zinc-100" dir="rtl">
+                خلّنا نبني خطتك في دقيقة
+              </h2>
+              <p className="mt-1.5 text-sm text-zinc-400" dir="rtl">
+                {QUIZ_TOTAL} سؤال سريع، وبنطلّع لك خطة أدوات مصمّمة على مقاسك.
               </p>
-              <p className="text-right text-xs text-zinc-500 mb-4" dir="rtl">
-                What are you trying to build?
+              <p className="mt-2 font-mono text-[11px] text-zinc-600">
+                {QUIZ_TOTAL} quick taps → your personalized AI toolkit plan.
               </p>
-              <div className="space-y-2.5">
-                {GOALS.map(({ value, ar, en, icon: Icon }) => (
-                  <QuizOption
-                    key={value}
-                    selected={answers.goal === value}
-                    onClick={() => selectGoal(value)}
-                  >
-                    <span className="flex items-center justify-between gap-3">
-                      <span className="flex items-center gap-2 text-zinc-500">
-                        <Icon className="w-3.5 h-3.5 shrink-0" />
-                        <span className="font-mono text-[11px]">{en}</span>
-                      </span>
-                      <span className="text-right">{ar}</span>
-                    </span>
-                  </QuizOption>
-                ))}
-              </div>
             </div>
             <button
               type="button"
-              onClick={advance}
-              disabled={!canAdvance}
-              className="w-full flex items-center justify-center gap-2 rounded-md border border-emerald-800 bg-emerald-950/40 px-4 py-3 font-mono text-sm text-emerald-400 transition-all hover:bg-emerald-950/70 hover:border-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
+              onClick={() => { setPhase("quiz"); scrollTop() }}
+              className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-3.5 font-mono text-sm font-semibold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
             >
-              التالي <ArrowRight className="w-4 h-4" />
+              <span dir="rtl">ابدأ · Start</span>
+              <ArrowRight className="h-4 w-4" />
             </button>
+            <p className="font-mono text-[10px] text-zinc-700">free · no card to take the quiz</p>
           </section>
         )}
 
-        {step === 1 && (
-          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both]">
-            <div className="rounded-md border border-zinc-800 bg-zinc-900/50 p-5 backdrop-blur-sm mb-4">
-              <p className="text-right text-base font-semibold text-zinc-200 mb-1" dir="rtl">
-                ما هو مستواك؟
-              </p>
-              <p className="text-right text-xs text-zinc-500 mb-4" dir="rtl">
-                What's your level?
-              </p>
-              <div className="space-y-2.5">
-                {LEVELS.map(({ value, ar, en }) => (
-                  <QuizOption
-                    key={value}
-                    selected={answers.level === value}
-                    onClick={() => selectLevel(value)}
-                  >
-                    <span className="flex items-center justify-between gap-3">
-                      <span className="font-mono text-[11px] text-zinc-500">{en}</span>
-                      <span>{ar}</span>
-                    </span>
-                  </QuizOption>
-                ))}
+        {/* ── QUIZ ───────────────────────────────────────────────────────── */}
+        {phase === "quiz" && q && (
+          <section className="space-y-4">
+            <div className="space-y-2">
+              <div className="h-0.5 w-full overflow-hidden rounded-full bg-zinc-800">
+                <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${progressPct}%` }} />
+              </div>
+              <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-zinc-600">
+                {qIndex > 0 ? (
+                  <button type="button" onClick={() => { setQIndex((i) => i - 1); scrollTop() }} className="flex items-center gap-1 hover:text-zinc-400">
+                    <ArrowLeft className="h-3 w-3" /> back
+                  </button>
+                ) : <span />}
+                <span>{qIndex + 1} / {QUIZ_TOTAL}</span>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={advance}
-              disabled={!canAdvance}
-              className="w-full flex items-center justify-center gap-2 rounded-md border border-emerald-800 bg-emerald-950/40 px-4 py-3 font-mono text-sm text-emerald-400 transition-all hover:bg-emerald-950/70 hover:border-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              التالي <ArrowRight className="w-4 h-4" />
-            </button>
-          </section>
-        )}
 
-        {step === 2 && (
-          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both]">
-            <div className="rounded-md border border-zinc-800 bg-zinc-900/50 p-5 backdrop-blur-sm mb-4">
-              <p className="text-right text-base font-semibold text-zinc-200 mb-1" dir="rtl">
-                ماذا يهمك أكثر؟
-              </p>
-              <p className="text-right text-xs text-zinc-500 mb-4" dir="rtl">
-                What matters most to you?
-              </p>
-              <div className="space-y-2.5">
-                {PRIORITIES.map(({ value, ar, en }) => (
-                  <QuizOption
-                    key={value}
-                    selected={answers.priority === value}
-                    onClick={() => selectPriority(value)}
-                  >
-                    <span className="flex items-center justify-between gap-3">
-                      <span className="font-mono text-[11px] text-zinc-500">{en}</span>
-                      <span>{ar}</span>
-                    </span>
-                  </QuizOption>
-                ))}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={advance}
-              disabled={!canAdvance}
-              className="w-full flex items-center justify-center gap-2 rounded-md border border-emerald-800 bg-emerald-950/40 px-4 py-3 font-mono text-sm text-emerald-400 transition-all hover:bg-emerald-950/70 hover:border-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              أظهر لي الكود <ArrowRight className="w-4 h-4" />
-            </button>
-          </section>
-        )}
-
-        {step === 3 && promoCode && (
-          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5">
-
-            <div className="rounded-md border border-emerald-800 bg-emerald-950/20 p-5 text-center backdrop-blur-sm">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                <span className="font-mono text-[11px] uppercase tracking-widest text-emerald-600">
-                  promo code applied
+            <div key={q.id} className="animate-[os-panel-in_0.35s_cubic-bezier(0.16,1,0.3,1)_both] rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 backdrop-blur-sm">
+              <div className="mb-4 flex items-start justify-between gap-3" dir="rtl">
+                <div className="flex-1">
+                  <p className="text-base font-semibold text-zinc-100">{q.ar}</p>
+                  <p className="mt-1 font-mono text-[11px] text-zinc-500" dir="ltr">{q.en}</p>
+                  {"subEn" in q && q.subEn && <p className="mt-1 text-[11px] text-zinc-600" dir="ltr">{q.subEn}</p>}
+                </div>
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-emerald-900/70 bg-emerald-950/20 text-emerald-500">
+                  {(() => { const Icon = ICONS[q.icon] ?? Sparkles; return <Icon className="h-4 w-4" /> })()}
                 </span>
               </div>
-              <p className="font-mono text-xl font-bold text-emerald-300 tracking-widest mb-1">
-                {promoCode}
-              </p>
-              <p className="text-xs text-zinc-500 font-mono" dir="rtl">
-                تم تطبيق كود الخصم تلقائياً عند الدفع
-              </p>
 
-              <div
-                className={[
-                  "mt-4 flex items-center justify-center gap-2 font-mono text-sm",
-                  expired ? "text-red-400" : "text-yellow-400",
-                ].join(" ")}
-              >
-                <Clock className="w-3.5 h-3.5 shrink-0" />
-                {expired ? (
-                  <span>انتهى الكود · Code expired</span>
-                ) : (
-                  <span>
-                    ينتهي خلال <span className="font-bold tabular-nums">{countdown}</span>
-                    <span className="text-zinc-600 ml-1">· expires in</span>
-                  </span>
-                )}
+              {q.type === "single" ? (
+                <div className="space-y-2.5">
+                  {q.options.map((opt) => {
+                    const isSel = current === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => pickSingle(q.id, opt.value)}
+                        className={[
+                          "flex w-full items-center justify-between gap-3 rounded-md border px-4 py-3.5 text-sm font-medium transition-all duration-150",
+                          isSel
+                            ? "border-emerald-600 bg-emerald-950/50 text-emerald-300"
+                            : "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900",
+                        ].join(" ")}
+                      >
+                        <span className="font-mono text-[11px] text-zinc-500">{opt.en}</span>
+                        <span dir="rtl">{opt.ar}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <input
+                    type={q.inputType}
+                    inputMode={q.inputType === "email" ? "email" : "text"}
+                    autoComplete={q.inputType === "email" ? "email" : "given-name"}
+                    value={current ?? ""}
+                    onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                    onKeyDown={(e) => { if (e.key === "Enter" && canAdvanceText) next() }}
+                    placeholder={q.placeholder}
+                    dir="ltr"
+                    className="w-full rounded-md border border-zinc-800 bg-zinc-900/60 px-4 py-3.5 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none transition-colors focus:border-emerald-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={next}
+                    disabled={!canAdvanceText}
+                    className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-3 font-mono text-sm font-semibold text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    {qIndex === QUIZ_TOTAL - 1 ? "Build my plan" : "Continue"} <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* ── LOADING ────────────────────────────────────────────────────── */}
+        {phase === "loading" && (
+          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5 pt-6 text-center">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-emerald-500" />
+            <div>
+              <p className="text-lg font-semibold text-zinc-100" dir="rtl">نبني خطتك…</p>
+              <p className="mt-1 font-mono text-sm text-emerald-400">{BUILD_STEPS[buildStep]?.en}</p>
+              <p className="mt-0.5 text-xs text-zinc-500" dir="rtl">{BUILD_STEPS[buildStep]?.ar}</p>
+            </div>
+            <div className="mx-auto h-1 w-56 overflow-hidden rounded-full bg-zinc-800">
+              <div className="h-full bg-emerald-500 transition-all duration-100" style={{ width: `${buildPct}%` }} />
+            </div>
+            <p className="font-mono text-[11px] text-zinc-700">{buildPct}%</p>
+          </section>
+        )}
+
+        {/* ── PLAN / PAYWALL ─────────────────────────────────────────────── */}
+        {phase === "plan" && promo && (
+          <section className="animate-[os-panel-in_0.45s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5">
+
+            <div className="text-center">
+              <h2 className="text-xl font-bold leading-tight text-zinc-100 sm:text-2xl" dir="rtl">
+                {PRODUCT.headlineAr}
+              </h2>
+              <p className="mt-1.5 font-mono text-xs text-zinc-500">
+                {PRODUCT.headlineEn.replace("personalized AI plan", "")}<span className="text-emerald-400">personalized AI plan</span>
+              </p>
+            </div>
+
+            {/* Promo + real countdown */}
+            <div className="rounded-xl border border-emerald-800 bg-emerald-950/20 p-4 text-center backdrop-blur-sm">
+              <div className="mb-2 flex items-center justify-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <span className="font-mono text-[11px] uppercase tracking-widest text-emerald-600">promo applied · كود {name}</span>
+              </div>
+              <p className="font-mono text-xl font-bold tracking-widest text-emerald-300">{promo}</p>
+              <div className={["mt-3 flex items-center justify-center gap-2 font-mono text-sm", expired ? "text-red-400" : "text-yellow-400"].join(" ")}>
+                <Clock className="h-3.5 w-3.5" />
+                {expired
+                  ? <span dir="rtl">انتهى العرض · offer expired</span>
+                  : <span>expires in <span className="font-bold tabular-nums">{countdown}</span></span>}
               </div>
             </div>
 
+            {/* Plans (radio-select) */}
             <div className="space-y-3">
-              <div className="flex items-center gap-3 mb-1">
-                <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
-                  اختر خطتك · choose your plan
-                </span>
-                <span className="h-px flex-1 bg-zinc-900" />
-              </div>
-
               {PLANS.map((plan) => {
-                const isHighlighted = plan.accent === "emerald"
+                const isSel = selected === plan.id
                 return (
-                  <div
+                  <button
                     key={plan.id}
+                    type="button"
+                    onClick={() => setSelected(plan.id)}
                     className={[
-                      "rounded-md border p-4 transition-all",
-                      isHighlighted
-                        ? "border-emerald-800 bg-emerald-950/15"
-                        : "border-zinc-800 bg-zinc-900/40",
+                      "w-full rounded-xl border p-4 text-left transition-all",
+                      isSel ? "border-emerald-500 bg-emerald-950/25 ring-1 ring-emerald-500/40" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700",
                     ].join(" ")}
                   >
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex flex-col items-start gap-1">
-                        {plan.badge && (
-                          <span className="font-mono text-[9px] uppercase tracking-widest text-emerald-500 border border-emerald-900 rounded px-1.5 py-0.5">
-                            {plan.badge}
-                          </span>
-                        )}
-                        <span className="font-mono text-xs font-semibold text-zinc-300 uppercase tracking-wide">
-                          {plan.en}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <span className={["mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border", isSel ? "border-emerald-500 bg-emerald-500 text-emerald-950" : "border-zinc-600"].join(" ")}>
+                          {isSel && <Check className="h-3 w-3" />}
                         </span>
-                        <span className="text-xs text-zinc-500" dir="rtl">
-                          {plan.ar}
-                        </span>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <div className="flex items-baseline gap-1.5 justify-end">
-                          <span className="font-mono text-[11px] text-zinc-600 line-through">
-                            {plan.original} ر.س
-                          </span>
-                          <span
-                            className={[
-                              "font-mono text-2xl font-bold",
-                              isHighlighted ? "text-emerald-300" : "text-zinc-200",
-                            ].join(" ")}
-                          >
-                            {plan.price}
-                          </span>
-                          <span className="font-mono text-xs text-zinc-500">ر.س</span>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-200">{plan.en}</span>
+                            {plan.tag && (
+                              <span className={["rounded px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest", plan.best ? "bg-yellow-500/15 text-yellow-400 border border-yellow-700/40" : "bg-emerald-500/15 text-emerald-400 border border-emerald-700/40"].join(" ")}>
+                                {plan.tag}
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-0.5 text-xs text-zinc-500" dir="rtl">{plan.ar}</p>
+                          {plan.badge && <p className="mt-1 font-mono text-[10px] text-emerald-500">{plan.badge}</p>}
                         </div>
-                        <p className="font-mono text-[10px] text-zinc-600 mt-0.5 text-right">
-                          {plan.perAr}
-                        </p>
-                        <p className="font-mono text-[9px] text-zinc-700 text-right">
-                          {plan.per}
-                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <div className="flex items-baseline justify-end gap-1.5">
+                          <span className="font-mono text-[11px] text-zinc-600 line-through">{plan.original}</span>
+                          <span className={["font-mono text-2xl font-bold", isSel ? "text-emerald-300" : "text-zinc-200"].join(" ")}>{plan.price}</span>
+                          <span className="font-mono text-xs text-zinc-500">SAR</span>
+                        </div>
+                        <p className="mt-0.5 font-mono text-[10px] text-zinc-600">{plan.perDay}</p>
+                        <p className="font-mono text-[9px] text-zinc-700">{plan.usd}</p>
                       </div>
                     </div>
-
-                    <Link
-                      href={`/subscribe/checkout?plan=${plan.id}&promo=${promoCode}`}
-                      className={[
-                        "flex items-center justify-between w-full rounded border px-3 py-2.5 font-mono text-xs transition-all",
-                        isHighlighted
-                          ? "border-emerald-800 bg-emerald-950/40 text-emerald-400 hover:bg-emerald-950/70 hover:border-emerald-700"
-                          : "border-zinc-700 bg-zinc-900/60 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200",
-                      ].join(" ")}
-                    >
-                      <span dir="rtl">ابدأ الآن · Start Now</span>
-                      <ArrowRight className="w-3.5 h-3.5 shrink-0" />
-                    </Link>
-                  </div>
+                  </button>
                 )
               })}
             </div>
 
-            <div className="rounded-md border border-zinc-800/50 bg-zinc-900/30 px-4 py-3 space-y-2">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600 mb-2">
-                what you get · ما تحصل عليه
-              </p>
-              {[
-                { ar: "مستودعات GitHub سرية أسبوعية",  en: "Weekly underground GitHub repos"        },
-                { ar: "مصنّفة حسب مجالك وأهدافك",      en: "Curated to your niche and goals"        },
-                { ar: "نشرة إيميل خاصة كل أسبوع",      en: "Private email digest every week"        },
-                { ar: "وصول فوري بعد الاشتراك",         en: "Instant access after subscribing"      },
-              ].map(({ ar, en }) => (
-                <div key={en} className="flex items-start gap-2">
-                  <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-emerald-700 shrink-0" />
+            {/* Primary CTA */}
+            <button
+              type="button"
+              onClick={handleGetPlan}
+              disabled={submitting}
+              className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-4 font-mono text-sm font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400 disabled:opacity-60"
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>GET MY PLAN <ArrowRight className="h-4 w-4" /></>}
+            </button>
+
+            <p className="text-center font-mono text-[11px] text-emerald-600/80" dir="rtl">{PRODUCT.socialProofAr}</p>
+
+            {/* What you get */}
+            <div className="space-y-2 rounded-xl border border-zinc-800/60 bg-zinc-900/30 px-4 py-4">
+              <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-zinc-600">what you get · ما تحصل عليه</p>
+              {PRODUCT.benefits.map((b) => (
+                <div key={b.en} className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
                   <div>
-                    <p className="text-xs text-zinc-300" dir="rtl">{ar}</p>
-                    <p className="font-mono text-[10px] text-zinc-600">{en}</p>
+                    <p className="text-xs text-zinc-300" dir="rtl">{b.ar}</p>
+                    <p className="font-mono text-[10px] text-zinc-600">{b.en}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <p className="text-center font-mono text-[10px] text-zinc-700 pt-2">
-              no auto-renewal · يمكنك الإلغاء في أي وقت
+            <p className="text-center font-mono text-[10px] text-zinc-700" dir="rtl">
+              إلغاء في أي وقت · بدون تجديد تلقائي · cancel anytime
+            </p>
+          </section>
+        )}
+
+        {/* ── DONE (no payment link configured yet) ──────────────────────── */}
+        {phase === "done" && (
+          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4 pt-8 text-center">
+            <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
+            <h2 className="text-xl font-bold text-zinc-100" dir="rtl">تم! أنت داخل القائمة</h2>
+            <p className="text-sm text-zinc-400" dir="rtl">
+              بنرسل خطتك الأولى وكود الخصم <span className="font-mono text-emerald-400">{promo}</span> على <span className="font-mono text-zinc-200">{email}</span>.
+            </p>
+            <p className="font-mono text-xs text-zinc-600">
+              You&apos;re on the list — your first toolkit + promo is on its way to {email}.
             </p>
           </section>
         )}
