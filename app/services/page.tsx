@@ -150,6 +150,7 @@ interface FormData {
   message: string
   preferredDate: string
   preferredTime: string
+  website: string // honeypot — must stay empty
 }
 
 type SubmitState = 'idle' | 'sending' | 'success' | 'error'
@@ -171,7 +172,7 @@ const inputCls =
 export default function ServicesPage() {
   const [form, setForm] = useState<FormData>({
     name: '', email: '', company: '', service: '', message: '',
-    preferredDate: '', preferredTime: '10:00',
+    preferredDate: '', preferredTime: '10:00', website: '',
   })
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
   const [meetLink, setMeetLink] = useState('')
@@ -199,6 +200,7 @@ export default function ServicesPage() {
           message: form.message,
           startISO: toISO(form.preferredDate, form.preferredTime),
           durationMins: 45,
+          website: form.website, // honeypot
         }),
       })
       const data = await res.json()
@@ -484,6 +486,17 @@ export default function ServicesPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Honeypot: hidden from humans, irresistible to bots. Never rendered visibly. */}
+                  <input
+                    type="text"
+                    name="website"
+                    value={form.website}
+                    onChange={set('website')}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    className="absolute left-[-9999px] h-0 w-0 opacity-0"
+                  />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block font-mono text-[10px] text-zinc-500 mb-1.5 uppercase tracking-widest">
