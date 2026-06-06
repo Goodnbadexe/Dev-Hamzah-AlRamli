@@ -2,9 +2,10 @@ import type React from "react"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Repo Vault — Subscribe | Hamzah Al-Ramli",
+  title: "Get your personalized AI plan | Goodnbad Toolkit Vault",
   description:
-    "Subscribe to Repo Vault — a curated weekly digest of underground GitHub repositories, hand-picked for builders, automators, and side-project hackers.",
+    "Answer a few quick questions and get a personalized AI toolkit plan — a weekly kit of curated tools and underground repos you drop straight into Claude, ChatGPT, or Codex. Arabic-first. Cancel anytime.",
+  robots: { index: true, follow: true },
 }
 
 export default function SubscribeLayout({
