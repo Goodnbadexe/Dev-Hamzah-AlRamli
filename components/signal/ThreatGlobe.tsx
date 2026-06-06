@@ -236,9 +236,13 @@ export function ThreatGlobe({
   // ---- Camera + material ---------------------------------------------------
   const handleReady = useCallback(() => {
     if (!globeRef.current) return
-    // Right-aligned hero: pull the camera back so the globe reads as a smaller
-    // right-side object instead of a full-bleed backdrop bleeding under the text.
-    const bgAltitude = align === "right" ? 3.0 : 1.72
+    // Right-aligned hero: the homepage concept renders the globe LARGE (D3
+    // radius ≈ 0.46·min(W,H)) and pushed right so it bleeds off the right edge,
+    // with the veil — not the camera — keeping the left text column readable.
+    // Lower altitude = larger apparent globe. altitude 2.0 reproduces the
+    // concept's radius (≈0.46·min(W,H) ⇒ ~828px Ø at 1440×900) almost exactly:
+    // camera distance d = 100·(1+a); apparent Ø = (2·asin(100/d)/fov50)·canvasH.
+    const bgAltitude = align === "right" ? 2.0 : 1.72
     globeRef.current.pointOfView({ lat: 29, lng: 44, altitude: interactive ? 1.85 : bgAltitude }, 1200)
     const material = globeRef.current.globeMaterial?.()
     if (material) {
@@ -308,7 +312,8 @@ export function ThreatGlobe({
 
   const w = width ?? Math.ceil(viewport.width * (interactive ? 1 : 1.18))
   const h = height ?? Math.ceil(viewport.height * (interactive ? 1 : 1.18))
-  const globeOffset = interactive ? "translate(-50%, -50%)" : "translate(-50%, -47%)"
+  // Background hero: centre the globe vertically (the concept fixes cy = H·0.5).
+  const globeOffset = interactive ? "translate(-50%, -50%)" : "translate(-50%, -50%)"
   // Right-aligned background hero: stay centred on small/tablet (where there's
   // no room for a side hero), push to ~71% width from lg up.
   const rightAligned = align === "right" && !interactive
@@ -317,7 +322,7 @@ export function ThreatGlobe({
   return (
     <div
       aria-hidden={!interactive}
-      className={rightAligned ? "absolute top-1/2 left-1/2 lg:left-[80%]" : "absolute top-1/2 left-1/2"}
+      className={rightAligned ? "absolute top-1/2 left-1/2 lg:left-[72%]" : "absolute top-1/2 left-1/2"}
       style={{ width: w, height: h, transform: globeOffset }}
     >
       <Globe

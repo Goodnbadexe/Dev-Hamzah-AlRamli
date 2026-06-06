@@ -2,11 +2,9 @@
 
 import { useCallback, useState, useEffect, type ElementType } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import dynamic from "next/dynamic"
-import { ArrowRight, Shield, Terminal, Layers, Radio, Mail, User, ChevronRight, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun, ChevronDown } from "lucide-react"
-import { OSDesktop, OSTaskbar, OSWindow, AmbientFeed } from "@/components/os"
-import { GlitchText } from "@/components/glitch-text"
+import { ArrowRight, Terminal, Layers, Radio, Mail, User, ChevronRight, ChevronDown, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun } from "lucide-react"
+import { OSDesktop, OSTaskbar, AmbientFeed } from "@/components/os"
 import { cn } from "@/lib/utils"
 import type { FeedEntry } from "@/components/os"
 import type { ThreatIoc } from "@/app/api/threats/route"
@@ -37,29 +35,25 @@ const STATIC_ENTRIES: FeedEntry[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// App launcher
+// Module launcher — single-accent (per the homepage concept): every module is
+// neutral and only lights emerald on hover. Color means something here:
+// emerald = you, red = threat. Nothing else competes.
 // ---------------------------------------------------------------------------
-const APP_ITEMS = [
-  { href: "/personnel",  code: "01", label: "PERSONNEL",  sub: "Dossier · CV · Clearance",      Icon: User,    accent: "emerald" },
-  { href: "/deployments",code: "02", label: "DEPLOYMENTS",sub: "Mission files · Architecture",   Icon: Layers,  accent: "blue"    },
-  { href: "/signal",     code: "03", label: "SIGNAL",     sub: "Live activity · Feed",            Icon: Radio,   accent: "yellow"  },
-  { href: "/contact",    code: "04", label: "CONTACT",    sub: "Encrypted channel",               Icon: Mail,    accent: "purple"  },
-  { href: "/terminal",   code: "05", label: "TERMINAL",   sub: "Command interface",               Icon: Terminal,accent: "zinc"    },
+const MODULE_ITEMS: { href: string; code: string; label: string; sub: string; Icon: ElementType }[] = [
+  { href: "/personnel",   code: "01", label: "PERSONNEL",   sub: "Dossier · CV · Clearance",     Icon: User     },
+  { href: "/deployments", code: "02", label: "DEPLOYMENTS", sub: "Mission files · Architecture", Icon: Layers   },
+  { href: "/signal",      code: "03", label: "SIGNAL",      sub: "Live activity · Feed",         Icon: Radio    },
+  { href: "/contact",     code: "04", label: "CONTACT",     sub: "Encrypted channel",            Icon: Mail     },
+  { href: "/terminal",    code: "05", label: "TERMINAL",    sub: "Command interface",            Icon: Terminal },
 ]
 
-// Single-accent system (per the homepage concept): every module is neutral and
-// only lights emerald on hover. Color now means something — emerald = you.
-// The `accent` keys on APP_ITEMS all resolve to this one style.
-const NEUTRAL_ACCENT = {
-  border: "hover:border-emerald-800/80",
-  dot:    "bg-zinc-600",
-  icon:   "text-zinc-400 group-hover:text-emerald-400",
-  hover:  "group-hover:text-emerald-300",
-}
-const ACCENT: Record<string, typeof NEUTRAL_ACCENT> = new Proxy(
-  {},
-  { get: () => NEUTRAL_ACCENT },
-) as Record<string, typeof NEUTRAL_ACCENT>
+// Hero credential chips
+const HERO_META = [
+  "CEH (pursuing)",
+  "Security+ (pursuing)",
+  "Google Cybersecurity",
+  "BSc CS · Taylor's University",
+]
 
 // All layer labels (used to seed the default active set)
 const ALL_LAYER_LABELS = [
@@ -369,10 +363,18 @@ export default function HomePage() {
     })
   }, [])
 
+  // Shared section wrapper: a LEFT-anchored content column so the hero, modules
+  // and feed all sit on the left half while the globe owns the right half —
+  // a true side-by-side split, never stacked on top of the globe. Flush column
+  // in inspect mode (content slides to the right rail).
+  const wrap = (inspect: boolean, extra: string) =>
+    cn(inspect ? "px-0" : "w-full mr-auto px-5 sm:px-8 lg:pl-20 lg:pr-0 lg:max-w-[700px] xl:max-w-[760px]", extra)
+
   return (
     <OSDesktop>
       {/* ------------------------------------------------------------------ */}
-      {/* GLOBE — fixed full-viewport background layer                        */}
+      {/* GLOBE — fixed full-viewport background layer, pushed RIGHT so the   */}
+      {/* left-anchored hero owns the page (per the homepage concept).        */}
       {/* Renders a lightweight gradient until idle, then fades in the globe. */}
       {/* ------------------------------------------------------------------ */}
       <div className="fixed inset-0 z-0">
@@ -394,7 +396,7 @@ export default function HomePage() {
                 className="absolute inset-0"
                 style={{
                   background:
-                    "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(16,185,129,0.08) 0%, rgba(9,9,11,0) 55%), radial-gradient(ellipse 100% 100% at 50% 50%, #0a0a0c 40%, #000 100%)",
+                    "radial-gradient(ellipse 70% 60% at 70% 50%, rgba(16,185,129,0.08) 0%, rgba(9,9,11,0) 55%), radial-gradient(ellipse 100% 100% at 50% 50%, #0a0a0c 40%, #000 100%)",
                 }}
                 aria-hidden
               />
@@ -403,6 +405,7 @@ export default function HomePage() {
               <div className="absolute inset-0 animate-[fadeIn_700ms_ease-out_forwards]" style={{ opacity: 0 }}>
                 <ThreatGlobe
                   interactive={globeInspect}
+                  align="right"
                   showWorldLayers
                   activeLayers={activeLayers}
                   nightMode={activeLayers.has("Day / Night")}
@@ -416,14 +419,26 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Dark radial vignette — keeps content readable over globe */}
+      {/* Faint structural grid — sits above the globe, below the veil */}
+      <div
+        className="fixed inset-0 z-[1] pointer-events-none opacity-50"
+        aria-hidden
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='48' height='48' fill='none' stroke='rgb(255 255 255 / 0.022)'%3e%3cpath d='M0 .5H47.5V48'/%3e%3c/svg%3e\")",
+        }}
+      />
+
+      {/* Veil — a far lighter vignette than before (so the globe reads as a
+          hero) plus a left-dark gradient that anchors the text column. */}
       <div
         className="fixed inset-0 z-[1] pointer-events-none"
         style={{
-          background:
-            globeInspect
+          background: isMobile
+            ? "radial-gradient(120% 80% at 50% 34%, rgba(9,9,11,0.18) 0%, rgba(9,9,11,0.88) 80%)"
+            : globeInspect
               ? "radial-gradient(ellipse 80% 75% at 38% 50%, rgba(9,9,11,0.08) 0%, rgba(9,9,11,0.5) 100%)"
-              : "radial-gradient(120% 90% at 72% 44%, rgba(9,9,11,0) 0%, rgba(9,9,11,0.32) 58%, rgba(9,9,11,0.72) 100%)",
+              : "radial-gradient(120% 90% at 76% 42%, rgba(9,9,11,0) 0%, rgba(9,9,11,0.35) 55%, rgba(9,9,11,0.86) 100%), linear-gradient(90deg, rgba(9,9,11,0.92) 0%, rgba(9,9,11,0.55) 38%, rgba(9,9,11,0) 70%)",
         }}
       />
 
@@ -446,7 +461,7 @@ export default function HomePage() {
         )}
       >
         <Maximize2 className="h-3.5 w-3.5" />
-        inspect world monitor
+        inspect cyberattacks
       </button>
 
       {globeInspect && (
@@ -470,174 +485,119 @@ export default function HomePage() {
       >
 
         {/* ── HERO IDENTITY ─────────────────────────────────── */}
-        <section className={cn(globeInspect ? "px-0 pt-4 pb-3" : "container mx-auto px-4 pt-16 pb-10 md:pt-20 md:pb-14")}>
-          <div className={cn(globeInspect ? "w-full pointer-events-auto" : "max-w-4xl mx-auto")}>
-            <OSWindow
-              label="personnel.identity"
-              title="GOODNBAD.EXE — ACTIVE SESSION"
-              status="active"
-              className={cn("os-panel-in transition-all duration-700", globeInspect && "bg-zinc-950/70")}
+        <section className={wrap(globeInspect, globeInspect ? "pt-4 pb-3" : "pt-[9vh] pb-[7vh]")}>
+          <div className="w-full pointer-events-auto">
+            {/* Kicker */}
+            <span className="inline-flex items-center gap-2.5 mb-[30px] rounded-[5px] border border-zinc-800 bg-zinc-900/50 px-3.5 py-[7px] font-mono text-[11px] uppercase tracking-[0.26em] text-zinc-400 backdrop-blur-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]" />
+              SUBJECT VERIFIED · RIYADH, SA
+            </span>
+
+            {/* Identity — display scale (sized to fit the left column), restrained
+                chromatic flicker on the name only. */}
+            <h1
+              className="text-balance font-bold leading-[0.92] tracking-[-0.035em] text-zinc-100"
+              style={{ fontSize: globeInspect ? "1.75rem" : "clamp(48px, 8.4vw, 104px)" }}
             >
-              <div className={cn("flex gap-6 items-start", globeInspect ? "flex-col" : "flex-col sm:flex-row sm:items-center")}>
-                {/* Avatar */}
-                <div className="shrink-0 relative h-16 w-16 rounded-full overflow-hidden border border-zinc-700 bg-zinc-900">
-                  <Image
-                    src="/images/newlogovector.png"
-                    alt="Goodnbad.exe"
-                    fill
-                    sizes="64px"
-                    className="object-cover p-1"
-                    priority
-                  />
-                </div>
+              <span className="glitch-id" data-t="Goodnbad">Goodnbad</span>
+              <span className="text-zinc-600">.exe</span>
+            </h1>
 
-                {/* Identity block */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">subject</span>
-                    <span className="h-px flex-1 bg-zinc-800" />
-                    <span className="font-mono text-[10px] text-emerald-700 uppercase tracking-widest">verified</span>
-                  </div>
-                  <h1 className={cn(
-                    "font-bold text-zinc-100 tracking-tight leading-[0.95]",
-                    globeInspect ? "text-2xl" : "text-3xl sm:text-4xl md:text-5xl"
-                  )}>
-                    <GlitchText text="Goodnbad.exe" />
-                  </h1>
-                  <p className="text-zinc-300 text-sm sm:text-base mt-1.5">
-                    Hamzah Al-Ramli — <span className="text-zinc-100 font-semibold">Cybersecurity &amp; Automation Architect</span>
-                  </p>
-                  <p className="font-mono text-[11px] text-zinc-600 mt-2">
-                    Riyadh, SA · CEH (pursuing) · Security+ (pursuing) · Taylor's University BSc CS
-                  </p>
-                </div>
+            {/* Role line */}
+            <p
+              className="mt-[26px] max-w-[48ch] leading-[1.5] text-zinc-300"
+              style={{ fontSize: globeInspect ? "1rem" : "clamp(17px, 2vw, 21px)" }}
+            >
+              Hamzah Al-Ramli — <span className="font-semibold text-zinc-100">Cybersecurity &amp; Automation Architect.</span>{" "}
+              I build defensive systems, threat tooling, and the automation that runs them.
+            </p>
 
-                {/* Status */}
-                <div className="flex sm:flex-col gap-2 shrink-0">
-                  <span className="flex items-center gap-1.5 font-mono text-[10px] text-emerald-600 uppercase tracking-widest">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    available
-                  </span>
-                  <span className="flex items-center gap-1.5 font-mono text-[10px] text-zinc-600 uppercase tracking-widest">
-                    <span className="h-1.5 w-1.5 rounded-full bg-zinc-600" />
-                    Riyadh · SA
-                  </span>
-                </div>
-              </div>
+            {/* Credential chips */}
+            <div className="mt-[22px] flex flex-wrap gap-2.5 font-mono text-[11px] text-zinc-400">
+              {HERO_META.map((m) => (
+                <span key={m} className="rounded border border-zinc-800 bg-zinc-950/40 px-3 py-2">
+                  {m}
+                </span>
+              ))}
+            </div>
 
-              {/* Capability strip */}
-              <div className={cn("mt-5 pt-4 border-t border-zinc-800 flex flex-wrap gap-x-6 gap-y-2", globeInspect && "gap-x-3")}>
-                {[
-                  { label: "Threat Analysis",          Icon: Shield   },
-                  { label: "Vulnerability Management", Icon: Shield   },
-                  { label: "Incident Response",         Icon: Shield   },
-                  { label: "Security Automation",       Icon: Terminal },
-                ].map(({ label, Icon }) => (
-                  <span key={label} className="flex items-center gap-1.5 text-xs text-zinc-500">
-                    <Icon className="w-3 h-3 text-emerald-700" />
-                    {label}
-                  </span>
-                ))}
-              </div>
-            </OSWindow>
+            {/* One primary action; everything else recedes */}
+            <div className="mt-[38px] flex flex-wrap gap-3">
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2.5 rounded-md bg-emerald-500 px-6 py-3.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
+              >
+                <Mail className="h-4 w-4" />
+                Open encrypted channel
+              </Link>
+              <Link
+                href="/personnel"
+                className="inline-flex items-center gap-2.5 rounded-md border border-zinc-800 bg-zinc-950/40 px-6 py-3.5 font-mono text-[13px] font-medium uppercase tracking-[0.1em] text-zinc-300 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-100"
+              >
+                View full dossier
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </section>
 
-        {/* ── APP LAUNCHER ──────────────────────────────────── */}
-        <section className={cn(globeInspect ? "px-0 pb-3" : "container mx-auto px-4 pb-10")}>
-          <div className={cn(globeInspect ? "w-full pointer-events-auto" : "max-w-4xl mx-auto")}>
-            <div className="mb-4 flex items-center gap-3">
-              <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">os.modules</span>
+        {/* ── MODULE LAUNCHER ───────────────────────────────── */}
+        <section className={wrap(globeInspect, "pb-12")}>
+          <div className={cn(globeInspect && "w-full pointer-events-auto")}>
+            <div className="mb-4 flex items-center gap-3.5 font-mono text-[12px] uppercase tracking-[0.22em] text-zinc-500">
+              <span>os.modules</span>
               <span className="h-px flex-1 bg-zinc-900" />
             </div>
-            <div className={cn("grid grid-cols-1 gap-3", !globeInspect && "sm:grid-cols-2 lg:grid-cols-3")}>
-              {APP_ITEMS.map(({ href, code, label, sub, Icon, accent }, i) => {
-                const a = ACCENT[accent]
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={[
-                      "group flex items-center gap-4 rounded-md border border-zinc-800",
-                      "bg-zinc-900/75 px-4 py-3.5 transition-all duration-200 backdrop-blur-md",
-                      "hover:bg-zinc-900/95 hover:shadow-md",
-                      a.border, "os-panel-in",
-                    ].join(" ")}
-                    style={{ animationDelay: `${i * 60}ms` }}
-                  >
-                    <div className="shrink-0 flex items-center justify-center w-9 h-9 rounded bg-zinc-950 border border-zinc-800 group-hover:border-zinc-700 transition-colors">
-                      <Icon className={`w-4 h-4 ${a.icon}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="font-mono text-[9px] text-zinc-700">{code}</span>
-                        <span className={`font-mono text-xs font-semibold text-zinc-300 uppercase tracking-wide ${a.hover} transition-colors`}>
-                          {label}
-                        </span>
-                      </div>
-                      <p className="font-mono text-[10px] text-zinc-600 truncate">{sub}</p>
-                    </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-zinc-700 group-hover:text-zinc-500 shrink-0 transition-colors" />
-                  </Link>
-                )
-              })}
+            <div className={cn("grid gap-3", globeInspect ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2")}>
+              {MODULE_ITEMS.map(({ href, code, label, sub, Icon }, i) => (
+                <Link
+                  key={href}
+                  href={href}
+                  style={{ animationDelay: `${i * 60}ms` }}
+                  className="group relative overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/55 px-5 py-5 backdrop-blur-md transition-all duration-200 os-panel-in hover:-translate-y-[3px] hover:border-emerald-800/80 hover:bg-zinc-900/90"
+                >
+                  <span className="font-mono text-[11px] tracking-wider text-zinc-500">{code}</span>
+                  <ChevronRight className="absolute right-4 top-5 h-4 w-4 text-zinc-700 transition-all group-hover:translate-x-0.5 group-hover:text-emerald-400" />
+                  <div className="mb-4 mt-4 grid h-10 w-10 place-items-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-400 transition-all group-hover:border-emerald-900 group-hover:text-emerald-400">
+                    <Icon className="h-[19px] w-[19px]" />
+                  </div>
+                  <div className="font-mono text-sm font-semibold tracking-wide text-zinc-100">{label}</div>
+                  <div className="mt-1.5 font-mono text-[11px] leading-[1.5] text-zinc-500">{sub}</div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* ── SIGNAL PREVIEW + CTA ROW ──────────────────────── */}
-        <section className={cn(globeInspect ? "px-0 pb-16" : "container mx-auto px-4 pb-16")}>
-          <div className={cn("grid grid-cols-1 gap-4", globeInspect ? "w-full pointer-events-auto" : "max-w-4xl mx-auto md:grid-cols-5")}>
-
-            {/* Live threat feed — 3 cols */}
-            <div className={cn("os-panel-in", !globeInspect && "md:col-span-3")} style={{ animationDelay: "320ms" }}>
-              <OSWindow label="signal.feed" title="live · ambient" status="active">
+        {/* ── LIVE SIGNAL STRIP ─────────────────────────────── */}
+        <section className={wrap(globeInspect, globeInspect ? "pb-16" : "pb-20")}>
+          <div className={cn(globeInspect && "w-full pointer-events-auto")}>
+            <div
+              className="overflow-hidden rounded-[10px] border border-zinc-800 bg-zinc-950/55 backdrop-blur-md os-panel-in"
+              style={{ animationDelay: "320ms" }}
+            >
+              <div className="flex items-center gap-2.5 border-b border-zinc-900 bg-zinc-950/40 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)] animate-pulse" />
+                signal.feed
+                <span className="ml-auto text-zinc-500">live · ambient</span>
+              </div>
+              <div className="px-4 py-4">
                 <AmbientFeed
                   entries={STATIC_ENTRIES}
                   liveEntries={liveEntries}
                   interval={8000}
                   maxLines={6}
                 />
-                <div className="mt-4 pt-3 border-t border-zinc-800">
+                <div className="mt-4 border-t border-zinc-900 pt-3.5">
                   <Link
                     href="/signal"
-                    className="flex items-center gap-1.5 font-mono text-[11px] text-zinc-600 hover:text-emerald-500 transition-colors"
+                    className="flex items-center gap-1.5 font-mono text-[12px] text-zinc-500 transition-colors hover:text-emerald-500"
                   >
-                    <ArrowRight className="w-3 h-3" />
+                    <ArrowRight className="h-3 w-3" />
                     open full signal feed
                   </Link>
                 </div>
-              </OSWindow>
-            </div>
-
-            {/* Contact CTA — 2 cols */}
-            <div className={cn("os-panel-in", !globeInspect && "md:col-span-2")} style={{ animationDelay: "400ms" }}>
-              <OSWindow label="comms.channel" title="encrypted" status="idle" className="h-full">
-                <div className="flex flex-col h-full gap-4">
-                  <div>
-                    <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-1">open channel</p>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      Discussing opportunities, collaborations, or security work.
-                    </p>
-                  </div>
-                  <div className="mt-auto space-y-2">
-                    <Link
-                      href="/contact"
-                      className="flex items-center justify-between w-full rounded border border-emerald-900 bg-emerald-950/30 px-3 py-2.5 font-mono text-xs text-emerald-400 hover:bg-emerald-950/60 hover:border-emerald-800 transition-all"
-                    >
-                      <span className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" />SEND ENCRYPTED MESSAGE</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                    <Link
-                      href="/personnel"
-                      className="flex items-center justify-between w-full rounded border border-zinc-800 bg-zinc-900/40 px-3 py-2.5 font-mono text-xs text-zinc-500 hover:text-zinc-300 hover:border-zinc-700 transition-all"
-                    >
-                      <span className="flex items-center gap-2"><User className="w-3.5 h-3.5" />VIEW FULL DOSSIER</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              </OSWindow>
+              </div>
             </div>
           </div>
         </section>
@@ -656,7 +616,7 @@ export default function HomePage() {
         <div className="px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <span className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest">
-              GOODNBAD.EXE © {new Date().getFullYear()} — world monitor active
+              GOODNBAD.EXE © {new Date().getFullYear()} — live cyberattack monitor
             </span>
             <div className="flex items-center gap-4">
               {[

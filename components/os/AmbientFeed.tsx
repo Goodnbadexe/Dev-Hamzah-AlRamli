@@ -79,7 +79,7 @@ export function AmbientFeed({
   }, [liveEntries, maxLines])
 
   return (
-    <div className={cn("font-mono text-[11px] space-y-1.5 overflow-hidden", className)}>
+    <div className={cn("font-mono text-[12px] space-y-2 overflow-hidden", className)}>
       {visible.map((entry, i) => (
         <div
           key={`${entry.ts}-${entry.label}-${i}`}
@@ -89,10 +89,10 @@ export function AmbientFeed({
           )}
         >
           <span className="text-zinc-700 shrink-0 tabular-nums">{entry.ts}</span>
-          <span className={cn("shrink-0 uppercase text-[10px]", typeColor[entry.type ?? "signal"])}>
+          <span className={cn("shrink-0 uppercase text-[11px]", typeColor[entry.type ?? "signal"])}>
             [{entry.type ?? "sig"}]
           </span>
-          <span className="text-zinc-400 truncate">{entry.label}</span>
+          <span className="text-zinc-300 truncate">{entry.label}</span>
           {entry.detail && (
             <span className="text-zinc-600 truncate hidden sm:block">{entry.detail}</span>
           )}

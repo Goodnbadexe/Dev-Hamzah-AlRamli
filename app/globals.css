@@ -1109,3 +1109,45 @@ Complexity: O(1) styling
     opacity: 1 !important;
   }
 }
+
+/* ── Homepage hero — restrained chromatic aberration on the name ──────────
+   Replaces the busy glitch stack (per the Goodnbad OS homepage concept):
+   a single emerald + rose flicker on "Goodnbad" only, roughly once every 5s.
+   emerald = brand signal, rose = threat — the same two-colour language the
+   globe uses. CSS-only because it reads attr(data-t) in pseudo-elements.   */
+.glitch-id {
+  position: relative;
+  display: inline-block;
+}
+.glitch-id::before,
+.glitch-id::after {
+  content: attr(data-t);
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.glitch-id::before {
+  color: #10b981;            /* emerald-500 — "you" */
+  mix-blend-mode: screen;
+  animation: id-ab1 5s steps(1) infinite;
+}
+.glitch-id::after {
+  color: #f43f5e;            /* rose-500 — threat */
+  mix-blend-mode: screen;
+  animation: id-ab2 5s steps(1) infinite;
+}
+@keyframes id-ab1 {
+  0%, 92%, 100% { opacity: 0; transform: translateX(-2px); }
+  93%           { opacity: .5; transform: translateX(-3px); }
+  96%           { transform: translateX(1px); }
+}
+@keyframes id-ab2 {
+  0%, 92%, 100% { opacity: 0; transform: translateX(2px); }
+  94%           { opacity: .5; transform: translateX(3px); }
+  97%           { transform: translateX(-1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glitch-id::before,
+  .glitch-id::after { animation: none !important; opacity: 0 !important; }
+}
