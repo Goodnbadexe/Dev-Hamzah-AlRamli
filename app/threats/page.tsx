@@ -18,9 +18,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
-import { Globe2, Volume2, VolumeX, Zap, Shield, Activity } from "lucide-react"
+import { Globe2, Volume2, VolumeX, Zap, Activity } from "lucide-react"
 import { OSDesktop } from "@/components/os/OSDesktop"
 import { OSTaskbar } from "@/components/os/OSTaskbar"
+import { GlobeLegend } from "@/components/signal/GlobeLegend"
 import type { ThreatIoc } from "@/app/api/threats/route"
 
 const ThreatGlobe = dynamic(
@@ -285,13 +286,10 @@ export default function ThreatsPage() {
         </div>
 
         {/* ---------------------------------------------------------------- */}
-        {/* BOTTOM-CENTER — subtle instruction                               */}
+        {/* BOTTOM-CENTER — live legend: color key + indicator count + feeds */}
         {/* ---------------------------------------------------------------- */}
-        <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-800 flex items-center gap-1.5">
-            <Shield className="h-3 w-3" />
-            Feodo · URLhaus · C2IntelFeeds · Ransomware.live — live IOCs, geo-located, 14-day window
-          </p>
+        <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
+          <GlobeLegend variant="bar" />
         </div>
 
       </div>

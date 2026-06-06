@@ -46,7 +46,7 @@ export const IOC_COLOR: Record<IocType, string> = {
 }
 
 const SEV_R: Record<ThreatIoc["severity"], number> = {
-  critical: 0.34, high: 0.25, medium: 0.16, low: 0.10,
+  critical: 0.50, high: 0.38, medium: 0.27, low: 0.19,
 }
 
 const SEV_RING: Record<ThreatIoc["severity"], string> = {
@@ -166,17 +166,27 @@ interface Props {
   activeLayers?: Set<string>
   /** Night mode — use city-lights texture instead of blue marble. */
   nightMode?: boolean
+  /**
+   * Background-mode horizontal anchor. "center" (default) keeps the globe
+   * dead-centre; "right" pushes it to ~71% width, partly off-canvas, so a
+   * left-anchored hero owns the page (per the Goodnbad OS homepage concept).
+   * Ignored in interactive mode, which always centres.
+   */
+  align?: "center" | "right"
   width?: number
   height?: number
 }
 
 export function ThreatGlobe({
   interactive = false, onIoc, onIocSelect, onGlobeClick,
-  showWorldLayers = false, activeLayers, nightMode = false, width, height,
+  showWorldLayers = false, activeLayers, nightMode = false, align = "center", width, height,
 }: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const globeRef = useRef<any>(null)
   const [iocs, setIocs] = useState<ThreatIoc[]>([])
+  // Zoom-aware dot scaling — when the user zooms OUT (interactive mode), dots
+  // shrink in world-space; bump their radius so attacks stay legible at any zoom.
+  const [zoomScale, setZoomScale] = useState(1)
   const [viewport, setViewport] = useState({ width: width ?? 1440, height: height ?? 900 })
   const [dayPhase, setDayPhase] = useState(0)
   const dripRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -226,7 +236,14 @@ export function ThreatGlobe({
   // ---- Camera + material ---------------------------------------------------
   const handleReady = useCallback(() => {
     if (!globeRef.current) return
-    globeRef.current.pointOfView({ lat: 29, lng: 44, altitude: interactive ? 1.85 : 1.72 }, 1200)
+    // Right-aligned hero: the homepage concept renders the globe LARGE (D3
+    // radius ≈ 0.46·min(W,H)) and pushed right so it bleeds off the right edge,
+    // with the veil — not the camera — keeping the left text column readable.
+    // Lower altitude = larger apparent globe. altitude 2.0 reproduces the
+    // concept's radius (≈0.46·min(W,H) ⇒ ~828px Ø at 1440×900) almost exactly:
+    // camera distance d = 100·(1+a); apparent Ø = (2·asin(100/d)/fov50)·canvasH.
+    const bgAltitude = align === "right" ? 2.0 : 1.72
+    globeRef.current.pointOfView({ lat: 29, lng: 44, altitude: interactive ? 1.85 : bgAltitude }, 1200)
     const material = globeRef.current.globeMaterial?.()
     if (material) {
       material.color = new THREE.Color("#132033")
@@ -243,7 +260,7 @@ export function ThreatGlobe({
     ctrl.enablePan = false
     ctrl.minDistance = 170
     ctrl.maxDistance = 460
-  }, [interactive])
+  }, [interactive, align])
 
   useEffect(() => {
     const ctrl = globeRef.current?.controls()
@@ -295,13 +312,17 @@ export function ThreatGlobe({
 
   const w = width ?? Math.ceil(viewport.width * (interactive ? 1 : 1.18))
   const h = height ?? Math.ceil(viewport.height * (interactive ? 1 : 1.18))
-  const globeOffset = interactive ? "translate(-50%, -50%)" : "translate(-50%, -47%)"
+  // Background hero: centre the globe vertically (the concept fixes cy = H·0.5).
+  const globeOffset = interactive ? "translate(-50%, -50%)" : "translate(-50%, -50%)"
+  // Right-aligned background hero: stay centred on small/tablet (where there's
+  // no room for a side hero), push to ~71% width from lg up.
+  const rightAligned = align === "right" && !interactive
 
   // ---- Render --------------------------------------------------------------
   return (
     <div
       aria-hidden={!interactive}
-      className="absolute left-1/2 top-1/2"
+      className={rightAligned ? "absolute top-1/2 left-1/2 lg:left-[72%]" : "absolute top-1/2 left-1/2"}
       style={{ width: w, height: h, transform: globeOffset }}
     >
       <Globe
@@ -324,10 +345,10 @@ export function ThreatGlobe({
         pointsData={iocPoints}
         pointLat="lat"
         pointLng="lng"
-        pointAltitude={0.012}
-        pointRadius={(d: ThreatIoc) => SEV_R[d.severity]}
+        pointAltitude={0.02}
+        pointRadius={(d: ThreatIoc) => SEV_R[d.severity] * (interactive ? zoomScale : 1)}
         pointColor={(d: ThreatIoc) => IOC_COLOR[d.type]}
-        pointResolution={6}
+        pointResolution={8}
         pointLabel={(d: ThreatIoc) =>
           `<div style="font-family:monospace;font-size:11px;background:#050505cc;border:1px solid #334155;padding:6px 10px;border-radius:4px;color:#e4e4e7;pointer-events:none;box-shadow:0 0 24px rgba(34,211,238,.16);">
             <span style="color:${IOC_COLOR[d.type]};font-weight:700;">${d.type.replace("_", " ").toUpperCase()}</span>&nbsp;·&nbsp;<span style="color:#94a3b8">${d.severity}</span><br/>
@@ -343,7 +364,7 @@ export function ThreatGlobe({
         ringLat="lat"
         ringLng="lng"
         ringColor={(d: ThreatIoc) => SEV_RING[d.severity]}
-        ringMaxRadius={(d: ThreatIoc) => (d.severity === "critical" ? 4.5 : 2.6)}
+        ringMaxRadius={(d: ThreatIoc) => (d.severity === "critical" ? 5.5 : 3.4)}
         ringPropagationSpeed={interactive ? 2.0 : 3.4}
         ringRepeatPeriod={interactive ? 1100 : 620}
 
@@ -386,6 +407,13 @@ export function ThreatGlobe({
         enablePointerInteraction={interactive || Boolean(onGlobeClick) || Boolean(onIocSelect)}
         onGlobeReady={handleReady}
         onGlobeClick={onGlobeClick}
+        onZoom={(pov: { altitude: number }) => {
+          if (!interactive) return
+          // zoomed out (higher altitude) → scale dots up, clamped, so attacks
+          // never shrink into invisibility
+          const s = Math.min(2.4, Math.max(1, pov.altitude / 1.6))
+          setZoomScale((prev) => (Math.abs(prev - s) > 0.04 ? s : prev))
+        }}
       />
     </div>
   )
