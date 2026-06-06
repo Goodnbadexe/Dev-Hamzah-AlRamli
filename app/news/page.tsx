@@ -24,6 +24,23 @@ interface NewsItem {
   severity: 'critical' | 'high' | 'medium'
   action: string
   nvdUrl: string
+  cvss?: number | null
+  ecosystem?: string | null
+  source?: string
+}
+
+interface Headline {
+  title: string
+  link: string
+  source: string
+  date: string
+}
+
+interface SourceStatus {
+  name: string
+  type: 'live' | 'rss' | 'detail' | 'class'
+  ok: boolean
+  count: number
 }
 
 interface NewsResponse {
@@ -32,6 +49,9 @@ interface NewsResponse {
   total: number
   source: string
   fetchedAt: string
+  headlines?: Headline[]
+  sources?: SourceStatus[]
+  avgCvss?: number | null
   error?: string
 }
 
@@ -148,6 +168,16 @@ export default function NewsPage() {
   }
   const maxMix = Math.max(counts.critical, counts.high, counts.medium, 1)
 
+  // Multi-source metadata (graceful defaults pre-load).
+  const sources: SourceStatus[] = data?.sources ?? [
+    { name: 'CISA KEV Catalog', type: 'live', ok: true, count: 0 },
+    { name: 'GitHub Advisory DB', type: 'live', ok: true, count: 0 },
+    { name: 'NVD / NIST', type: 'detail', ok: true, count: 0 },
+  ]
+  const headlines = data?.headlines ?? []
+  const avgCvss = data?.avgCvss ?? null
+  const chipSources = sources.filter((s) => s.type !== 'class')
+
   return (
     <main className="relative min-h-screen bg-gradient-to-b from-zinc-950 to-black text-zinc-100">
       {/* faint structural grid */}
@@ -174,7 +204,9 @@ export default function NewsPage() {
             </h1>
             <p className="mt-3 font-mono text-xs text-zinc-600">
               {data
-                ? `${data.total.toLocaleString()} KEVs tracked · ${items.length} in feed · CISA`
+                ? `${items.length} advisories · ${chipSources.filter((s) => s.ok).length} live sources${
+                    avgCvss != null ? ` · avg CVSS ${avgCvss.toFixed(1)}` : ''
+                  } · auto-synced`
                 : 'Reviewed vulnerability advisories · auto-synced'}
             </p>
           </div>
@@ -191,9 +223,9 @@ export default function NewsPage() {
 
         {/* Source chips */}
         <div className="mt-6 flex flex-wrap gap-2">
-          <SourceChip label="CISA KEV Catalog" state="live" />
-          <SourceChip label="NVD / NIST" state="detail" />
-          <SourceChip label="MITRE CWE" state="detail" />
+          {chipSources.map((s) => (
+            <SourceChip key={s.name} label={s.name} type={s.type} ok={s.ok} />
+          ))}
         </div>
 
         {/* Global threat map (signature) */}
@@ -233,11 +265,13 @@ export default function NewsPage() {
               <div className="px-6 pb-6 pt-5">
                 <div className="mb-3.5 flex flex-wrap items-center gap-2.5">
                   <SevTag severity={lead.severity} />
+                  <CvssChip score={lead.cvss} />
                   <span className="rounded border border-zinc-700 px-2 py-0.5 font-mono text-[10px] text-zinc-300">{lead.category}</span>
                   <span className="rounded border border-zinc-800 px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-wide text-zinc-500">{lead.vendor}</span>
                   {lead.ransomware === 'Known' && (
                     <span className="rounded border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-wide text-rose-300">Ransomware</span>
                   )}
+                  <SourceTag source={lead.source} />
                 </div>
                 <h2 className="text-[clamp(1.35rem,3vw,1.85rem)] font-semibold leading-[1.18] tracking-tight text-balance [overflow-wrap:anywhere]">
                   {lead.title}
@@ -310,6 +344,7 @@ export default function NewsPage() {
               <Stat label="Advisories (feed)" value={items.length} className="text-emerald-400" />
               <Stat label="Critical" value={counts.critical} className="text-rose-400" />
               <Stat label="High" value={counts.high} className="text-orange-400" />
+              <Stat label="Avg CVSS" value={avgCvss != null ? avgCvss.toFixed(1) : '—'} className="text-zinc-100" />
               <Stat label="Ransomware linked" value={counts.ransomware} className="text-amber-400" />
             </RailPanel>
 
@@ -331,13 +366,37 @@ export default function NewsPage() {
             </RailPanel>
 
             <RailPanel title="source feeds">
-              <FeedRow name="CISA KEV Catalog" type="live" live />
-              <FeedRow name="NVD / NIST" type="detail" />
-              <FeedRow name="MITRE CWE" type="class" />
+              {sources.map((s) => (
+                <FeedRow key={s.name} name={s.name} type={s.type} ok={s.ok} count={s.count} />
+              ))}
               <p className="mt-3 border-t border-zinc-800/80 pt-3 font-mono text-[9.5px] leading-relaxed text-zinc-600">
-                Pulled server-side from the <b className="font-medium text-zinc-400">CISA KEV catalog</b> (no CORS, 30-min revalidate). Per-CVE links resolve to <b className="font-medium text-zinc-400">NVD</b>; weakness classes map to <b className="font-medium text-zinc-400">MITRE CWE</b>.
+                Aggregated server-side (no CORS, 30-min revalidate): <b className="font-medium text-zinc-400">CISA KEV</b> + <b className="font-medium text-zinc-400">GitHub Advisory DB</b> deduped by CVE, CVSS cross-matched. Headlines from <b className="font-medium text-zinc-400">RSS</b>; weakness classes map to <b className="font-medium text-zinc-400">MITRE CWE</b>.
               </p>
             </RailPanel>
+
+            {headlines.length > 0 && (
+              <RailPanel title="industry headlines">
+                <div className="flex flex-col">
+                  {headlines.map((h) => (
+                    <a
+                      key={h.link}
+                      href={h.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group border-t border-zinc-800/60 py-2.5 first:border-t-0 first:pt-0"
+                    >
+                      <p className="text-[12px] leading-snug text-zinc-300 transition-colors group-hover:text-emerald-400 [overflow-wrap:anywhere]">
+                        {h.title}
+                      </p>
+                      <div className="mt-1 flex items-center gap-2 font-mono text-[9px] uppercase tracking-wide text-zinc-600">
+                        <span>{h.source}</span>
+                        {h.date && <span className="ml-auto normal-case">{timeSince(h.date)}</span>}
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </RailPanel>
+            )}
           </aside>
         </div>
 
@@ -379,18 +438,44 @@ function SevTag({ severity }: { severity: Severity }) {
   )
 }
 
-function SourceChip({ label, state }: { label: string; state: 'live' | 'detail' }) {
+function SourceChip({ label, type, ok }: { label: string; type: SourceStatus['type']; ok: boolean }) {
+  const lit = ok && (type === 'live' || type === 'rss')
   return (
     <span className="inline-flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900/40 px-2.5 py-1.5 font-mono text-[10px] tracking-wide text-zinc-500">
-      <span className={`h-1.5 w-1.5 rounded-full ${state === 'live' ? 'bg-emerald-500 shadow-[0_0_5px] shadow-emerald-500' : 'bg-zinc-600'}`} />
+      <span className={`h-1.5 w-1.5 rounded-full ${lit ? 'bg-emerald-500 shadow-[0_0_5px] shadow-emerald-500' : ok ? 'bg-zinc-600' : 'bg-rose-500/70'}`} />
       {label}
-      {state === 'live' && <b className="ml-0.5 font-medium text-emerald-400">live</b>}
+      {type === 'live' && ok && <b className="ml-0.5 font-medium text-emerald-400">live</b>}
+      {type === 'rss' && ok && <b className="ml-0.5 font-medium text-zinc-400">rss</b>}
+    </span>
+  )
+}
+
+function CvssChip({ score }: { score?: number | null }) {
+  if (score == null) return null
+  const color =
+    score >= 9
+      ? 'border-rose-500/40 bg-rose-500/10 text-rose-300'
+      : score >= 7
+        ? 'border-orange-500/40 bg-orange-500/10 text-orange-300'
+        : score >= 4
+          ? 'border-yellow-500/35 bg-yellow-500/10 text-yellow-200'
+          : 'border-zinc-700 text-zinc-300'
+  return <span className={`rounded border px-1.5 py-0.5 font-mono text-[10px] ${color}`}>CVSS {score.toFixed(1)}</span>
+}
+
+function SourceTag({ source }: { source?: string }) {
+  if (!source) return null
+  const label = source === 'CISA KEV' ? 'KEV' : source === 'GitHub Advisory' ? 'GH' : source
+  return (
+    <span className="ml-auto rounded border border-zinc-800 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-zinc-500">
+      {label}
     </span>
   )
 }
 
 function AdvisoryCard({ item }: { item: NewsItem }) {
-  const overdue = new Date(item.dueDate) < new Date()
+  const hasDue = !!item.dueDate && !Number.isNaN(new Date(item.dueDate).getTime())
+  const overdue = hasDue && new Date(item.dueDate) < new Date()
   return (
     <a
       href={item.nvdUrl}
@@ -400,12 +485,14 @@ function AdvisoryCard({ item }: { item: NewsItem }) {
     >
       <div className="mb-2.5 flex flex-wrap items-center gap-2">
         <SevTag severity={item.severity} />
+        <CvssChip score={item.cvss} />
         <span className="rounded border border-zinc-700 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">{item.category}</span>
         <span className="font-mono text-[10px] text-zinc-600">{item.id}</span>
         <span className="rounded border border-zinc-800 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-zinc-500">{item.vendor}</span>
         {item.ransomware === 'Known' && (
           <span className="rounded border border-rose-500/40 bg-rose-500/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-rose-300">Ransomware</span>
         )}
+        <SourceTag source={item.source} />
       </div>
       <h3 className="text-sm font-medium leading-snug tracking-tight [overflow-wrap:anywhere]">{item.title}</h3>
       <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-relaxed text-zinc-500 [overflow-wrap:anywhere]">{item.description}</p>
@@ -414,11 +501,13 @@ function AdvisoryCard({ item }: { item: NewsItem }) {
         {item.cwes.slice(0, 2).map((cwe) => (
           <span key={cwe} className="rounded border border-zinc-800 px-1.5 py-0.5 text-zinc-500">{cwe}</span>
         ))}
-        <span className="inline-flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
-          <span className="text-zinc-500">due</span>
-          <span className={overdue ? 'text-rose-400' : 'text-zinc-400'}>{formatDate(item.dueDate)}</span>
-        </span>
+        {hasDue && (
+          <span className="inline-flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            <span className="text-zinc-500">due</span>
+            <span className={overdue ? 'text-rose-400' : 'text-zinc-400'}>{formatDate(item.dueDate)}</span>
+          </span>
+        )}
         <span className="ml-auto">{timeSince(item.date)}</span>
       </div>
     </a>
@@ -446,12 +535,14 @@ function Stat({ label, value, className }: { label: string; value: number | stri
   )
 }
 
-function FeedRow({ name, type, live }: { name: string; type: string; live?: boolean }) {
+function FeedRow({ name, type, ok, count }: { name: string; type: SourceStatus['type']; ok: boolean; count: number }) {
+  const lit = ok && (type === 'live' || type === 'rss')
   return (
     <div className="flex items-center gap-2.5 py-1 font-mono text-[11px] text-zinc-400">
-      <span className={`h-1.5 w-1.5 flex-none rounded-full ${live ? 'bg-emerald-500 shadow-[0_0_5px] shadow-emerald-500' : 'bg-zinc-700'}`} />
+      <span className={`h-1.5 w-1.5 flex-none rounded-full ${lit ? 'bg-emerald-500 shadow-[0_0_5px] shadow-emerald-500' : ok ? 'bg-zinc-700' : 'bg-rose-500/70'}`} />
       <span className="text-zinc-200">{name}</span>
-      <span className="ml-auto text-[9px] uppercase tracking-wide text-zinc-600">{type}</span>
+      {count > 0 && <span className="text-zinc-600">{count}</span>}
+      <span className="ml-auto text-[9px] uppercase tracking-wide text-zinc-600">{ok ? type : 'down'}</span>
     </div>
   )
 }
