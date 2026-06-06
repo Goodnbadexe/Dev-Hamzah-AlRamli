@@ -1,461 +1,517 @@
 import Link from "next/link"
 import type { Metadata } from "next"
-import type { ReactNode } from "react"
+import type { ElementType, ReactNode } from "react"
 import {
-  ArrowDownToLine,
-  BriefcaseBusiness,
+  Check,
+  Code2,
+  Download,
   ExternalLink,
-  GraduationCap,
   Github,
+  LineChart,
   Linkedin,
   Mail,
   MapPin,
+  Palette,
+  Phone,
   Shield,
+  ShieldCheck,
   Sparkles,
-  Terminal,
   UserRound,
 } from "lucide-react"
 import { OSPageShell } from "@/components/os/OSPageShell"
-import { OSWindow } from "@/components/os"
+import { cn } from "@/lib/utils"
+import { memoryPlan } from "@/lib/memory/plan"
 import {
   certifications,
   educationTimeline,
   experienceTimeline,
   personnelIdentity,
-  recruiterHighlights,
   resumeHref,
   technicalCapabilities,
 } from "@/lib/content/personnel"
+import { StatBand, type Stat } from "./StatBand"
 
 export const metadata: Metadata = {
   title: "Personnel File | Hamzah Al-Ramli",
   description:
-    "Recruiter-friendly dossier for Hamzah Al-Ramli: experience, education, certifications, technical capabilities, and resume.",
-  alternates: {
-    canonical: "https://www.goodnbad.info/personnel",
-  },
+    "Recruiter dossier for Hamzah Al-Ramli — cybersecurity & creative multimedia: identity, capability matrix, verified credentials, service record, roadmap, and direct channels.",
+  alternates: { canonical: "https://www.goodnbad.info/personnel" },
 }
 
-// Skill group accent colors: maps to the site's established tech-exp color system
-const CAPABILITY_ACCENTS: Record<string, { border: string; dot: string; heading: string; bg: string }> = {
-  "Cybersecurity Operations":  { border: "border-l-red-500/50",    dot: "bg-red-500",    heading: "text-red-300",    bg: "hover:border-red-800/60" },
-  "Systems & Infrastructure":  { border: "border-l-blue-500/50",   dot: "bg-blue-500",   heading: "text-blue-300",   bg: "hover:border-blue-800/60" },
-  "Software Engineering":      { border: "border-l-emerald-500/50", dot: "bg-emerald-500", heading: "text-emerald-300", bg: "hover:border-emerald-800/60" },
-  "Automation & Tooling":      { border: "border-l-purple-500/50", dot: "bg-purple-500", heading: "text-purple-300", bg: "hover:border-purple-800/60" },
+// ── Design tokens (from the Personnel Dossier concept) ──────────────────────
+const ISSUER_COLOR: Record<string, string> = {
+  LetsDefend: "#f43f5e",
+  Google: "#10b981",
+  IBM: "#3b82f6",
+  Simplilearn: "#a855f7",
+  "Google Digital Academy": "#eab308",
+  "Taylor's University": "#f97316",
+  CASUGOL: "#22d3ee",
+}
+
+const CAP_STYLE: Record<string, { color: string; dim: string; meta: string; Icon: ElementType }> = {
+  Cybersecurity: { color: "#f43f5e", dim: "rgba(244,63,94,.4)", meta: "core discipline", Icon: Shield },
+  "Creative & Multimedia": { color: "#a855f7", dim: "rgba(168,85,247,.4)", meta: "craft", Icon: Palette },
+  Development: { color: "#3b82f6", dim: "rgba(59,130,246,.4)", meta: "engineering", Icon: Code2 },
+  "Strategy & Tools": { color: "#10b981", dim: "rgba(16,185,129,.4)", meta: "leverage", Icon: LineChart },
+}
+
+// Presentational progress label per roadmap area (the data carries area + targets).
+const PROG_LABEL: Record<string, string> = {
+  Cybersecurity: "in progress",
+  "Systems & DevOps": "active",
+  "Full-Stack Development": "shipping",
 }
 
 export default function PersonnelPage() {
+  const { name, alias, title, tagline, location, contact } = personnelIdentity
+
+  // Stat band — every figure is derived from the same data the page renders.
+  const capabilityCount = technicalCapabilities.reduce((n, c) => n + c.items.length, 0)
+  const stats: Stat[] = [
+    { to: educationTimeline.length, label: "Degrees", fill: 50 },
+    { to: certifications.length, label: "Credentials", fill: 100 },
+    { to: technicalCapabilities.length, label: "Disciplines", fill: 80 },
+    { to: capabilityCount, plus: true, label: "Capabilities", fill: 90 },
+  ]
+
+  // Issuer distribution (ledger bar) — counted + ranked from the credential list.
+  const issuerCounts = certifications.reduce<Record<string, number>>((m, c) => {
+    m[c.issuer] = (m[c.issuer] ?? 0) + 1
+    return m
+  }, {})
+  const issuerOrder = Object.keys(issuerCounts).sort((a, b) => issuerCounts[b] - issuerCounts[a])
+
   return (
     <OSPageShell osName="personnel.exe" label="Career & Credentials">
-      <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
+      <div className="mx-auto max-w-[1240px] px-5 py-8 sm:px-8 md:py-10">
+        <div className="flex flex-col gap-[18px]">
 
-        {/* ── Row 1: Identity + Signal panel ── */}
-        <section className="grid gap-4 lg:grid-cols-[1.5fr_0.8fr]">
-
-          <OSWindow label="identity.summary" title="professional profile" status="active" className="os-panel-in">
-            <div className="flex flex-col gap-6">
-
-              {/* Classification strip */}
-              <div className="flex items-center gap-3 rounded border border-emerald-900/60 bg-emerald-950/20 px-3 py-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)] animate-pulse shrink-0" />
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-600">
-                  Dossier — Authorized Access Only
-                </span>
-                <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-emerald-800">
-                  clearance: open
-                </span>
-              </div>
-
-              {/* Name block + availability badge */}
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
-                    Subject / Personnel
-                  </p>
-                  <h1 className="mt-2 text-4xl font-semibold leading-tight tracking-tight text-zinc-100 md:text-5xl">
-                    {personnelIdentity.name}
-                  </h1>
-                  <p className="mt-2 font-mono text-sm text-zinc-400 md:text-base">
-                    {personnelIdentity.title}
-                  </p>
-                </div>
-
-                <div className="flex shrink-0 flex-col items-end gap-2">
-                  <div className="rounded border border-emerald-900/70 bg-emerald-950/30 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-emerald-400">
-                    Available
-                  </div>
-                  <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-700">
-                    status: active
+          {/* ── HERO IDENTITY ──────────────────────────────────────────── */}
+          <Win label="personnel.exe" status="dossier · authorized access" flush className="os-panel-in">
+            <div className="grid lg:grid-cols-[1.55fr_0.9fr]">
+              {/* Left — identity */}
+              <div className="border-b border-zinc-800/70 p-[30px] lg:border-b-0 lg:border-r">
+                <div className="flex items-center gap-2.5 rounded-md border border-emerald-900/70 bg-emerald-950/15 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-500">
+                  <span className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]" />
+                    subject verified
                   </span>
+                  <span className="ml-auto tracking-[0.16em] text-zinc-600">file&nbsp;#GNB-01</span>
+                </div>
+
+                <div className="mt-[22px]">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-zinc-700">Subject / Personnel</p>
+                  <h1 className="mt-2 text-balance text-[clamp(40px,6vw,68px)] font-bold leading-[0.94] tracking-[-0.035em] text-zinc-100">
+                    {name}
+                    <span className="mt-3.5 block font-mono text-[clamp(13px,1.5vw,16px)] font-medium tracking-[0.04em] text-emerald-500">
+                      alias <span className="text-zinc-600">:</span> {alias}
+                    </span>
+                  </h1>
+                </div>
+
+                <p className="mt-[18px] text-[clamp(15px,1.7vw,18px)] font-medium text-zinc-400">{title}</p>
+
+                <p className="mt-[18px] max-w-[60ch] text-pretty text-[14.5px] leading-[1.72] text-zinc-500">
+                  Cybersecurity expert and creative multimedia designer — combining deep security knowledge with an
+                  eye for design and storytelling. From <b className="font-semibold text-zinc-200">threat analysis and
+                  malware investigation</b> to <b className="font-semibold text-zinc-200">brand identity and full-stack
+                  builds</b>, the work is always about making something that matters.
+                </p>
+
+                <p className="mt-5 inline-flex items-center gap-2.5 font-mono text-[12px] tracking-[0.04em] text-emerald-400">
+                  <span className="font-bold text-emerald-500">›</span> {tagline}
+                </p>
+              </div>
+
+              {/* Right — availability + facts */}
+              <div className="flex flex-col gap-4 bg-zinc-950/30 p-[30px]">
+                <div className="flex items-center gap-2.5 rounded-[7px] border border-emerald-900/70 bg-emerald-950/25 px-3 py-2.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)] animate-pulse" />
+                  <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-400">Available</span>
+                  <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-700">status: active</span>
+                </div>
+
+                <p className="font-mono text-[11px] leading-[1.7] text-zinc-600">
+                  Open to <b className="font-medium text-zinc-400">cybersecurity</b>, <b className="font-medium text-zinc-400">threat intelligence</b>,{" "}
+                  <b className="font-medium text-zinc-400">multimedia design</b>, and <b className="font-medium text-zinc-400">full-stack development</b> —
+                  remote &amp; on-site across the GCC.
+                </p>
+
+                <div className="flex flex-col gap-2">
+                  <Fact Icon={MapPin} k="Location" v={location} />
+                  <Fact Icon={ShieldCheck} k="Focus" v="Security + design + automation" />
+                  <Fact Icon={UserRound} k="Clearance" v="Open · recruiter-ready" />
                 </div>
               </div>
-
-              <p className="max-w-3xl text-sm leading-7 text-zinc-300 md:text-base">
-                {personnelIdentity.summary}
-              </p>
-
-              {/* Quick facts row */}
-              <div className="grid gap-2 sm:grid-cols-3">
-                <InfoPill icon={<UserRound className="h-3.5 w-3.5" />} label="Alias" value={personnelIdentity.alias} />
-                <InfoPill icon={<MapPin className="h-3.5 w-3.5" />} label="Location" value={personnelIdentity.location} />
-                <InfoPill icon={<Shield className="h-3.5 w-3.5" />} label="Focus" value="Cybersecurity + automation" />
-              </div>
-
-              {/* CTA row */}
-              <div className="flex flex-col gap-3 border-t border-zinc-800/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
-                <p className="font-mono text-[11px] leading-6 text-zinc-500">
-                  <span className="mr-2 text-emerald-700">$</span>
-                  {personnelIdentity.availability}
-                </p>
-                <Link
-                  href={resumeHref}
-                  target="_blank"
-                  className="group inline-flex items-center justify-center gap-2 rounded border border-emerald-800 bg-emerald-950/50 px-5 py-2.5 text-sm font-semibold text-emerald-300 transition duration-200 hover:border-emerald-600 hover:bg-emerald-950 hover:text-emerald-200 hover:shadow-[0_0_16px_rgba(16,185,129,0.12)]"
-                >
-                  <ArrowDownToLine className="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5" />
-                  Download resume
-                </Link>
-              </div>
             </div>
-          </OSWindow>
 
-          {/* Hiring signal panel */}
-          <OSWindow label="quick.read" title="why shortlist" status="idle" className="os-panel-in [animation-delay:80ms]">
-            <div className="flex h-full flex-col gap-5">
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
-                  Hiring signal
-                </p>
-                <h2 className="mt-1.5 text-lg font-semibold text-zinc-100">Fast reasons to review</h2>
-              </div>
+            <StatBand stats={stats} />
+          </Win>
 
-              {/* Audit log entries */}
-              <ul className="space-y-2.5">
-                {recruiterHighlights.map((highlight, i) => (
-                  <li
-                    key={highlight}
-                    className="relative rounded border border-zinc-800/60 bg-zinc-950/30 px-3 py-2.5 text-xs leading-5 text-zinc-300 transition-colors duration-200 hover:border-zinc-700 hover:bg-zinc-950/50"
-                  >
-                    <span className="mr-2 font-mono text-[9px] text-zinc-700">
-                      [{String(i + 1).padStart(2, "0")}]
-                    </span>
-                    {highlight}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Contact links */}
-              <div className="mt-auto space-y-1.5 border-t border-zinc-800/60 pt-4">
-                <p className="mb-2.5 font-mono text-[9px] uppercase tracking-widest text-zinc-700">
-                  Direct channels
-                </p>
-                <ContactLink
-                  href={`mailto:${personnelIdentity.contact.email}`}
-                  label={personnelIdentity.contact.email}
-                  icon={<Mail className="h-3 w-3" />}
-                />
-                <ContactLink
-                  href={personnelIdentity.contact.linkedin}
-                  label="linkedin.com/in/hamzah-al-ramli"
-                  icon={<Linkedin className="h-3 w-3" />}
-                  external
-                />
-                <ContactLink
-                  href={personnelIdentity.contact.github}
-                  label="github.com/Goodnbadexe"
-                  icon={<Github className="h-3 w-3" />}
-                  external
-                />
-              </div>
-            </div>
-          </OSWindow>
-        </section>
-
-        {/* ── Row 2: Experience + Education ── */}
-        <section className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-
-          <OSWindow label="experience.timeline" title="work history" status="active" className="os-panel-in [animation-delay:120ms]">
-            <SectionHeading
-              icon={<BriefcaseBusiness className="h-4.5 w-4.5" />}
-              eyebrow="Experience"
-              title="Professional timeline"
-            />
-            <div className="relative mt-5">
-              {/* Vertical connector line */}
-              <div aria-hidden className="absolute left-[7px] top-3 bottom-3 w-px bg-zinc-800" />
-              <div className="space-y-3 pl-5">
-                {experienceTimeline.map((item, i) => (
-                  <TimelineCard
-                    key={item.title}
-                    date={item.date}
-                    title={item.title}
-                    details={item.details}
-                    index={i}
-                    isLast={i === experienceTimeline.length - 1}
-                  />
-                ))}
-              </div>
-            </div>
-          </OSWindow>
-
-          <OSWindow label="education.records" title="academic background" status="idle" className="os-panel-in [animation-delay:160ms]">
-            <SectionHeading
-              icon={<GraduationCap className="h-4.5 w-4.5" />}
-              eyebrow="Education"
-              title="Academic foundation"
-            />
-            <div className="relative mt-5">
-              <div aria-hidden className="absolute left-[7px] top-3 bottom-3 w-px bg-zinc-800" />
-              <div className="space-y-3 pl-5">
-                {educationTimeline.map((item, i) => (
-                  <TimelineCard
-                    key={item.title}
-                    date={item.date}
-                    title={item.title}
-                    details={item.details}
-                    compact
-                    index={i}
-                    isLast={i === educationTimeline.length - 1}
-                  />
-                ))}
-              </div>
-            </div>
-          </OSWindow>
-        </section>
-
-        {/* ── Row 3: Certifications + Capabilities ── */}
-        <section className="mt-4 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-
-          <OSWindow label="certifications" title="verified credentials" status="idle" className="os-panel-in [animation-delay:200ms]">
-            <SectionHeading
-              icon={<Shield className="h-4.5 w-4.5" />}
-              eyebrow="Certifications"
-              title="Credential records"
-            />
-            <div className="mt-5 flex flex-col gap-2.5">
-              {certifications.map((cert, i) => (
-                <Link
-                  key={cert.credentialId}
-                  href={cert.href ?? "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative overflow-hidden rounded border border-zinc-800 bg-zinc-950/40 p-4 transition-all duration-200 hover:border-emerald-900/80 hover:bg-zinc-950/65 hover:shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
-                  style={{ animationDelay: `${200 + i * 50}ms` }}
-                >
-                  {/* Hover left-glow accent */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-y-0 left-0 w-px bg-emerald-500/0 transition-colors duration-200 group-hover:bg-emerald-500/40"
-                  />
-
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-semibold leading-5 text-zinc-100 group-hover:text-zinc-50">{cert.name}</h3>
-                      <div className="mt-1.5 flex items-center gap-2">
-                        <span className="rounded border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-zinc-500">
-                          {cert.issuer}
-                        </span>
-                        <span className="font-mono text-[10px] text-zinc-600">{cert.date}</span>
-                      </div>
-                    </div>
-                    <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-700 transition-colors duration-200 group-hover:text-emerald-500" />
-                  </div>
-
-                  <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.15em] text-zinc-700 group-hover:text-zinc-600">
-                    ID: {cert.credentialId}
-                  </p>
-                </Link>
+          {/* ── 01 · CAPABILITY MATRIX ─────────────────────────────────── */}
+          <section className="os-panel-in [animation-delay:80ms]">
+            <SecLabel idx="01">capability.matrix</SecLabel>
+            <div className="grid gap-3.5 md:grid-cols-2">
+              {technicalCapabilities.map((group) => (
+                <DomainCard key={group.label} label={group.label} items={group.items} />
               ))}
             </div>
-          </OSWindow>
+          </section>
 
-          <OSWindow label="technical.capabilities" title="skills matrix" status="active" className="os-panel-in [animation-delay:240ms]">
-            <SectionHeading
-              icon={<Sparkles className="h-4.5 w-4.5" />}
-              eyebrow="Technical capabilities"
-              title="What Hamzah can operate and build"
-            />
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {technicalCapabilities.map((group) => {
-                const accent = CAPABILITY_ACCENTS[group.label] ?? {
-                  border: "border-l-zinc-600/50",
-                  dot: "bg-zinc-500",
-                  heading: "text-zinc-300",
-                  bg: "hover:border-zinc-700",
-                }
-                return (
-                  <div
-                    key={group.label}
-                    className={`rounded border-l-2 border border-zinc-800 bg-zinc-950/40 p-4 transition-colors duration-200 ${accent.border} ${accent.bg}`}
-                  >
-                    <h3 className={`text-xs font-semibold uppercase tracking-wide ${accent.heading}`}>
-                      {group.label}
-                    </h3>
-                    <ul className="mt-3 space-y-1.5">
-                      {group.items.map((item) => (
-                        <li key={item} className="flex items-start gap-2 text-xs leading-5 text-zinc-400">
-                          <span className={`mt-1.5 h-1 w-1 shrink-0 rounded-full ${accent.dot}`} />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
+          {/* ── 02 · CREDENTIAL LEDGER ─────────────────────────────────── */}
+          <section className="os-panel-in [animation-delay:120ms]">
+            <SecLabel idx="02">credentials.ledger</SecLabel>
+            <Win label="credentials.ledger" status="verified" statusDot={false}>
+              {/* summary + issuer distribution */}
+              <div className="mb-[18px] flex flex-wrap items-center gap-[18px]">
+                <div>
+                  <div className="font-mono text-[30px] font-semibold leading-none text-zinc-100">
+                    <b className="font-semibold text-emerald-500">{certifications.length}</b> verified
                   </div>
-                )
-              })}
-            </div>
-          </OSWindow>
-        </section>
+                  <div className="mt-[5px] font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600">
+                    credentials · {issuerOrder.length} issuers
+                  </div>
+                </div>
+                <div className="min-w-[280px] flex-1">
+                  <div className="flex h-2.5 overflow-hidden rounded-[5px] border border-zinc-800/70">
+                    {issuerOrder.map((issuer) => (
+                      <span
+                        key={issuer}
+                        className="block h-full"
+                        style={{ flexGrow: issuerCounts[issuer], backgroundColor: ISSUER_COLOR[issuer] ?? "#52525b" }}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-[11px] flex flex-wrap gap-x-4 gap-y-2">
+                    {issuerOrder.map((issuer) => (
+                      <span key={issuer} className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.04em] text-zinc-500">
+                        <i className="h-2 w-2 rounded-sm" style={{ backgroundColor: ISSUER_COLOR[issuer] ?? "#52525b" }} />
+                        {issuer} <b className="ml-0.5 font-medium text-zinc-600">×{issuerCounts[issuer]}</b>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-        {/* ── Row 4: Resume CTA ── */}
-        <section className="mt-4">
-          <OSWindow label="resume.download" title="primary action" status="active" className="os-panel-in [animation-delay:280ms]">
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Terminal className="h-4 w-4 text-emerald-600" />
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-700">
-                    Resume ready
+              {/* cert cards */}
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {certifications.map((cert) => (
+                  <CertCard key={cert.name} cert={cert} />
+                ))}
+              </div>
+            </Win>
+          </section>
+
+          {/* ── 03 · SERVICE RECORD ────────────────────────────────────── */}
+          <section className="os-panel-in [animation-delay:160ms]">
+            <SecLabel idx="03">service.record</SecLabel>
+            <div className="grid gap-3.5 lg:grid-cols-2">
+              <Win label="experience.timeline" status="work history">
+                <Timeline items={experienceTimeline} />
+              </Win>
+              <Win label="education.records" status="academic" statusDot={false}>
+                <Timeline items={educationTimeline} />
+              </Win>
+            </div>
+          </section>
+
+          {/* ── 04 · ACTIVE BUILDS (roadmap) ───────────────────────────── */}
+          <section className="os-panel-in [animation-delay:200ms]">
+            <SecLabel idx="04" trailing="— what we're building">active.builds</SecLabel>
+            <Win label="active.builds" status="trajectory" statusDot={false}>
+              <p className="mb-4 max-w-[70ch] font-mono text-[11.5px] leading-[1.7] text-zinc-600">
+                Beyond the credentials already earned, here&apos;s the <b className="text-emerald-500">current trajectory</b> —
+                the systems, skills, and infrastructure actively in progress.
+              </p>
+              <div className="grid gap-3.5 md:grid-cols-3">
+                {memoryPlan.goals.map((goal) => (
+                  <BuildCard key={goal.area} area={goal.area} targets={goal.targets} />
+                ))}
+              </div>
+            </Win>
+          </section>
+
+          {/* ── 05 · DIRECT CHANNELS ───────────────────────────────────── */}
+          <section className="os-panel-in [animation-delay:240ms]">
+            <SecLabel idx="05">direct.channels</SecLabel>
+            <Win label="direct.channels" status="open" statusDot={false}>
+              <div className="grid items-center gap-[30px] lg:grid-cols-[1fr_auto]">
+                <div className="grid gap-2.5 sm:grid-cols-2">
+                  <Channel Icon={Mail} k="Email" v={contact.email} href={`mailto:${contact.email}`} />
+                  <Channel Icon={Phone} k="Phone" v={contact.phone} href={`tel:${contact.phone.replace(/\s+/g, "")}`} />
+                  <Channel Icon={Linkedin} k="LinkedIn" v="in/hamzah-al-ramli-505" href={contact.linkedin} external />
+                  <Channel Icon={Github} k="GitHub" v="github.com/Goodnbadexe" href={contact.github} external />
+                </div>
+                <div className="flex flex-col items-stretch gap-3 lg:min-w-[230px] lg:items-end">
+                  <p className="font-mono text-[10px] leading-[1.7] text-zinc-600 lg:text-right">
+                    <span className="text-emerald-500">$</span> full professional profile
+                    <br />
+                    fastest path for recruiter review
+                  </p>
+                  <Link
+                    href={resumeHref}
+                    target="_blank"
+                    className="inline-flex items-center justify-center gap-2.5 rounded-[7px] border border-emerald-500 bg-emerald-500 px-[22px] py-[13px] font-mono text-[12px] font-semibold uppercase tracking-[0.08em] text-emerald-950 transition-all duration-200 hover:-translate-y-px hover:bg-emerald-400 hover:shadow-[0_0_22px_rgba(16,185,129,0.22)]"
+                  >
+                    <Download className="h-[15px] w-[15px]" />
+                    Download resume
+                  </Link>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-700 lg:text-right">
+                    hamzah-al-ramli-resume.pdf
                   </span>
                 </div>
-                <h2 className="text-2xl font-semibold tracking-tight text-zinc-100">
-                  Review the complete resume
-                </h2>
-                <p className="font-mono text-[11px] leading-6 text-zinc-500">
-                  <span className="mr-2 text-emerald-700">$</span>
-                  PDF · full professional profile · fastest path for recruiter review
-                </p>
               </div>
-
-              <div className="flex shrink-0 flex-col items-start gap-3 md:items-end">
-                <Link
-                  href={resumeHref}
-                  target="_blank"
-                  className="group inline-flex items-center gap-2.5 rounded border border-emerald-700 bg-emerald-900/50 px-6 py-3 text-sm font-semibold text-emerald-100 transition-all duration-200 hover:border-emerald-500 hover:bg-emerald-800/60 hover:shadow-[0_0_24px_rgba(16,185,129,0.15)]"
-                >
-                  <ArrowDownToLine className="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5" />
-                  Download Hamzah Al-Ramli resume
-                </Link>
-                <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-700">
-                  hamzah-al-ramli-resume.pdf
-                </span>
-              </div>
-            </div>
-          </OSWindow>
-        </section>
-
+            </Win>
+          </section>
+        </div>
       </div>
+
+      {/* ── Footer ───────────────────────────────────────────────────── */}
+      <footer className="relative z-10 mt-[30px] border-t border-zinc-800/70 bg-zinc-950/40">
+        <div className="mx-auto flex max-w-[1240px] flex-col items-start justify-between gap-2.5 px-5 py-4 font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-700 sm:flex-row sm:items-center sm:px-8">
+          <span>GOODNBAD.EXE © {new Date().getFullYear()} — personnel file synced</span>
+          <div className="flex gap-5">
+            <Link href={contact.github} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-zinc-400">GitHub</Link>
+            <Link href={contact.linkedin} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-zinc-400">LinkedIn</Link>
+            <Link href={resumeHref} target="_blank" className="transition-colors hover:text-zinc-400">Resume ↗</Link>
+          </div>
+        </div>
+      </footer>
     </OSPageShell>
   )
 }
 
-// ── Sub-components ──────────────────────────────────────────────────────────
-
-function InfoPill({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+// ── Window chrome (Personnel Dossier .win) ──────────────────────────────────
+function Win({
+  label,
+  status,
+  statusDot = true,
+  flush,
+  className,
+  children,
+}: {
+  label: string
+  status?: string
+  statusDot?: boolean
+  flush?: boolean
+  className?: string
+  children: ReactNode
+}) {
   return (
-    <div className="rounded border border-zinc-800/80 bg-zinc-950/50 p-3 transition-colors duration-200 hover:border-zinc-700/80">
-      <div className="flex items-center gap-1.5 text-emerald-600">
-        {icon}
-        <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-zinc-700">{label}</span>
+    <div
+      className={cn(
+        "overflow-hidden rounded-[10px] border border-zinc-800 bg-zinc-900/[0.62] backdrop-blur-[10px]",
+        className,
+      )}
+    >
+      <div className="flex h-[34px] items-center gap-2.5 border-b border-zinc-800/70 bg-zinc-950/50 px-3.5 font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600">
+        <span className="mr-1 flex gap-1.5">
+          <i className="block h-[9px] w-[9px] rounded-full bg-zinc-800" />
+          <i className="block h-[9px] w-[9px] rounded-full bg-zinc-800" />
+          <i className="block h-[9px] w-[9px] rounded-full bg-emerald-950" />
+        </span>
+        <span className="text-zinc-500">{label}</span>
+        {status && (
+          <span className="ml-auto flex items-center gap-1.5 text-zinc-600">
+            {statusDot && (
+              <span className="h-[5px] w-[5px] rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)] animate-pulse" />
+            )}
+            {status}
+          </span>
+        )}
       </div>
-      <p className="mt-2 text-sm font-medium text-zinc-200">{value}</p>
+      {flush ? children : <div className="p-[26px]">{children}</div>}
     </div>
   )
 }
 
-function ContactLink({
-  href,
-  label,
-  icon,
-  external,
-}: {
-  href: string
-  label: string
-  icon: ReactNode
-  external?: boolean
-}) {
+function SecLabel({ idx, trailing, children }: { idx: string; trailing?: string; children: ReactNode }) {
+  return (
+    <div className="mb-3.5 flex items-center gap-3.5 font-mono text-[11px] uppercase tracking-[0.24em] text-zinc-600">
+      <span className="text-emerald-500">{idx}</span>
+      <span>
+        {children}
+        {trailing && <span className="ml-2 text-zinc-700">{trailing}</span>}
+      </span>
+      <span className="h-px flex-1 bg-zinc-800/70" />
+    </div>
+  )
+}
+
+function Fact({ Icon, k, v }: { Icon: ElementType; k: string; v: string }) {
+  return (
+    <div className="flex items-center gap-2.5 rounded-md border border-zinc-800 bg-zinc-950/40 px-3 py-2.5">
+      <Icon className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+      <span className="min-w-[58px] font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-700">{k}</span>
+      <span className="text-[13px] text-zinc-400">{v}</span>
+    </div>
+  )
+}
+
+function DomainCard({ label, items }: { label: string; items: string[] }) {
+  const s = CAP_STYLE[label] ?? { color: "#71717a", dim: "rgba(113,113,122,.4)", meta: "", Icon: Sparkles }
+  const Icon = s.Icon
+  return (
+    <div
+      className="rounded-[9px] border border-zinc-800 bg-zinc-900/50 p-[18px] transition-all duration-200 hover:-translate-y-0.5 hover:bg-zinc-800/40"
+      style={{ borderLeftWidth: 3, borderLeftColor: s.color }}
+    >
+      <div className="flex items-center gap-2.5">
+        <span
+          className="grid h-[30px] w-[30px] place-items-center rounded-[7px] border bg-white/[0.02]"
+          style={{ borderColor: s.dim, color: s.color }}
+        >
+          <Icon className="h-4 w-4" />
+        </span>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold tracking-[-0.01em] text-zinc-100">{label}</h3>
+          <div className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.14em]" style={{ color: s.color }}>
+            {s.meta}
+          </div>
+        </div>
+        <span className="font-mono text-[11px] text-zinc-600">{String(items.length).padStart(2, "0")}</span>
+      </div>
+      <ul className="mt-3.5 flex flex-col gap-[7px]">
+        {items.map((item) => (
+          <li key={item} className="flex items-start gap-2.5 text-[12.5px] leading-[1.5] text-zinc-500">
+            <span className="mt-1.5 h-[5px] w-[5px] shrink-0 rounded-[1.5px] opacity-90" style={{ backgroundColor: s.color }} />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+type Cert = { name: string; issuer: string; date: string; credentialId?: string; href?: string }
+
+function CertCard({ cert }: { cert: Cert }) {
+  const color = ISSUER_COLOR[cert.issuer] ?? "#52525b"
+  const credentialId = cert.credentialId
+
+  const inner = (
+    <>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-0 w-0.5 opacity-0 transition-opacity duration-200 group-hover/cert:opacity-70"
+        style={{ backgroundColor: color }}
+      />
+      <div className="flex items-start justify-between gap-2.5">
+        <span
+          className="rounded font-mono text-[9px] uppercase tracking-[0.14em]"
+          style={{ color, border: `1px solid ${color}59`, backgroundColor: `${color}1a`, padding: "3px 7px" }}
+        >
+          {cert.issuer}
+        </span>
+        {cert.href && (
+          <ExternalLink className="h-[13px] w-[13px] shrink-0 text-zinc-700 transition-colors group-hover/cert:text-emerald-500" />
+        )}
+      </div>
+      <h4 className="mt-3 flex-1 text-[13.5px] font-semibold leading-[1.35] text-zinc-100">{cert.name}</h4>
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <span className="font-mono text-[10px] text-zinc-600">{cert.date}</span>
+        {credentialId ? (
+          <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-zinc-700">ID: {credentialId}</span>
+        ) : (
+          <span className="flex items-center gap-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-emerald-500/80">
+            <Check className="h-2.5 w-2.5" /> verified
+          </span>
+        )}
+      </div>
+    </>
+  )
+
+  const cardClass =
+    "group/cert relative flex flex-col overflow-hidden rounded-[9px] border border-zinc-800 bg-zinc-950/40 p-[15px] transition-all duration-200 hover:-translate-y-0.5 hover:bg-zinc-800/40"
+
+  return cert.href ? (
+    <Link href={cert.href} target="_blank" rel="noopener noreferrer" className={cardClass}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={cardClass}>{inner}</div>
+  )
+}
+
+type TLItem = { date: string; title: string; details: string[] }
+
+function Timeline({ items }: { items: TLItem[] }) {
+  return (
+    <div className="relative mt-4 pl-[22px]">
+      <span aria-hidden className="absolute bottom-1.5 left-[5px] top-1.5 w-px bg-zinc-800" />
+      <div className="flex flex-col">
+        {items.map((it, i) => {
+          const active = /present/i.test(it.date)
+          return (
+            <div key={it.title} className={i < items.length - 1 ? "relative pb-4" : "relative"}>
+              <span
+                aria-hidden
+                className={cn(
+                  "absolute left-[-22px] top-[5px] h-[11px] w-[11px] rounded-full border-2 bg-zinc-950 shadow-[0_0_0_3px_theme(colors.zinc.950)]",
+                  active
+                    ? "border-emerald-500 bg-emerald-950 shadow-[0_0_0_3px_theme(colors.zinc.950),0_0_9px_rgba(16,185,129,0.5)]"
+                    : "border-emerald-900/70",
+                )}
+              />
+              <span className="inline-flex items-center gap-1.5 rounded border border-emerald-900/70 bg-emerald-950/15 px-2 py-[3px] font-mono text-[9.5px] uppercase tracking-[0.12em] text-emerald-500">
+                {active && <span className="h-[5px] w-[5px] rounded-full bg-emerald-500 shadow-[0_0_5px_theme(colors.emerald.500)]" />}
+                {it.date}
+              </span>
+              <h4 className="mt-2.5 text-[13.5px] font-semibold leading-[1.4] text-zinc-100">{it.title}</h4>
+              <ul className="mt-2 flex flex-col gap-1.5">
+                {it.details.map((d) => (
+                  <li key={d} className="flex gap-2 text-[12px] leading-[1.5] text-zinc-500">
+                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-700" />
+                    <span>{d}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function BuildCard({ area, targets }: { area: string; targets: string[] }) {
+  const prog = PROG_LABEL[area] ?? "active"
+  return (
+    <div className="rounded-[9px] border border-zinc-800 bg-zinc-900/50 p-[18px] transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-900/70">
+      <div className="flex items-center gap-2.5 border-b border-zinc-800/70 pb-3">
+        <span className="rounded border border-emerald-900/70 bg-emerald-950/15 px-1.5 py-[3px] font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-500">
+          {area}
+        </span>
+        <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.1em] text-zinc-600">{prog}</span>
+      </div>
+      <ul className="mt-3 flex flex-col gap-2.5">
+        {targets.map((t) => (
+          <li key={t} className="flex gap-2.5 text-[12.5px] leading-[1.5] text-zinc-500">
+            <span className="mt-0.5 grid h-[13px] w-[13px] shrink-0 place-items-center rounded-[3px] border border-emerald-900/70 text-emerald-500">
+              <Check className="h-2.5 w-2.5" />
+            </span>
+            <span>{t}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function Channel({ Icon, k, v, href, external }: { Icon: ElementType; k: string; v: string; href: string; external?: boolean }) {
   return (
     <Link
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
-      className="group flex items-center justify-between gap-3 rounded border border-zinc-800/60 bg-zinc-950/30 px-3 py-2 transition-colors duration-200 hover:border-zinc-700 hover:bg-zinc-950/50"
+      className="flex items-center gap-2.5 rounded-lg border border-zinc-800 bg-zinc-950/40 px-3.5 py-3 transition-all duration-200 hover:-translate-y-px hover:border-emerald-900/70 hover:bg-emerald-950/15"
     >
-      <span className="flex min-w-0 items-center gap-2 text-zinc-500 group-hover:text-zinc-300">
-        <span className="shrink-0 text-emerald-700 group-hover:text-emerald-500 transition-colors duration-200">
-          {icon}
-        </span>
-        <span className="truncate font-mono text-[10px]">{label}</span>
+      <Icon className="h-4 w-4 shrink-0 text-emerald-500" />
+      <span className="min-w-0">
+        <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-700">{k}</span>
+        <span className="mt-0.5 block truncate font-mono text-[12px] text-zinc-400">{v}</span>
       </span>
-      {external && (
-        <ExternalLink className="h-3 w-3 shrink-0 text-zinc-700 transition-colors duration-200 group-hover:text-zinc-500" />
-      )}
     </Link>
-  )
-}
-
-function SectionHeading({
-  icon,
-  eyebrow,
-  title,
-}: {
-  icon: ReactNode
-  eyebrow: string
-  title: string
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="mt-0.5 shrink-0 text-emerald-600">{icon}</span>
-      <div>
-        <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-zinc-600">{eyebrow}</p>
-        <h2 className="mt-1 text-lg font-semibold leading-tight text-zinc-100">{title}</h2>
-      </div>
-    </div>
-  )
-}
-
-function TimelineCard({
-  date,
-  title,
-  details,
-  compact,
-  index,
-  isLast,
-}: {
-  date: string
-  title: string
-  details: string[]
-  compact?: boolean
-  index: number
-  isLast?: boolean
-}) {
-  return (
-    <article className="relative">
-      {/* Timeline dot */}
-      <span
-        aria-hidden
-        className="absolute -left-5 top-3 flex h-3 w-3 -translate-x-1/2 items-center justify-center"
-      >
-        <span className="h-2 w-2 rounded-full border border-emerald-800 bg-emerald-950 ring-2 ring-zinc-950" />
-      </span>
-
-      <div className="rounded border border-zinc-800/70 bg-zinc-950/40 p-4 transition-all duration-200 hover:border-zinc-700/70 hover:bg-zinc-950/60 hover:shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
-        {/* Date stamp */}
-        <span className="inline-flex items-center gap-1.5 rounded border border-emerald-900/60 bg-emerald-950/20 px-2 py-0.5">
-          <span className="h-1 w-1 rounded-full bg-emerald-600" />
-          <span className="font-mono text-[9px] uppercase tracking-widest text-emerald-700">{date}</span>
-        </span>
-
-        <h3 className="mt-3 text-sm font-semibold leading-5 text-zinc-100 md:text-base">{title}</h3>
-
-        <ul className={compact ? "mt-3 space-y-1" : "mt-3 space-y-1.5"}>
-          {details.map((detail) => (
-            <li key={detail} className="flex gap-2 text-xs leading-5 text-zinc-500">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-700" />
-              <span>{detail}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </article>
   )
 }
