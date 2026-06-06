@@ -28,8 +28,8 @@ const Globe = dynamic(() => import("react-globe.gl"), { ssr: false }) as any
 // Textures
 // ---------------------------------------------------------------------------
 const TEXTURES: Record<GlobeMode, string> = {
-  bluemarble: "//unpkg.com/three-globe/example/img/earth-blue-marble.jpg",
-  night:      "//unpkg.com/three-globe/example/img/earth-night.jpg",
+  bluemarble: "/textures/earth-blue-marble.jpg",
+  night:      "/textures/earth-night.jpg",
   // NASA GIBS VIIRS True Colour — 2048×1024, free, no key, ~2 day lag
   satellite:  (() => {
     const d = new Date()
@@ -263,8 +263,8 @@ export function HorusGlobe({
 
         // Textures
         globeImageUrl={TEXTURES[globeMode]}
-        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-        backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
+        bumpImageUrl="/textures/earth-topology.png"
+        backgroundImageUrl="/textures/night-sky.png"
         backgroundColor="rgba(0,0,0,0)"
         atmosphereColor={globeMode === "night" ? "rgba(30,40,100,0.6)" : "rgba(100,160,220,0.35)"}
         atmosphereAltitude={0.18}
