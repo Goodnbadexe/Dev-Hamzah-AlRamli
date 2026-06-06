@@ -542,13 +542,17 @@ export default function HomePage() {
         </section>
 
         {/* ── MODULE LAUNCHER ───────────────────────────────── */}
-        <section className={wrap(globeInspect, "pb-12")}>
+        {/* Unlike the hero/feed (narrow left column), the launcher breaks out to
+            a full-width left-anchored STRIP — one horizontal row of all five
+            modules on desktop. It deliberately overlays the globe on the right
+            (cards keep backdrop-blur so they stay legible). */}
+        <section className={globeInspect ? wrap(true, "pb-12") : "w-full mr-auto px-5 sm:px-8 lg:pl-20 lg:pr-8 pb-12"}>
           <div className={cn(globeInspect && "w-full pointer-events-auto")}>
             <div className="mb-4 flex items-center gap-3.5 font-mono text-[12px] uppercase tracking-[0.22em] text-zinc-500">
               <span>os.modules</span>
               <span className="h-px flex-1 bg-zinc-900" />
             </div>
-            <div className={cn("grid gap-3", globeInspect ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2")}>
+            <div className={cn("grid gap-3", globeInspect ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5")}>
               {MODULE_ITEMS.map(({ href, code, label, sub, Icon }, i) => (
                 <Link
                   key={href}
