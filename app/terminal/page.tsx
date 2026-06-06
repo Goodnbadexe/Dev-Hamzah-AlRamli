@@ -1,7 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { ArrowLeft, BriefcaseBusiness, CircleHelp, Keyboard, Mail, UserRound } from "lucide-react"
-import { HackerTerminal } from "@/components/hacker-terminal"
+import { TerminalSurface } from "@/components/terminal/TerminalSurface"
 import { OSPageShell } from "@/components/os/OSPageShell"
 import { OSWindow } from "@/components/os"
 
@@ -98,7 +98,7 @@ export default function TerminalPage() {
             <div className="mb-4 rounded-md border border-zinc-800 bg-zinc-950/45 p-3 text-xs leading-6 text-zinc-400 font-mono">
               System ready. Try <span className="text-emerald-400">help</span>, <span className="text-emerald-400">ls</span>, or <span className="text-emerald-400">cat ~/README.md</span>.
             </div>
-            <HackerTerminal />
+            <TerminalSurface />
           </OSWindow>
         </section>
       </div>
