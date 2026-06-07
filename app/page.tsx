@@ -11,6 +11,7 @@ import type { ThreatIoc } from "@/app/api/threats/route"
 import { IocInspector } from "@/components/signal/IocInspector"
 import { MobileSignalOverlay } from "@/components/signal/MobileSignalOverlay"
 import { GlobeLegend } from "@/components/signal/GlobeLegend"
+import { IOC_COLOR } from "@/components/signal/ThreatGlobe"
 
 // Globe — deferred: only loads after initial paint (via requestIdleCallback)
 // and never SSR'd. This keeps the homepage TTI fast; the globe fades in
@@ -281,6 +282,44 @@ function LayerPanel({ activeLayers, onToggle }: LayerPanelProps) {
 }
 
 // ---------------------------------------------------------------------------
+// LIVE ATTACKS ticker — a horizontal marquee of the live IOC stream, distinct
+// from the ambient signal feed. Self-hides until indicators arrive (so it never
+// shows on mobile, which skips the globe). pointer-events:none so it never
+// blocks the globe/content beneath.
+// ---------------------------------------------------------------------------
+function LiveAttacksStrip({ iocs }: { iocs: ThreatIoc[] }) {
+  if (iocs.length === 0) return null
+  const track = iocs.slice(0, 14)
+  const typeLabel = (t: ThreatIoc["type"]) => t.replace("_", " ").toUpperCase()
+
+  return (
+    <div className="fixed bottom-11 left-3 right-[5.5rem] z-30 hidden pointer-events-none md:block">
+      <div className="flex items-center gap-3 overflow-hidden rounded-md border border-zinc-800/70 bg-zinc-950/75 px-3 py-1.5 backdrop-blur-md">
+        <span className="flex shrink-0 items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_theme(colors.rose.500)] animate-pulse motion-reduce:animate-none" />
+          live attacks
+        </span>
+        <span className="h-3 w-px shrink-0 bg-zinc-800" />
+        <div className="relative flex-1 overflow-hidden">
+          <div className="flex w-max gap-8 whitespace-nowrap animate-[ticker_38s_linear_infinite] motion-reduce:animate-none">
+            {[...track, ...track].map((ioc, i) => (
+              <span key={`${ioc.id}-${i}`} className="inline-flex items-center gap-2 font-mono text-[11px]">
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: IOC_COLOR[ioc.type], boxShadow: `0 0 6px ${IOC_COLOR[ioc.type]}` }}
+                />
+                <span className="text-zinc-200">{typeLabel(ioc.type)}</span>
+                <span className="text-zinc-600">{ioc.country} · {ioc.source}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 export default function HomePage() {
@@ -483,6 +522,9 @@ export default function HomePage() {
           exit globe preview
         </button>
       )}
+
+      {/* LIVE ATTACKS ticker — streaming IOC marquee above the footer */}
+      {!globeInspect && <LiveAttacksStrip iocs={recentIocs} />}
 
       <main
         className={cn(
