@@ -45,8 +45,10 @@ export const IOC_COLOR: Record<IocType, string> = {
   ransomware:    "rgba(168,85,247,0.92)",  // violet
 }
 
+// Dot radii in degrees of arc — sized up for legibility on the large hero globe
+// (a dot must read as a target, not a speck). Severity drives the hierarchy.
 const SEV_R: Record<ThreatIoc["severity"], number> = {
-  critical: 0.50, high: 0.38, medium: 0.27, low: 0.19,
+  critical: 0.72, high: 0.54, medium: 0.40, low: 0.30,
 }
 
 const SEV_RING: Record<ThreatIoc["severity"], string> = {
@@ -458,7 +460,7 @@ export function ThreatGlobe({
         pointsData={iocPoints}
         pointLat="lat"
         pointLng="lng"
-        pointAltitude={0.02}
+        pointAltitude={0.025}
         pointRadius={(d: ThreatIoc) => SEV_R[d.severity] * (interactive ? zoomScale : 1)}
         pointColor={(d: ThreatIoc) => IOC_COLOR[d.type]}
         pointResolution={8}
@@ -477,7 +479,7 @@ export function ThreatGlobe({
         ringLat="lat"
         ringLng="lng"
         ringColor={(d: ThreatIoc) => SEV_RING[d.severity]}
-        ringMaxRadius={(d: ThreatIoc) => (d.severity === "critical" ? 5.5 : 3.4)}
+        ringMaxRadius={(d: ThreatIoc) => (d.severity === "critical" ? 6.5 : 4.2)}
         ringPropagationSpeed={interactive ? 2.0 : 3.4}
         ringRepeatPeriod={interactive ? 1100 : 620}
 
