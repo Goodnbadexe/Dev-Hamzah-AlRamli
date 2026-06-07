@@ -71,6 +71,10 @@ interface Props {
   placement?: "rail" | "inline"
   /** Hide the rail entirely (only relevant for placement="rail"). */
   railHidden?: boolean
+  /** Controlled pinned IOC (e.g. set by clicking a globe dot). Omit for uncontrolled. */
+  pinned?: ThreatIoc | null
+  /** Called when the pinned IOC changes (row click, dot click, close). */
+  onPin?: (ioc: ThreatIoc | null) => void
 }
 
 // ── Live indicator list (shared by both placements) ─────────────────────────
@@ -119,8 +123,12 @@ function IocList({
   )
 }
 
-export function IocInspector({ recent, hovered, placement = "rail", railHidden = false }: Props) {
-  const [pinned, setPinned] = useState<ThreatIoc | null>(null)
+export function IocInspector({ recent, hovered, placement = "rail", railHidden = false, pinned: pinnedProp, onPin }: Props) {
+  // Controlled when `pinned`/`onPin` are supplied (e.g. globe dot clicks lift it
+  // to the page); otherwise falls back to internal state for standalone use.
+  const [internalPinned, setInternalPinned] = useState<ThreatIoc | null>(null)
+  const pinned = pinnedProp !== undefined ? pinnedProp : internalPinned
+  const setPinned = (ioc: ThreatIoc | null) => { onPin ? onPin(ioc) : setInternalPinned(ioc) }
   const detail = pinned ?? hovered
   const open = Boolean(detail)
 

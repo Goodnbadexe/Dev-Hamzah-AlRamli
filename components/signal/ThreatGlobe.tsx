@@ -225,8 +225,10 @@ interface Props {
   interactive?: boolean
   /** Fired on a drip cadence so parents can stream a live IOC feed. */
   onIoc?: (ioc: ThreatIoc) => void
-  /** Fired on hover/click of a dot (null on leave) — for the inspector. */
+  /** Fired on hover of a dot (null on leave) — drives the inspector preview. */
   onIocSelect?: (ioc: ThreatIoc | null) => void
+  /** Fired on click of a dot — pins the inspector card (vs. the hover preview). */
+  onIocClick?: (ioc: ThreatIoc) => void
   onGlobeClick?: () => void
   showWorldLayers?: boolean
   /** Per-layer filtering — set of layer labels that are active. */
@@ -245,7 +247,7 @@ interface Props {
 }
 
 export function ThreatGlobe({
-  interactive = false, onIoc, onIocSelect, onGlobeClick,
+  interactive = false, onIoc, onIocSelect, onIocClick, onGlobeClick,
   showWorldLayers = false, activeLayers, terminator = false, align = "center", width, height,
 }: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -472,7 +474,7 @@ export function ThreatGlobe({
           </div>`
         }
         onPointHover={(d: ThreatIoc | null) => onIocSelect?.(d ?? null)}
-        onPointClick={(d: ThreatIoc) => onIocSelect?.(d)}
+        onPointClick={(d: ThreatIoc) => (onIocClick ?? onIocSelect)?.(d)}
 
         // Severity pulse rings (critical / high only)
         ringsData={iocRings}
@@ -519,7 +521,7 @@ export function ThreatGlobe({
         }}
 
         rendererConfig={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-        enablePointerInteraction={interactive || Boolean(onGlobeClick) || Boolean(onIocSelect)}
+        enablePointerInteraction={interactive || Boolean(onGlobeClick) || Boolean(onIocSelect) || Boolean(onIocClick)}
         onGlobeReady={handleReady}
         onGlobeClick={onGlobeClick}
         onZoom={(pov: { altitude: number }) => {
