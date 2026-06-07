@@ -8,8 +8,9 @@ import {
 } from "lucide-react"
 import { QUIZ, QUIZ_TOTAL } from "@/lib/subscribe/quiz"
 import {
-  BUILD_STEPS, PLANS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, checkoutUrl, type Plan,
+  BUILD_STEPS, PLANS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, planById, type Plan,
 } from "@/lib/subscribe/config"
+import { MoyasarPayment } from "./MoyasarPayment"
 
 const ICONS: Record<string, LucideIcon> = {
   user: User, zap: Zap, wrench: Wrench, alert: AlertTriangle, layers: Layers, clock: Clock,
@@ -21,7 +22,7 @@ const ICONS: Record<string, LucideIcon> = {
 const OFFER_KEY = "gnb_vault_offer_expires"
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-type Phase = "intro" | "quiz" | "loading" | "plan" | "done"
+type Phase = "intro" | "quiz" | "loading" | "plan" | "pay" | "success" | "payfail"
 
 function useCountdown(expiresAt: number | null) {
   const [remaining, setRemaining] = useState(PROMO_WINDOW_MS)
@@ -47,7 +48,7 @@ export default function SubscribePage() {
   const [promo, setPromo] = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState<number | null>(null)
   const [selected, setSelected] = useState<Plan["id"]>("month")
-  const [submitting, setSubmitting] = useState(false)
+  const [payResult, setPayResult] = useState<{ status: string; id: string | null; message: string | null } | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
 
   const { display: countdown, expired } = useCountdown(expiresAt)
@@ -56,6 +57,17 @@ export default function SubscribePage() {
 
   const scrollTop = useCallback(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }, [])
+
+  // Moyasar redirects the browser back here after 3-D Secure with
+  // ?id=&status=&message= — read it and show the result, then clean the URL.
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const status = sp.get("status")
+    if (!status) return
+    setPayResult({ status, id: sp.get("id"), message: sp.get("message") })
+    setPhase(status === "paid" ? "success" : "payfail")
+    window.history.replaceState({}, "", "/subscribe")
   }, [])
 
   // Fire-and-forget lead capture (never blocks the funnel).
@@ -136,19 +148,9 @@ export default function SubscribePage() {
   }, [phase, scrollTop])
 
   const handleGetPlan = useCallback(() => {
-    setSubmitting(true)
-    sendLead(selected, promo)
-    const url = checkoutUrl(selected)
-    if (url) {
-      window.location.href = url
-      return
-    }
-    // No payment link configured yet → honest confirmation, lead already captured.
-    window.setTimeout(() => {
-      setSubmitting(false)
-      setPhase("done")
-      scrollTop()
-    }, 600)
+    sendLead(selected, promo) // capture the lead, then pay in-page (no exit)
+    setPhase("pay")
+    scrollTop()
   }, [selected, promo, sendLead, scrollTop])
 
   const progressPct = useMemo(() => Math.round((qIndex / QUIZ_TOTAL) * 100), [qIndex])
@@ -376,10 +378,9 @@ export default function SubscribePage() {
             <button
               type="button"
               onClick={handleGetPlan}
-              disabled={submitting}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-4 font-mono text-sm font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400 disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-4 font-mono text-sm font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
             >
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>GET MY PLAN <ArrowRight className="h-4 w-4" /></>}
+              GET MY PLAN <ArrowRight className="h-4 w-4" />
             </button>
 
             <p className="text-center font-mono text-[11px] text-emerald-600/80" dir="rtl">{PRODUCT.socialProofAr}</p>
@@ -404,17 +405,77 @@ export default function SubscribePage() {
           </section>
         )}
 
-        {/* ── DONE (no payment link configured yet) ──────────────────────── */}
-        {phase === "done" && (
+        {/* ── PAY (in-page Moyasar card form — no exit before paying) ─────── */}
+        {phase === "pay" && promo && (() => {
+          const sel = planById(selected)
+          return (
+            <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4">
+              <button
+                type="button"
+                onClick={() => { setPhase("plan"); scrollTop() }}
+                className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-zinc-600 hover:text-zinc-400"
+              >
+                <ArrowLeft className="h-3 w-3" /> change plan
+              </button>
+
+              <div className="rounded-xl border border-emerald-800 bg-emerald-950/15 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-200">{sel.en}</p>
+                    <p className="text-xs text-zinc-500" dir="rtl">{sel.ar}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono text-2xl font-bold text-emerald-300">{sel.price}</span>
+                    <span className="font-mono text-xs text-zinc-500"> SAR</span>
+                    <p className="font-mono text-[10px] text-zinc-600">{sel.perDay}</p>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center gap-2 border-t border-emerald-900/40 pt-2.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="font-mono text-[10px] text-emerald-600">promo <span className="text-emerald-400">{promo}</span> applied</span>
+                </div>
+              </div>
+
+              <MoyasarPayment
+                amountSar={sel.price}
+                description={`Toolkit Vault · ${sel.en} · ${promo}`}
+                metadata={{ plan: sel.id, promo: promo ?? "", name, email }}
+              />
+
+              <p className="text-center font-mono text-[10px] text-zinc-700" dir="rtl">
+                دفع آمن · إلغاء في أي وقت · secure payment
+              </p>
+            </section>
+          )
+        })()}
+
+        {/* ── SUCCESS (Moyasar returned paid) ─────────────────────────────── */}
+        {phase === "success" && (
           <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4 pt-8 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
-            <h2 className="text-xl font-bold text-zinc-100" dir="rtl">تم! أنت داخل القائمة</h2>
-            <p className="text-sm text-zinc-400" dir="rtl">
-              بنرسل خطتك الأولى وكود الخصم <span className="font-mono text-emerald-400">{promo}</span> على <span className="font-mono text-zinc-200">{email}</span>.
-            </p>
+            <h2 className="text-xl font-bold text-zinc-100" dir="rtl">تم الدفع! أهلاً فيك</h2>
+            <p className="text-sm text-zinc-400" dir="rtl">بنرسل لك أول حقيبة أدوات على إيميلك قريب.</p>
             <p className="font-mono text-xs text-zinc-600">
-              You&apos;re on the list — your first toolkit + promo is on its way to {email}.
+              Payment confirmed — your first toolkit is on its way.
+              {payResult?.id ? ` (ref ${payResult.id.slice(0, 12)})` : ""}
             </p>
+          </section>
+        )}
+
+        {/* ── PAYMENT FAILED ──────────────────────────────────────────────── */}
+        {phase === "payfail" && (
+          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4 pt-8 text-center">
+            <AlertTriangle className="mx-auto h-10 w-10 text-red-400" />
+            <h2 className="text-xl font-bold text-zinc-100" dir="rtl">ما تم الدفع</h2>
+            <p className="text-sm text-zinc-400" dir="rtl">صار خطأ في الدفع. جرّب مرة ثانية.</p>
+            {payResult?.message && <p className="font-mono text-[11px] text-zinc-600">{payResult.message}</p>}
+            <button
+              type="button"
+              onClick={() => { setPhase("plan"); scrollTop() }}
+              className="mx-auto flex items-center gap-2 rounded-md border border-zinc-700 px-4 py-2.5 font-mono text-xs text-zinc-300 transition-colors hover:border-zinc-500"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> try again
+            </button>
           </section>
         )}
 

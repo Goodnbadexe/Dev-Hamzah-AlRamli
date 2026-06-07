@@ -13,18 +13,28 @@ personalized promo code (visitor's name + date, e.g. `sara_jun07`).
 
 ## Make it live — 2 things to set (Vercel → Settings → Environment Variables)
 
-### 1) Payment links (one per plan)
-Create a checkout for each tier in **Moyasar** or **Tap** (both do Mada + Apple Pay,
-best for Saudi) or a **Stripe Payment Link**, then set:
+### 1) Payment — in-page Moyasar card form (default)
+GET MY PLAN now opens a **Moyasar card form right on the page** (no redirect before
+paying). It ships in **test mode** by default so you can verify the flow with the
+test card `4111 1111 1111 1111` (any future date · CVC 123 · OTP 123456).
 
+To go **live with Moyasar**, set the live publishable key and **redeploy**:
 ```
-NEXT_PUBLIC_CHECKOUT_TRIAL=https://...     # 1-week, 9 SAR
-NEXT_PUBLIC_CHECKOUT_MONTH=https://...      # 4-week, 29 SAR  (most popular)
-NEXT_PUBLIC_CHECKOUT_QUARTER=https://...    # 12-week, 69 SAR (best value)
+NEXT_PUBLIC_MOYASAR_PK=pk_live_...
 ```
-These are inlined at **build time** → after setting them, **redeploy**.
-If a link is empty, that plan captures the lead and shows a "we'll email your plan"
-confirmation instead of charging — never a fake checkout.
+> ⚠️ Moyasar (and Tap) require a **Commercial Registration (CR)** to activate live
+> payments. No CR yet? See the no-CR path below.
+
+### No-CR path to take real money ASAP (recommended to start)
+Use a **Merchant-of-Record** — they let an individual sell worldwide, handle
+VAT/compliance, and need **no CR**:
+- **Gumroad** — fastest (~5 min), individual creators, overlay checkout.
+- **Lemon Squeezy** / **Paddle** — MoR with subscriptions + on-page overlay.
+
+Create a product per tier, then either drop the overlay link in
+`NEXT_PUBLIC_CHECKOUT_*` (an overlay mode can be wired to keep it on-page) or ping me
+to wire the overlay. Switch to **Moyasar live** later (lower fees, Mada + Apple Pay)
+once the CR is sorted.
 
 ### 2) Lead delivery (so you get every quiz lead for the weekly PDF)
 Set **one** (or both). Runtime vars — no redeploy needed beyond the next deploy.
