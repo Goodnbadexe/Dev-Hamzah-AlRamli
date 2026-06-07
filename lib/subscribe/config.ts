@@ -143,3 +143,17 @@ export function checkoutUrl(planId: Plan["id"]): string {
   }
   return (map[planId] ?? "").trim()
 }
+
+/**
+ * Moyasar publishable key — safe to ship client-side (it can only CREATE
+ * payments, never read/refund). Defaults to the project's TEST key so the
+ * in-page card form works immediately for verification. For live charging set
+ * NEXT_PUBLIC_MOYASAR_PK to a pk_live_… (requires a Commercial Registration, or
+ * switch to a Merchant-of-Record). Never commit a secret (sk_) key.
+ */
+export const MOYASAR_PK = (process.env.NEXT_PUBLIC_MOYASAR_PK || "pk_test_MWeYAjgV2RfLPQzDufrY1pToi8L3867vnUFuHiF1").trim()
+export const MOYASAR_TEST = MOYASAR_PK.startsWith("pk_test")
+
+export function planById(id: Plan["id"]): Plan {
+  return PLANS.find((p) => p.id === id) ?? PLANS[1]
+}
