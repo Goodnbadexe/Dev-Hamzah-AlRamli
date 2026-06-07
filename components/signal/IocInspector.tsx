@@ -20,7 +20,7 @@
  */
 
 import { useEffect, useState } from "react"
-import { X, ShieldAlert, Crosshair } from "lucide-react"
+import { X, ShieldAlert, Crosshair, ExternalLink } from "lucide-react"
 import type { ThreatIoc } from "@/app/api/threats/route"
 import { IOC_COLOR } from "@/components/signal/ThreatGlobe"
 
@@ -32,6 +32,37 @@ const SEV_BADGE: Record<ThreatIoc["severity"], string> = {
 }
 
 const typeLabel = (t: ThreatIoc["type"]) => t.replace("_", " ").toUpperCase()
+
+// Plain-English explainer per indicator type — so a non-specialist understands
+// what they're looking at, not just a colored dot.
+const IOC_EXPLAINER: Record<ThreatIoc["type"], string> = {
+  c2_server:
+    "A command-and-control (C2) server is the attacker's remote control panel — infected machines quietly “call home” to it to receive orders and ship out stolen data.",
+  malware_host:
+    "A malware host is a server handing out malicious files. Victims get infected by downloading from it, often through a booby-trapped link or a drive-by page.",
+  phishing:
+    "A phishing host serves fake login or payment pages that impersonate a trusted brand to trick people into typing in their credentials.",
+  malicious_url:
+    "A malicious URL is a web address flagged for hosting malware, scams, or phishing — simply visiting it can compromise your device.",
+  ransomware:
+    "A ransomware indicator marks a confirmed victim of a ransomware crew: files are encrypted and held hostage until a ransom is paid.",
+}
+
+// Best-effort "view source report" link. AbuseIPDB resolves to a per-IP report;
+// the others land on the feed's own browse/listing page (honest — no fabricated
+// deep links). Returns null when no sensible target exists.
+function sourceReportUrl(ioc: ThreatIoc): string | null {
+  const ref = ioc.ref ?? ""
+  switch (ioc.source) {
+    case "AbuseIPDB":      return ref ? `https://www.abuseipdb.com/check/${encodeURIComponent(ref)}` : "https://www.abuseipdb.com"
+    case "URLhaus":        return `https://urlhaus.abuse.ch/browse.php?search=${encodeURIComponent(ref)}`
+    case "Feodo Tracker":  return "https://feodotracker.abuse.ch/browse/"
+    case "C2IntelFeeds":   return "https://github.com/drb-ra/C2IntelFeeds"
+    case "Ransomware.live": return "https://www.ransomware.live/recentvictims"
+    case "AlienVault OTX": return "https://otx.alienvault.com"
+    default:               return null
+  }
+}
 
 interface Props {
   recent: ThreatIoc[]
@@ -211,9 +242,29 @@ export function IocInspector({ recent, hovered, placement = "rail", railHidden =
                   </dd>
                 </dl>
 
-                <p className="mt-4 border-t border-zinc-800/80 pt-3 font-mono text-[9px] leading-relaxed text-zinc-600">
-                  Indicator of compromise — a located piece of malicious infrastructure.
-                  No fabricated attacker→target relationship.
+                {/* Plain-English explainer */}
+                <p className="mt-4 border-t border-zinc-800/80 pt-3 text-[12px] leading-relaxed text-zinc-400">
+                  {IOC_EXPLAINER[detail.type]}
+                </p>
+
+                {/* View source report */}
+                {(() => {
+                  const url = sourceReportUrl(detail)
+                  return url ? (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-900/60 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-emerald-400 transition-colors hover:border-emerald-700 hover:bg-emerald-950/40 hover:text-emerald-300"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      View source report
+                    </a>
+                  ) : null
+                })()}
+
+                <p className="mt-3 font-mono text-[9px] leading-relaxed text-zinc-700">
+                  Indicator of compromise — no fabricated attacker→target relationship.
                 </p>
               </div>
             </>
