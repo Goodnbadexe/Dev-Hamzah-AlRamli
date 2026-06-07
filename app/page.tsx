@@ -152,7 +152,7 @@ function LayerPanel({ activeLayers, onToggle }: LayerPanelProps) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="fixed left-4 top-16 z-20 hidden lg:block">
+    <div className="flex flex-col items-end">
       {/* Collapsed pill */}
       {!expanded && (
         <button
@@ -408,7 +408,7 @@ export default function HomePage() {
                   align="right"
                   showWorldLayers
                   activeLayers={activeLayers}
-                  nightMode={activeLayers.has("Day / Night")}
+                  terminator={activeLayers.has("Day / Night")}
                   onIoc={handleIoc}
                   onIocSelect={setHoveredIoc}
                   onGlobeClick={() => setGlobeInspect(true)}
@@ -447,22 +447,24 @@ export default function HomePage() {
       {/* ------------------------------------------------------------------ */}
       <OSTaskbar />
 
-      <LayerPanel activeLayers={activeLayers} onToggle={handleLayerToggle} />
-
-      {/* Live IOC surface — side rail + slide-to-center inspector */}
-      <IocInspector recent={recentIocs} hovered={hoveredIoc} railHidden={globeInspect || isMobile} />
-
-      <button
-        type="button"
-        onClick={() => setGlobeInspect(true)}
-        className={cn(
-          "fixed left-4 bottom-16 z-30 flex items-center gap-2 rounded border border-emerald-900 bg-zinc-950/70 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-emerald-400 backdrop-blur-md transition-all hover:border-emerald-700 hover:bg-emerald-950/40",
-          globeInspect && "opacity-0 pointer-events-none"
-        )}
-      >
-        <Maximize2 className="h-3.5 w-3.5" />
-        inspect cyberattacks
-      </button>
+      {/* Top-right control cluster — "inspect" grouped right beside the world
+          layers so the eye reads one tidy panel instead of scattered controls. */}
+      {!globeInspect && (
+        <div className="fixed right-4 top-16 z-30 flex flex-col items-end gap-2">
+          <button
+            type="button"
+            onClick={() => setGlobeInspect(true)}
+            className="flex items-center gap-2 rounded border border-emerald-900 bg-zinc-950/70 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-emerald-400 backdrop-blur-md transition-all hover:border-emerald-700 hover:bg-emerald-950/40"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+            inspect cyberattacks
+          </button>
+          {/* World layers — desktop only (mobile skips the WebGL globe entirely) */}
+          <div className="hidden lg:block">
+            <LayerPanel activeLayers={activeLayers} onToggle={handleLayerToggle} />
+          </div>
+        </div>
+      )}
 
       {globeInspect && (
         <button
@@ -592,6 +594,13 @@ export default function HomePage() {
                   interval={8000}
                   maxLines={6}
                 />
+
+                {/* Live IOC surface — docked here beside the signal feed
+                    (was a floating right-edge rail). Click a row to inspect. */}
+                <div className="mt-4 border-t border-zinc-900 pt-3.5">
+                  <IocInspector placement="inline" recent={recentIocs} hovered={hoveredIoc} />
+                </div>
+
                 <div className="mt-4 border-t border-zinc-900 pt-3.5">
                   <Link
                     href="/signal"

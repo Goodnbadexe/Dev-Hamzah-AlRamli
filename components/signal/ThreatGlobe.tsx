@@ -64,6 +64,71 @@ const DRIP_MS_INTERACTIVE = 1400
 const POLL_MS = 5 * 60 * 1000 // route caches 10 min; poll every 5
 
 // ---------------------------------------------------------------------------
+// Day/Night terminator — real solar terminator shader
+// ---------------------------------------------------------------------------
+// Blends a day (blue-marble) and night (city-lights) texture across the actual
+// solar terminator. Lighting is computed in VIEW space and the sun direction is
+// rotated by the live camera POV (globeRotation), so the lit hemisphere stays
+// pinned to real geography even while the globe auto-rotates. Ported from the
+// official globe.gl day-night-cycle example.
+const DAY_TEXTURE_URL   = "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+const NIGHT_TEXTURE_URL = "https://unpkg.com/three-globe/example/img/earth-night.jpg"
+
+const DAY_NIGHT_VERT = `
+  varying vec3 vNormal;
+  varying vec2 vUv;
+  void main() {
+    vNormal = normalize(normalMatrix * normal);
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const DAY_NIGHT_FRAG = `
+  #define PI 3.141592653589793
+  uniform sampler2D dayTexture;
+  uniform sampler2D nightTexture;
+  uniform vec2 sunPosition;
+  uniform vec2 globeRotation;
+  varying vec3 vNormal;
+  varying vec2 vUv;
+
+  float toRad(in float a) { return a * PI / 180.0; }
+
+  vec3 Polar2Cartesian(in vec2 c) { // [lng, lat]
+    float theta = toRad(90.0 - c.x);
+    float phi = toRad(90.0 - c.y);
+    return vec3(sin(phi) * cos(theta), cos(phi), sin(phi) * sin(theta));
+  }
+
+  void main() {
+    float invLon = toRad(globeRotation.x);
+    float invLat = -toRad(globeRotation.y);
+    mat3 rotX = mat3(1, 0, 0, 0, cos(invLat), -sin(invLat), 0, sin(invLat), cos(invLat));
+    mat3 rotY = mat3(cos(invLon), 0, sin(invLon), 0, 1, 0, -sin(invLon), 0, cos(invLon));
+    vec3 rotatedSunDirection = rotX * rotY * Polar2Cartesian(sunPosition);
+    float intensity = dot(normalize(vNormal), normalize(rotatedSunDirection));
+    vec4 dayColor = texture2D(dayTexture, vUv);
+    vec4 nightColor = texture2D(nightTexture, vUv);
+    // soft terminator band; night side lights stay warm, day stays natural
+    float blendFactor = smoothstep(-0.12, 0.12, intensity);
+    gl_FragColor = mix(nightColor, dayColor, blendFactor);
+  }
+`
+
+/** Subsolar point (longitude, declination) in degrees for a given instant. */
+function sunPosLngLat(date: Date): [number, number] {
+  const sec = date.getUTCHours() * 3600 + date.getUTCMinutes() * 60 + date.getUTCSeconds()
+  let lng = 180 - (sec / 86400) * 360 // subsolar longitude: noon UTC ⇒ 0°, midnight ⇒ ±180°
+  if (lng > 180) lng -= 360
+  if (lng < -180) lng += 360
+  const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 0)
+  const dayOfYear = Math.floor((date.getTime() - startOfYear) / 86_400_000)
+  const declination = -23.44 * Math.cos((2 * Math.PI / 365) * (dayOfYear + 10)) // seasonal tilt
+  return [lng, declination]
+}
+
+// ---------------------------------------------------------------------------
 // World-monitor layers (retained from the world-layers feature)
 // ---------------------------------------------------------------------------
 type WorldMarkerKind =
@@ -164,8 +229,8 @@ interface Props {
   showWorldLayers?: boolean
   /** Per-layer filtering — set of layer labels that are active. */
   activeLayers?: Set<string>
-  /** Night mode — use city-lights texture instead of blue marble. */
-  nightMode?: boolean
+  /** Day/Night terminator — blend day + city-lights night across a real solar terminator. */
+  terminator?: boolean
   /**
    * Background-mode horizontal anchor. "center" (default) keeps the globe
    * dead-centre; "right" pushes it to ~71% width, partly off-canvas, so a
@@ -179,7 +244,7 @@ interface Props {
 
 export function ThreatGlobe({
   interactive = false, onIoc, onIocSelect, onGlobeClick,
-  showWorldLayers = false, activeLayers, nightMode = false, align = "center", width, height,
+  showWorldLayers = false, activeLayers, terminator = false, align = "center", width, height,
 }: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const globeRef = useRef<any>(null)
@@ -191,6 +256,12 @@ export function ThreatGlobe({
   const [dayPhase, setDayPhase] = useState(0)
   const dripRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const dripIdxRef = useRef(0)
+
+  // Day/Night terminator: globe.gl's `globeMaterial` is a PROP (not a ref
+  // method), and passing null restores its default material. So we build a
+  // ShaderMaterial lazily and hand it over via the prop — never imperatively.
+  const [globeReady, setGlobeReady] = useState(false)
+  const [shaderMat, setShaderMat] = useState<THREE.ShaderMaterial | null>(null)
 
   const dripMs = interactive ? DRIP_MS_INTERACTIVE : DRIP_MS_BACKGROUND
   const cyberActive = !activeLayers || activeLayers.has("Cyber Threats")
@@ -244,14 +315,9 @@ export function ThreatGlobe({
     // camera distance d = 100·(1+a); apparent Ø = (2·asin(100/d)/fov50)·canvasH.
     const bgAltitude = align === "right" ? 2.0 : 1.72
     globeRef.current.pointOfView({ lat: 29, lng: 44, altitude: interactive ? 1.85 : bgAltitude }, 1200)
-    const material = globeRef.current.globeMaterial?.()
-    if (material) {
-      material.color = new THREE.Color("#132033")
-      material.emissive = new THREE.Color("#030712")
-      material.emissiveIntensity = 0.65
-      material.shininess = 3
-      material.needsUpdate = true
-    }
+    // globeMaterial is a prop, not a ref method — the terminator shader is
+    // supplied via the globeMaterial prop below; just flag readiness here.
+    setGlobeReady(true)
     const ctrl = globeRef.current.controls()
     if (!ctrl) return
     ctrl.autoRotate = true
@@ -281,12 +347,59 @@ export function ThreatGlobe({
   }, [])
 
   useEffect(() => {
+    if (terminator) return // shader owns the material; don't poke emissive
     const material = globeRef.current?.globeMaterial?.()
-    if (!material) return
+    if (!material || (material as THREE.Material).type === "ShaderMaterial") return
     const pulse = 0.48 + Math.sin(dayPhase * Math.PI * 2) * 0.12
-    material.emissiveIntensity = interactive ? pulse : pulse + 0.1
+    ;(material as THREE.MeshPhongMaterial).emissiveIntensity = interactive ? pulse : pulse + 0.1
     material.needsUpdate = true
-  }, [dayPhase, interactive])
+  }, [dayPhase, interactive, terminator])
+
+  // ---- Day/Night terminator -----------------------------------------------
+  // Build the shader material the first time the terminator is switched on:
+  // load day + night textures, then expose it via the globeMaterial prop.
+  useEffect(() => {
+    if (!terminator || shaderMat) return
+    let alive = true
+    const loader = new THREE.TextureLoader()
+    loader.setCrossOrigin("anonymous")
+    const load = (url: string) =>
+      new Promise<THREE.Texture>((resolve, reject) =>
+        loader.load(url, (tex) => { tex.colorSpace = THREE.SRGBColorSpace; resolve(tex) }, undefined, reject),
+      )
+    Promise.all([load(DAY_TEXTURE_URL), load(NIGHT_TEXTURE_URL)])
+      .then(([day, night]) => {
+        if (!alive) return
+        setShaderMat(new THREE.ShaderMaterial({
+          uniforms: {
+            dayTexture:    { value: day },
+            nightTexture:  { value: night },
+            sunPosition:   { value: new THREE.Vector2() },
+            globeRotation: { value: new THREE.Vector2() },
+          },
+          vertexShader: DAY_NIGHT_VERT,
+          fragmentShader: DAY_NIGHT_FRAG,
+        }))
+      })
+      .catch(() => { /* network/cosmetic — globe still renders without it */ })
+    return () => { alive = false }
+  }, [terminator, shaderMat])
+
+  // Drive the sun + camera uniforms every frame while the terminator is live,
+  // so the lit hemisphere tracks real geography even as the globe auto-rotates.
+  useEffect(() => {
+    if (!terminator || !shaderMat || !globeReady) return
+    let raf = 0
+    const tick = () => {
+      const [lng, lat] = sunPosLngLat(new Date())
+      shaderMat.uniforms.sunPosition.value.set(lng, lat)
+      const pov = globeRef.current?.pointOfView?.()
+      if (pov) shaderMat.uniforms.globeRotation.value.set(pov.lng, pov.lat)
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [terminator, shaderMat, globeReady])
 
   // ---- Derived datasets ----------------------------------------------------
   const iocPoints = useMemo<ThreatIoc[]>(
@@ -330,16 +443,16 @@ export function ThreatGlobe({
         width={w}
         height={h}
 
-        globeImageUrl={
-          nightMode
-            ? "//unpkg.com/three-globe/example/img/earth-night.jpg"
-            : "//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-        }
+        // Day texture always loads the lib's default material; when the
+        // terminator layer is on, an effect swaps in the day/night shader.
+        globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
         backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
         backgroundColor="rgba(0,0,0,0)"
-        atmosphereColor={nightMode ? "#f59e0b" : "#22d3ee"}
+        atmosphereColor={terminator ? "#7dd3fc" : "#22d3ee"}
         atmosphereAltitude={interactive ? 0.18 : 0.16}
+        // Day/Night terminator shader; null ⇒ globe.gl keeps its default material
+        globeMaterial={terminator && shaderMat ? shaderMat : null}
 
         // IOC scatter dots (honest — no arcs)
         pointsData={iocPoints}

@@ -3,9 +3,14 @@
 /**
  * IocInspector
  * ------------
- * The "side → center" IOC detail interaction. A slim rail of live indicators
- * sits at the edge; hovering a globe dot or clicking a rail row pins it, and a
- * detailed card slides from the side into the center of the screen.
+ * The IOC detail interaction. A list of live indicators is shown; hovering a
+ * globe dot or clicking a list row pins it, and a detailed card slides into the
+ * center of the screen.
+ *
+ * placement:
+ *   "rail"   — fixed slim rail pinned to the right edge (legacy / standalone use)
+ *   "inline" — renders the list in normal flow, to be embedded beside the
+ *              signal feed in the homepage left column
  *
  * Controlled inputs:
  *   recent   — live stream of IOCs (newest first)
@@ -31,11 +36,59 @@ const typeLabel = (t: ThreatIoc["type"]) => t.replace("_", " ").toUpperCase()
 interface Props {
   recent: ThreatIoc[]
   hovered: ThreatIoc | null
-  /** Hide the side rail (e.g. when another overlay owns the screen). */
+  /** "rail" = fixed right rail; "inline" = in-flow block (e.g. beside the feed). */
+  placement?: "rail" | "inline"
+  /** Hide the rail entirely (only relevant for placement="rail"). */
   railHidden?: boolean
 }
 
-export function IocInspector({ recent, hovered, railHidden = false }: Props) {
+// ── Live indicator list (shared by both placements) ─────────────────────────
+function IocList({
+  recent,
+  onPick,
+  max = 6,
+}: {
+  recent: ThreatIoc[]
+  onPick: (ioc: ThreatIoc) => void
+  max?: number
+}) {
+  return (
+    <ul className="space-y-0.5">
+      {recent.length === 0 && (
+        <li className="px-2 py-3 font-mono text-[10px] leading-relaxed text-zinc-600">
+          Awaiting indicators… each entry is real malicious infrastructure, no fake arcs.
+        </li>
+      )}
+      {recent.slice(0, max).map((ioc, i) => (
+        <li key={`${ioc.id}-${i}`}>
+          <button
+            type="button"
+            onClick={() => onPick(ioc)}
+            className="group flex w-full items-center gap-2.5 rounded px-2 py-1.5 text-left transition-colors hover:bg-zinc-900/70"
+          >
+            <span
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: IOC_COLOR[ioc.type], boxShadow: `0 0 6px ${IOC_COLOR[ioc.type]}` }}
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-mono text-[11px] text-zinc-300 group-hover:text-zinc-100">
+                {typeLabel(ioc.type)}
+              </span>
+              <span className="block truncate font-mono text-[9px] text-zinc-600">
+                {ioc.source} · {ioc.country}
+              </span>
+            </span>
+            <span className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider ${SEV_BADGE[ioc.severity]}`}>
+              {ioc.severity}
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export function IocInspector({ recent, hovered, placement = "rail", railHidden = false }: Props) {
   const [pinned, setPinned] = useState<ThreatIoc | null>(null)
   const detail = pinned ?? hovered
   const open = Boolean(detail)
@@ -50,8 +103,25 @@ export function IocInspector({ recent, hovered, railHidden = false }: Props) {
 
   return (
     <>
-      {/* ── Side rail — live IOC stream ─────────────────────────────── */}
-      {!railHidden && (
+      {/* ── Inline surface — embedded in the content column beside the feed ── */}
+      {placement === "inline" && (
+        <div>
+          <div className="mb-1.5 flex items-center gap-2">
+            <ShieldAlert className="h-3 w-3 text-rose-400" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+              live IOC surface
+            </span>
+            <span className="ml-auto flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-zinc-700">
+              click to inspect
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_theme(colors.rose.500)] animate-pulse motion-reduce:animate-none" />
+            </span>
+          </div>
+          <IocList recent={recent} onPick={setPinned} />
+        </div>
+      )}
+
+      {/* ── Fixed right rail (legacy / standalone) ──────────────────────────── */}
+      {placement === "rail" && !railHidden && (
         <aside className="fixed right-4 top-1/2 z-30 hidden w-[244px] -translate-y-1/2 lg:block">
           <div className="rounded-md border border-zinc-800 bg-zinc-950/70 backdrop-blur-md">
             <div className="flex items-center gap-2 border-b border-zinc-800/80 px-3 py-2">
@@ -61,39 +131,9 @@ export function IocInspector({ recent, hovered, railHidden = false }: Props) {
               </span>
               <span className="ml-auto h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_theme(colors.rose.500)] animate-pulse" />
             </div>
-            <ul className="max-h-[46vh] overflow-hidden p-1.5">
-              {recent.length === 0 && (
-                <li className="px-2 py-3 font-mono text-[10px] leading-relaxed text-zinc-600">
-                  Awaiting indicators… each entry is real malicious infrastructure, no fake arcs.
-                </li>
-              )}
-              {recent.slice(0, 7).map((ioc, i) => (
-                <li key={`${ioc.id}-${i}`}>
-                  <button
-                    type="button"
-                    onClick={() => setPinned(ioc)}
-                    className="group flex w-full items-center gap-2.5 rounded px-2 py-1.5 text-left transition-colors hover:bg-zinc-900/70"
-                    style={{ opacity: 1 - i * 0.08 }}
-                  >
-                    <span
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{ backgroundColor: IOC_COLOR[ioc.type], boxShadow: `0 0 6px ${IOC_COLOR[ioc.type]}` }}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-mono text-[11px] text-zinc-300 group-hover:text-zinc-100">
-                        {typeLabel(ioc.type)}
-                      </span>
-                      <span className="block truncate font-mono text-[9px] text-zinc-600">
-                        {ioc.source} · {ioc.country}
-                      </span>
-                    </span>
-                    <span className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider ${SEV_BADGE[ioc.severity]}`}>
-                      {ioc.severity}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="max-h-[46vh] overflow-hidden p-1.5">
+              <IocList recent={recent} onPick={setPinned} max={7} />
+            </div>
             <div className="border-t border-zinc-800/80 px-3 py-1.5 font-mono text-[8px] uppercase tracking-widest text-zinc-700">
               click an indicator → inspect
             </div>
@@ -101,7 +141,7 @@ export function IocInspector({ recent, hovered, railHidden = false }: Props) {
         </aside>
       )}
 
-      {/* ── Center detail card — slides in from the side ────────────── */}
+      {/* ── Center detail card — slides in from the side (global overlay) ───── */}
       <div
         className={`pointer-events-none fixed inset-0 z-40 flex items-center justify-center px-4 transition-opacity duration-300 ${
           open ? "opacity-100" : "opacity-0"
