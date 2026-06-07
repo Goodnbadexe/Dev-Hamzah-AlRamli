@@ -287,6 +287,7 @@ export default function HomePage() {
   const [liveEntries,  setLiveEntries]  = useState<FeedEntry[]>([])
   const [recentIocs,   setRecentIocs]   = useState<ThreatIoc[]>([])
   const [hoveredIoc,   setHoveredIoc]   = useState<ThreatIoc | null>(null)
+  const [pinnedIoc,    setPinnedIoc]    = useState<ThreatIoc | null>(null)
   const [globeInspect, setGlobeInspect] = useState(false)
   // Detect mobile on mount (no SSR mismatch — starts false)
   const [isMobile, setIsMobile] = useState(false)
@@ -412,6 +413,7 @@ export default function HomePage() {
                   terminator={activeLayers.has("Day / Night")}
                   onIoc={handleIoc}
                   onIocSelect={setHoveredIoc}
+                  onIocClick={setPinnedIoc}
                   onGlobeClick={() => setGlobeInspect(true)}
                 />
               </div>
@@ -603,7 +605,7 @@ export default function HomePage() {
                 {/* Live IOC surface — docked here beside the signal feed
                     (was a floating right-edge rail). Click a row to inspect. */}
                 <div className="mt-4 border-t border-zinc-900 pt-3.5">
-                  <IocInspector placement="inline" recent={recentIocs} hovered={hoveredIoc} />
+                  <IocInspector placement="inline" recent={recentIocs} hovered={hoveredIoc} pinned={pinnedIoc} onPin={setPinnedIoc} />
                 </div>
 
                 <div className="mt-4 border-t border-zinc-900 pt-3.5">
