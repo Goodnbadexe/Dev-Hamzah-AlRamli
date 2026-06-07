@@ -1159,3 +1159,9 @@ Complexity: O(1) styling
   .glitch-id::before,
   .glitch-id::after { animation: none !important; opacity: 0 !important; }
 }
+
+/* LIVE ATTACKS ticker — seamless horizontal marquee (track is duplicated ×2) */
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
