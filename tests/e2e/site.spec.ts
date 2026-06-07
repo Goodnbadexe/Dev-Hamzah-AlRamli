@@ -1,7 +1,27 @@
-import { test, expect, devices } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
-// Defaults to prod; override with E2E_BASE to test a preview or local server.
-const BASE = process.env.E2E_BASE ?? 'https://www.goodnbad.info'
+// Defaults to a local production build (deterministic, no Vercel bot challenge).
+// Override with E2E_BASE to smoke-test a preview/prod deployment.
+const BASE = process.env.E2E_BASE ?? 'http://localhost:3000'
+
+// ─── Challenge-safe navigation ────────────────────────────────────────────────
+// On a deployment with Vercel Attack-Challenge Mode (and no automation bypass),
+// page navigations are served the "Vercel Security Checkpoint" 429 interstitial,
+// which has no app content/meta. That is the bot wall, NOT a site failure — so we
+// SKIP (never false-fail) when we detect it. Local builds never hit this path.
+async function gotoSafe(
+  page: import('@playwright/test').Page,
+  path = '',
+  opts: { waitUntil?: 'domcontentloaded' | 'load' | 'networkidle' } = {},
+) {
+  const res = await page.goto(`${BASE}${path}`, { waitUntil: opts.waitUntil ?? 'domcontentloaded' })
+  const title = await page.title().catch(() => '')
+  test.skip(
+    res?.status() === 429 || /Security Checkpoint/i.test(title),
+    'Target behind Vercel bot challenge — run against the local build or set VERCEL_AUTOMATION_BYPASS_SECRET',
+  )
+  return res
+}
 
 // ─── Core pages load ──────────────────────────────────────────────────────────
 
@@ -20,7 +40,7 @@ test.describe('Core pages', () => {
 
   for (const { path, title } of routes) {
     test(`${path} loads and has correct title`, async ({ page }) => {
-      const res = await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' })
+      const res = await gotoSafe(page, path)
       expect(res?.status()).toBeLessThan(400)
       await expect(page).toHaveTitle(title)
     })
@@ -31,13 +51,13 @@ test.describe('Core pages', () => {
 
 test.describe('Redirects', () => {
   test('/about redirects to /personnel', async ({ page }) => {
-    const res = await page.goto(`${BASE}/about`)
+    const res = await gotoSafe(page, '/about')
     expect(page.url()).toContain('/personnel')
     expect(res?.status()).toBeLessThan(400)
   })
 
   test('/security redirects to /personnel', async ({ page }) => {
-    await page.goto(`${BASE}/security`)
+    await gotoSafe(page, '/security')
     expect(page.url()).toContain('/personnel')
   })
 })
@@ -45,8 +65,8 @@ test.describe('Redirects', () => {
 // ─── API routes ───────────────────────────────────────────────────────────────
 
 test.describe('API routes', () => {
-  // Rate-limit aware: Vercel Hobby plan throttles parallel test requests with 429.
-  // We treat 200 OR 429 as "route exists and is functioning."
+  // Rate-limit aware: a protected deployment may throttle parallel test requests
+  // with 429. We treat 200 OR 429 as "route exists and is functioning."
   test('/api/threats returns IOC data', async ({ request }) => {
     const res = await request.get(`${BASE}/api/threats`)
     expect([200, 429]).toContain(res.status())
@@ -107,7 +127,7 @@ test.describe('API routes', () => {
 
 test.describe('SEO metadata', () => {
   test('Homepage has og:image and twitter:card', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'domcontentloaded' })
+    await gotoSafe(page)
     const og = await page.locator('meta[property="og:image"]').getAttribute('content')
     const tw = await page.locator('meta[name="twitter:card"]').getAttribute('content')
     expect(og).toBeTruthy()
@@ -115,14 +135,14 @@ test.describe('SEO metadata', () => {
   })
 
   test('Homepage canonical is not hardcoded (no duplicate canonical)', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'domcontentloaded' })
+    await gotoSafe(page)
     const canonicals = await page.locator('link[rel="canonical"]').count()
     // Should be exactly 1 (from metadata export), not 2 (which was the bug)
     expect(canonicals).toBeLessThanOrEqual(1)
   })
 
   test('/personnel has its own canonical', async ({ page }) => {
-    await page.goto(`${BASE}/personnel`, { waitUntil: 'domcontentloaded' })
+    await gotoSafe(page, '/personnel')
     const canonical = await page.locator('link[rel="canonical"]').getAttribute('href')
     expect(canonical).toContain('/personnel')
     expect(canonical).not.toBe(BASE + '/')
@@ -152,14 +172,14 @@ test.describe('Mobile (iPhone 14)', () => {
   test.use({ viewport: { width: 390, height: 844 }, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' })
 
   test('Homepage loads without globe canvas on mobile', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' })
+    await gotoSafe(page, '', { waitUntil: 'networkidle' })
     // Globe canvas should NOT be present on mobile (we skip WebGL < 768px)
     const canvas = await page.locator('canvas').count()
     expect(canvas).toBe(0)
   })
 
   test('Mobile nav is present and tappable', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'domcontentloaded' })
+    await gotoSafe(page)
     // OSTaskbar should be visible on mobile
     const taskbar = page.locator('header')
     await expect(taskbar).toBeVisible()
@@ -168,7 +188,7 @@ test.describe('Mobile (iPhone 14)', () => {
   test('/news page loads on mobile without WebGL crash', async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', (e) => errors.push(e.message))
-    await page.goto(`${BASE}/news`, { waitUntil: 'networkidle' })
+    await gotoSafe(page, '/news', { waitUntil: 'networkidle' })
     const fatalErrors = errors.filter((e) =>
       e.toLowerCase().includes('webgl') || e.toLowerCase().includes('three') || e.toLowerCase().includes('canvas')
     )
@@ -180,14 +200,19 @@ test.describe('Mobile (iPhone 14)', () => {
 
 test.describe('Performance', () => {
   test('Homepage TTFB under 2s', async ({ page }) => {
-    const start = Date.now()
-    await page.goto(BASE, { waitUntil: 'domcontentloaded' })
-    const ttfb = Date.now() - start
-    expect(ttfb).toBeLessThan(2000)
+    await gotoSafe(page)
+    // Real TTFB from Navigation Timing (responseStart, relative to navigation
+    // start) — not wall-clock around goto(), which also includes DOM parsing.
+    const ttfb = await page.evaluate(() => {
+      const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
+      return nav ? nav.responseStart : null
+    })
+    expect(ttfb).not.toBeNull()
+    expect(ttfb as number).toBeLessThan(2000)
   })
 
   test('Images have width/height to prevent CLS', async ({ page }) => {
-    await page.goto(`${BASE}/personnel`, { waitUntil: 'networkidle' })
+    await gotoSafe(page, '/personnel', { waitUntil: 'networkidle' })
     const images = await page.locator('img').all()
     for (const img of images.slice(0, 10)) {
       const w = await img.getAttribute('width')
