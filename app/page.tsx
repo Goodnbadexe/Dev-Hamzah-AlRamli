@@ -10,6 +10,7 @@ import type { FeedEntry } from "@/components/os"
 import type { ThreatIoc } from "@/app/api/threats/route"
 import { IocInspector } from "@/components/signal/IocInspector"
 import { MobileSignalOverlay } from "@/components/signal/MobileSignalOverlay"
+import { GlobeLegend } from "@/components/signal/GlobeLegend"
 
 // Globe — deferred: only loads after initial paint (via requestIdleCallback)
 // and never SSR'd. This keeps the homepage TTI fast; the globe fades in
@@ -462,6 +463,10 @@ export default function HomePage() {
           {/* World layers — desktop only (mobile skips the WebGL globe entirely) */}
           <div className="hidden lg:block">
             <LayerPanel activeLayers={activeLayers} onToggle={handleLayerToggle} />
+          </div>
+          {/* On-globe legend + live indicator counter (color key · count · feeds) */}
+          <div className="hidden lg:block">
+            <GlobeLegend variant="card" />
           </div>
         </div>
       )}
