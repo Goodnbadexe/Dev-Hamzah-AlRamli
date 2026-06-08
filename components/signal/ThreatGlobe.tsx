@@ -332,11 +332,11 @@ export function ThreatGlobe({
 
         globeImageUrl={
           nightMode
-            ? "//unpkg.com/three-globe/example/img/earth-night.jpg"
-            : "//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+            ? "/textures/earth-night.jpg"
+            : "/textures/earth-blue-marble.jpg"
         }
-        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-        backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
+        bumpImageUrl="/textures/earth-topology.png"
+        backgroundImageUrl="/textures/night-sky.png"
         backgroundColor="rgba(0,0,0,0)"
         atmosphereColor={nightMode ? "#f59e0b" : "#22d3ee"}
         atmosphereAltitude={interactive ? 0.18 : 0.16}
