@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { GlitchText } from '@/components/glitch-text'
 import { MatrixBackground } from '@/components/matrix-background'
+import { useLanguage } from '@/components/language-provider'
 import { toast } from 'sonner'
 import {
   Shield, Search, Monitor, BookOpen, ArrowLeft,
@@ -25,24 +26,48 @@ const ACCENT_COLORS: Record<string, { rgb: string; hex: string }> = {
   'text-orange-400': { rgb: '251,146,60',   hex: '#fb923c' },
 }
 
-const SERVICES = [
+// Bilingual service catalog. Each user-facing string is an [ar, en] tuple,
+// resolved at render time via the language provider's `t(ar, en)` helper.
+// Technical terms / product names (CVSS, NCA ECC, SAMA CSF, ISO 27001, Entra ID,
+// Defender for Cloud, Sentinel, SIEM, MFA, M365, Azure) stay in English inside
+// the Arabic prose, per convention.
+type Bi = readonly [ar: string, en: string]
+
+interface Service {
+  id: string
+  icon: React.ReactNode
+  color: string
+  borderIdle: string
+  badge: string
+  tag: Bi
+  title: Bi
+  subtitle: Bi
+  duration: Bi
+  description: Bi
+  deliverables: readonly Bi[]
+}
+
+const SERVICES: readonly Service[] = [
   {
     id: 'pentest',
     icon: <Search className="h-5 w-5" />,
     color: 'text-red-400',
     borderIdle: 'border-red-500/25',
     badge: 'bg-red-500/10 text-red-400 border-red-500/20',
-    tag: 'Most Requested',
-    title: 'Penetration Testing',
-    subtitle: 'Find your weaknesses before attackers do',
-    duration: '3–7 business days',
-    description: 'Full-scope ethical hacking engagement: web apps, network infrastructure, or internal systems. Detailed report with CVSS scores, proof-of-concept, and remediation steps.',
+    tag: ['الأكثر طلباً', 'Most Requested'],
+    title: ['اختبار الاختراق', 'Penetration Testing'],
+    subtitle: ['اكتشف نقاط ضعفك قبل أن يكتشفها المهاجمون', 'Find your weaknesses before attackers do'],
+    duration: ['3–7 أيام عمل', '3–7 business days'],
+    description: [
+      'اختبار اختراق أخلاقي شامل: تطبيقات الويب أو البنية التحتية للشبكة أو الأنظمة الداخلية. تقرير مفصّل يتضمّن درجات CVSS وإثبات المفهوم وخطوات المعالجة.',
+      'Full-scope ethical hacking engagement: web apps, network infrastructure, or internal systems. Detailed report with CVSS scores, proof-of-concept, and remediation steps.',
+    ],
     deliverables: [
-      'Reconnaissance & attack surface mapping',
-      'Exploitation of discovered vulnerabilities',
-      'Full technical + executive report',
-      'Remediation walkthrough call',
-      'Re-test after fixes (1 round)',
+      ['استطلاع وتحديد سطح الهجوم', 'Reconnaissance & attack surface mapping'],
+      ['استغلال الثغرات المكتشفة', 'Exploitation of discovered vulnerabilities'],
+      ['تقرير فني وتنفيذي كامل', 'Full technical + executive report'],
+      ['مكالمة شرح لخطوات المعالجة', 'Remediation walkthrough call'],
+      ['إعادة اختبار بعد الإصلاح (جولة واحدة)', 'Re-test after fixes (1 round)'],
     ],
   },
   {
@@ -51,17 +76,20 @@ const SERVICES = [
     color: 'text-emerald-400',
     borderIdle: 'border-emerald-500/25',
     badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    tag: 'NCA / SAMA Ready',
-    title: 'Security Audit',
-    subtitle: 'Compliance-ready security assessment',
-    duration: '2–5 business days',
-    description: 'Structured review of your security posture mapped to NCA ECC, SAMA CSF, or ISO 27001. Identifies gaps and gives you a prioritized roadmap to compliance.',
+    tag: ['جاهز لـ NCA / SAMA', 'NCA / SAMA Ready'],
+    title: ['تدقيق أمني', 'Security Audit'],
+    subtitle: ['تقييم أمني جاهز للامتثال', 'Compliance-ready security assessment'],
+    duration: ['2–5 أيام عمل', '2–5 business days'],
+    description: [
+      'مراجعة منظّمة لوضعك الأمني وفق NCA ECC أو SAMA CSF أو ISO 27001. تحدّد الفجوات وتمنحك خارطة طريق مرتّبة حسب الأولوية للوصول إلى الامتثال.',
+      'Structured review of your security posture mapped to NCA ECC, SAMA CSF, or ISO 27001. Identifies gaps and gives you a prioritized roadmap to compliance.',
+    ],
     deliverables: [
-      'Gap analysis against chosen framework',
-      'Risk register with severity ratings',
-      'Prioritized remediation roadmap',
-      'Policy & procedure recommendations',
-      'Executive summary for management',
+      ['تحليل الفجوات مقابل الإطار المختار', 'Gap analysis against chosen framework'],
+      ['سجل مخاطر مع تصنيف درجات الخطورة', 'Risk register with severity ratings'],
+      ['خارطة طريق معالجة مرتّبة حسب الأولوية', 'Prioritized remediation roadmap'],
+      ['توصيات بالسياسات والإجراءات', 'Policy & procedure recommendations'],
+      ['ملخّص تنفيذي للإدارة', 'Executive summary for management'],
     ],
   },
   {
@@ -70,17 +98,20 @@ const SERVICES = [
     color: 'text-blue-400',
     borderIdle: 'border-blue-500/25',
     badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    tag: 'Microsoft Certified',
-    title: 'Microsoft Security Setup',
-    subtitle: 'Harden your Azure & M365 environment',
-    duration: '2–4 business days',
-    description: 'Configure Entra ID, Defender for Cloud, Sentinel SIEM, conditional access policies, and MFA. Turn your Microsoft stack into a security-first environment.',
+    tag: ['معتمد من Microsoft', 'Microsoft Certified'],
+    title: ['إعداد أمن Microsoft', 'Microsoft Security Setup'],
+    subtitle: ['تحصين بيئة Azure و M365 لديك', 'Harden your Azure & M365 environment'],
+    duration: ['2–4 أيام عمل', '2–4 business days'],
+    description: [
+      'إعداد Entra ID و Defender for Cloud و Sentinel SIEM وسياسات الوصول المشروط والمصادقة الثنائية MFA. حوّل منظومة Microsoft لديك إلى بيئة تضع الأمن أولاً.',
+      'Configure Entra ID, Defender for Cloud, Sentinel SIEM, conditional access policies, and MFA. Turn your Microsoft stack into a security-first environment.',
+    ],
     deliverables: [
-      'Entra ID hardening & MFA rollout',
-      'Defender for Cloud configuration',
-      'Microsoft Sentinel SIEM setup',
-      'Conditional access policy design',
-      'Security score improvement report',
+      ['تحصين Entra ID وتفعيل MFA', 'Entra ID hardening & MFA rollout'],
+      ['إعداد Defender for Cloud', 'Defender for Cloud configuration'],
+      ['إعداد Microsoft Sentinel SIEM', 'Microsoft Sentinel SIEM setup'],
+      ['تصميم سياسات الوصول المشروط', 'Conditional access policy design'],
+      ['تقرير تحسين درجة الأمان', 'Security score improvement report'],
     ],
   },
   {
@@ -89,17 +120,20 @@ const SERVICES = [
     color: 'text-purple-400',
     borderIdle: 'border-purple-500/25',
     badge: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-    tag: 'Monthly Retainer',
-    title: 'Security Monitoring',
-    subtitle: 'Eyes on your infrastructure 24/7',
-    duration: 'Ongoing',
-    description: 'Monthly retainer: threat monitoring, SIEM alert triage, monthly security report, incident response on-call, and proactive vulnerability alerts.',
+    tag: ['اشتراك شهري', 'Monthly Retainer'],
+    title: ['المراقبة الأمنية', 'Security Monitoring'],
+    subtitle: ['عيون على بنيتك التحتية على مدار الساعة', 'Eyes on your infrastructure 24/7'],
+    duration: ['مستمر', 'Ongoing'],
+    description: [
+      'اشتراك شهري: مراقبة التهديدات، وفرز تنبيهات SIEM، وتقرير أمني شهري، والاستجابة للحوادث عند الطلب، وتنبيهات استباقية بالثغرات.',
+      'Monthly retainer: threat monitoring, SIEM alert triage, monthly security report, incident response on-call, and proactive vulnerability alerts.',
+    ],
     deliverables: [
-      'SIEM alert triage & escalation',
-      'Monthly threat intelligence report',
-      'Vulnerability feed & patch advisory',
-      'Incident response (up to 8 hrs/mo)',
-      'Quarterly posture review call',
+      ['فرز تنبيهات SIEM وتصعيدها', 'SIEM alert triage & escalation'],
+      ['تقرير شهري لاستخبارات التهديدات', 'Monthly threat intelligence report'],
+      ['تغذية بالثغرات وإرشادات الترقيع', 'Vulnerability feed & patch advisory'],
+      ['الاستجابة للحوادث (حتى 8 ساعات شهرياً)', 'Incident response (up to 8 hrs/mo)'],
+      ['مكالمة مراجعة للوضع الأمني كل ربع سنة', 'Quarterly posture review call'],
     ],
   },
   {
@@ -108,17 +142,20 @@ const SERVICES = [
     color: 'text-yellow-400',
     borderIdle: 'border-yellow-500/25',
     badge: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-    tag: 'Teams & Corporates',
-    title: 'Security Awareness Training',
-    subtitle: 'Your people are your biggest risk',
-    duration: 'Half or full day',
-    description: 'Live training sessions for employees covering phishing, social engineering, password hygiene, incident reporting, and safe remote work. Arabic & English.',
+    tag: ['للفرق والشركات', 'Teams & Corporates'],
+    title: ['التوعية الأمنية', 'Security Awareness Training'],
+    subtitle: ['موظفوك هم أكبر مصدر للخطر', 'Your people are your biggest risk'],
+    duration: ['نصف يوم أو يوم كامل', 'Half or full day'],
+    description: [
+      'جلسات تدريب مباشرة للموظفين تغطّي التصيّد الاحتيالي والهندسة الاجتماعية وأمان كلمات المرور والإبلاغ عن الحوادث والعمل عن بُعد بأمان. بالعربية والإنجليزية.',
+      'Live training sessions for employees covering phishing, social engineering, password hygiene, incident reporting, and safe remote work. Arabic & English.',
+    ],
     deliverables: [
-      'Phishing simulation campaign',
-      'Live workshop (Arabic/English)',
-      'Customized training materials',
-      'Post-training quiz & scoring',
-      'Certificate of completion',
+      ['حملة محاكاة تصيّد احتيالي', 'Phishing simulation campaign'],
+      ['ورشة عمل مباشرة (عربي/إنجليزي)', 'Live workshop (Arabic/English)'],
+      ['مواد تدريبية مخصّصة', 'Customized training materials'],
+      ['اختبار وتقييم بعد التدريب', 'Post-training quiz & scoring'],
+      ['شهادة إتمام', 'Certificate of completion'],
     ],
   },
   {
@@ -127,17 +164,20 @@ const SERVICES = [
     color: 'text-orange-400',
     borderIdle: 'border-orange-500/25',
     badge: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-    tag: 'Emergency Available',
-    title: 'Incident Response',
-    subtitle: 'Breach? Call now, not later.',
-    duration: 'As needed',
-    description: 'Rapid response to active breaches, ransomware, data leaks, or account compromise. Containment, forensic analysis, root cause identification, and recovery plan.',
+    tag: ['متاح للطوارئ', 'Emergency Available'],
+    title: ['الاستجابة للحوادث', 'Incident Response'],
+    subtitle: ['تعرّضت لاختراق؟ اتصل الآن لا لاحقاً.', 'Breach? Call now, not later.'],
+    duration: ['حسب الحاجة', 'As needed'],
+    description: [
+      'استجابة سريعة للاختراقات النشطة وبرامج الفدية وتسريبات البيانات أو اختراق الحسابات. احتواء وتحليل جنائي رقمي وتحديد السبب الجذري وخطة تعافٍ.',
+      'Rapid response to active breaches, ransomware, data leaks, or account compromise. Containment, forensic analysis, root cause identification, and recovery plan.',
+    ],
     deliverables: [
-      'Immediate remote triage',
-      'Threat containment & isolation',
-      'Forensic timeline reconstruction',
-      'Root cause analysis report',
-      'Recovery & hardening plan',
+      ['فرز فوري عن بُعد', 'Immediate remote triage'],
+      ['احتواء التهديد وعزله', 'Threat containment & isolation'],
+      ['إعادة بناء التسلسل الزمني الجنائي', 'Forensic timeline reconstruction'],
+      ['تقرير تحليل السبب الجذري', 'Root cause analysis report'],
+      ['خطة تعافٍ وتحصين', 'Recovery & hardening plan'],
     ],
   },
 ]
@@ -169,6 +209,7 @@ const inputCls =
   'w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:border-emerald-500/50 focus:shadow-[0_0_0_1px_rgba(16,185,129,0.2)] transition-all duration-150 font-mono'
 
 export default function ServicesPage() {
+  const { t, dir } = useLanguage()
   const [form, setForm] = useState<FormData>({
     name: '', email: '', company: '', service: '', message: '',
     preferredDate: '', preferredTime: '10:00',
@@ -183,7 +224,7 @@ export default function ServicesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.name || !form.email || !form.service || !form.preferredDate) {
-      toast.error('Please fill in name, email, service, and preferred date.')
+      toast.error(t('يرجى تعبئة الاسم والبريد الإلكتروني والخدمة والتاريخ المفضّل.', 'Please fill in name, email, service, and preferred date.'))
       return
     }
     setSubmitState('sending')
@@ -205,15 +246,15 @@ export default function ServicesPage() {
       if (!res.ok || !data.ok) throw new Error(data.error ?? 'Booking failed')
       setMeetLink(data.meetLink)
       setSubmitState('success')
-      toast.success('Meeting booked! Check your email for the calendar invite.', { duration: 8000 })
+      toast.success(t('تم حجز الاجتماع! تحقّق من بريدك الإلكتروني لدعوة التقويم.', 'Meeting booked! Check your email for the calendar invite.'), { duration: 8000 })
     } catch (err: any) {
       setSubmitState('error')
-      toast.error(err.message ?? 'Something went wrong. Please try again.')
+      toast.error(err.message ?? t('حدث خطأ ما. يرجى المحاولة مرة أخرى.', 'Something went wrong. Please try again.'))
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white relative overflow-hidden">
+    <div dir={dir} className="min-h-screen bg-[#09090b] text-white relative overflow-hidden">
       <MatrixBackground />
 
       {/* Ambient glow */}
@@ -247,7 +288,7 @@ export default function ServicesPage() {
               className="border border-zinc-800 text-zinc-500 hover:text-zinc-100 hover:border-zinc-700 font-mono text-[11px] uppercase tracking-widest"
               asChild
             >
-              <Link href="/"><ArrowLeft className="mr-1.5 h-3 w-3" /> Portfolio</Link>
+              <Link href="/"><ArrowLeft className="mr-1.5 h-3 w-3" /> {t('الأعمال', 'Portfolio')}</Link>
             </Button>
           </nav>
         </div>
@@ -256,24 +297,31 @@ export default function ServicesPage() {
       <main className="relative z-10">
 
         {/* ── Hero ──────────────────────────────────────────────────────── */}
-        <section className="container mx-auto px-4 pt-16 pb-10 max-w-4xl">
+        <section dir={dir} className="container mx-auto px-4 pt-16 pb-10 max-w-4xl">
           <div className="inline-flex items-center gap-2 rounded border border-emerald-800/60 bg-emerald-950/20 px-3 py-1.5 font-mono text-[10px] text-emerald-400 uppercase tracking-widest mb-6">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
-            Available for Hire · Riyadh, KSA
+            {t('متاح للعمل · الرياض، السعودية', 'Available for Hire · Riyadh, KSA')}
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold mb-5 leading-tight tracking-tight">
-            <GlitchText text="Security Services" />
+            <GlitchText text={t('خدمات الأمن السيبراني', 'Security Services')} />
           </h1>
 
           <p className="text-base text-zinc-500 max-w-xl mb-8 leading-relaxed">
-            Certified cybersecurity professional based in Riyadh. I help Saudi and GCC businesses find
-            vulnerabilities, achieve compliance, and stay protected — in Arabic and English.
+            {t(
+              'مختص معتمد في الأمن السيبراني مقرّه الرياض. أساعد الشركات السعودية والخليجية على اكتشاف الثغرات وتحقيق الامتثال والبقاء محميّة — بالعربية والإنجليزية.',
+              'Certified cybersecurity professional based in Riyadh. I help Saudi and GCC businesses find vulnerabilities, achieve compliance, and stay protected — in Arabic and English.',
+            )}
           </p>
 
           {/* Cert tags */}
           <div className="flex flex-wrap gap-2 mb-10">
-            {['CEH (pursuing)', 'CompTIA Security+', 'Microsoft Azure Security', 'NCA / SAMA Familiar'].map(cert => (
+            {[
+              t('CEH (قيد الإنجاز)', 'CEH (pursuing)'),
+              'CompTIA Security+',
+              'Microsoft Azure Security',
+              t('ملمّ بـ NCA / SAMA', 'NCA / SAMA Familiar'),
+            ].map(cert => (
               <span
                 key={cert}
                 className="inline-flex items-center gap-1.5 font-mono text-[11px] text-zinc-400 border border-zinc-800 rounded px-2.5 py-1 bg-zinc-900/50 hover:border-zinc-700 transition-colors"
@@ -290,7 +338,7 @@ export default function ServicesPage() {
               href="#inquiry"
               className="inline-flex items-center justify-center gap-2 rounded bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-5 py-3 text-sm transition-all duration-200 hover:shadow-[0_0_28px_rgba(16,185,129,0.35)]"
             >
-              <Mail className="h-4 w-4" /> Get a Free Quote
+              <Mail className="h-4 w-4" /> {t('احصل على عرض سعر مجاني', 'Get a Free Quote')}
             </a>
             <a
               href="tel:+966508501717"
@@ -302,14 +350,14 @@ export default function ServicesPage() {
         </section>
 
         {/* ── Separator stat row ────────────────────────────────────────── */}
-        <div className="border-y border-zinc-900 bg-zinc-950/50 relative z-10">
+        <div dir={dir} className="border-y border-zinc-900 bg-zinc-950/50 relative z-10">
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-zinc-900">
               {[
-                { value: '6', label: 'Service types' },
-                { value: 'KSA + GCC', label: 'Coverage' },
-                { value: 'Arabic / EN', label: 'Languages' },
-                { value: '24 h', label: 'Response SLA' },
+                { value: t('6', '6'), label: t('أنواع الخدمات', 'Service types') },
+                { value: t('السعودية + الخليج', 'KSA + GCC'), label: t('التغطية', 'Coverage') },
+                { value: t('عربي / إنجليزي', 'Arabic / EN'), label: t('اللغات', 'Languages') },
+                { value: t('24 ساعة', '24 h'), label: t('زمن الاستجابة', 'Response SLA') },
               ].map(s => (
                 <div key={s.label} className="px-6 py-4 text-center">
                   <div className="font-mono text-base font-bold text-zinc-200 mb-0.5">{s.value}</div>
@@ -321,15 +369,15 @@ export default function ServicesPage() {
         </div>
 
         {/* ── Services Grid ─────────────────────────────────────────────── */}
-        <section className="container mx-auto px-4 py-16 max-w-6xl">
+        <section dir={dir} className="container mx-auto px-4 py-16 max-w-6xl">
           <div className="flex items-center gap-4 mb-10">
             <div>
-              <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-1">Engagements</p>
-              <h2 className="text-2xl font-bold text-zinc-100"><GlitchText text="What I Offer" /></h2>
+              <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-1">{t('المهام', 'Engagements')}</p>
+              <h2 className="text-2xl font-bold text-zinc-100"><GlitchText text={t('ما أقدّمه', 'What I Offer')} /></h2>
             </div>
             <span className="h-px flex-1 bg-zinc-900 hidden sm:block" />
             <p className="text-[11px] text-zinc-700 font-mono shrink-0 hidden sm:block">
-              clear scope · fixed timeline · real deliverables
+              {t('نطاق واضح · جدول زمني ثابت · مخرجات حقيقية', 'clear scope · fixed timeline · real deliverables')}
             </p>
           </div>
 
@@ -367,28 +415,28 @@ export default function ServicesPage() {
                         {s.icon}
                       </div>
                       <span className={`font-mono text-[9px] border rounded px-2 py-0.5 uppercase tracking-widest ${s.badge}`}>
-                        {s.tag}
+                        {t(...s.tag)}
                       </span>
                     </div>
 
                     {/* title + subtitle */}
                     <h3 className={`text-sm font-semibold text-zinc-100 mb-1 group-hover:${s.color.replace('text-', 'text-')} transition-colors leading-snug`}>
-                      {s.title}
+                      {t(...s.title)}
                     </h3>
-                    <p className="font-mono text-[11px] text-zinc-600 mb-3 leading-snug">{s.subtitle}</p>
+                    <p className="font-mono text-[11px] text-zinc-600 mb-3 leading-snug">{t(...s.subtitle)}</p>
 
                     {/* description */}
-                    <p className="text-zinc-500 text-xs mb-4 leading-relaxed flex-1">{s.description}</p>
+                    <p className="text-zinc-500 text-xs mb-4 leading-relaxed flex-1">{t(...s.description)}</p>
 
                     {/* deliverables */}
                     <ul className="space-y-1.5 mb-5">
                       {s.deliverables.map((d) => (
-                        <li key={d} className="flex items-start gap-2 text-xs text-zinc-600">
+                        <li key={d[1]} className="flex items-start gap-2 text-xs text-zinc-600">
                           <span
                             className="mt-1.5 h-1 w-1 rounded-full shrink-0"
                             style={{ background: accent.hex, opacity: 0.7 }}
                           />
-                          {d}
+                          {t(...d)}
                         </li>
                       ))}
                     </ul>
@@ -396,13 +444,13 @@ export default function ServicesPage() {
                     {/* footer row */}
                     <div className="flex items-center justify-between pt-4 border-t border-zinc-800/50">
                       <span className="flex items-center gap-1.5 font-mono text-[10px] text-zinc-700">
-                        <Clock className="h-3 w-3 shrink-0" />{s.duration}
+                        <Clock className="h-3 w-3 shrink-0" />{t(...s.duration)}
                       </span>
                       <a
                         href="#inquiry"
                         className={`inline-flex items-center gap-1 font-mono text-[11px] ${s.color} border ${s.borderIdle} rounded px-2.5 py-1 transition-all duration-200 hover:opacity-80`}
                       >
-                        Inquire <ChevronRight className="h-3 w-3" />
+                        {t('استفسر', 'Inquire')} <ChevronRight className="h-3 w-3" />
                       </a>
                     </div>
                   </div>
@@ -419,17 +467,17 @@ export default function ServicesPage() {
         </section>
 
         {/* ── Inquiry / Booking Form ────────────────────────────────────── */}
-        <section id="inquiry" className="container mx-auto px-4 pb-20 max-w-2xl">
+        <section dir={dir} id="inquiry" className="container mx-auto px-4 pb-20 max-w-2xl">
 
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 rounded border border-emerald-800/50 bg-emerald-950/20 px-3 py-1.5 font-mono text-[10px] text-emerald-500 uppercase tracking-widest mb-4">
-              <FileText className="w-3 h-3" /> Free Consultation
+              <FileText className="w-3 h-3" /> {t('استشارة مجانية', 'Free Consultation')}
             </div>
             <h2 className="text-3xl font-bold mb-2 tracking-tight">
-              <GlitchText text="Request a Quote" />
+              <GlitchText text={t('اطلب عرض سعر', 'Request a Quote')} />
             </h2>
             <p className="text-zinc-600 text-sm font-mono">
-              Tell me what you need. I'll respond within 24 hours with a scoped proposal.
+              {t('أخبرني بما تحتاجه. سأرد خلال 24 ساعة بعرض محدّد النطاق.', "Tell me what you need. I'll respond within 24 hours with a scoped proposal.")}
             </p>
           </div>
 
@@ -458,10 +506,11 @@ export default function ServicesPage() {
                       <CheckCircle2 className="h-8 w-8 text-emerald-400" />
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold text-white">Meeting Booked</h3>
+                  <h3 className="text-xl font-bold text-white">{t('تم حجز الاجتماع', 'Meeting Booked')}</h3>
                   <p className="text-zinc-400 text-sm max-w-xs mx-auto">
-                    A calendar invite with a Google Meet link has been sent to your email.
-                    Please <strong className="text-white">accept the invite</strong> to confirm your slot.
+                    {t('تم إرسال دعوة تقويم تتضمّن رابط Google Meet إلى بريدك الإلكتروني. يرجى ', 'A calendar invite with a Google Meet link has been sent to your email. Please ')}
+                    <strong className="text-white">{t('قبول الدعوة', 'accept the invite')}</strong>
+                    {t(' لتأكيد موعدك.', ' to confirm your slot.')}
                   </p>
                   {meetLink && (
                     <a
@@ -470,7 +519,7 @@ export default function ServicesPage() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 bg-emerald-500 text-black font-bold px-6 py-3 rounded text-sm hover:bg-emerald-400 transition-colors"
                     >
-                      <Phone className="h-4 w-4" /> Open Meeting Link
+                      <Phone className="h-4 w-4" /> {t('فتح رابط الاجتماع', 'Open Meeting Link')}
                     </a>
                   )}
                   <div>
@@ -478,7 +527,7 @@ export default function ServicesPage() {
                       onClick={() => { setSubmitState('idle'); setMeetLink('') }}
                       className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors font-mono mt-2"
                     >
-                      Book another session
+                      {t('حجز جلسة أخرى', 'Book another session')}
                     </button>
                   </div>
                 </div>
@@ -487,20 +536,20 @@ export default function ServicesPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block font-mono text-[10px] text-zinc-500 mb-1.5 uppercase tracking-widest">
-                        Your Name <span className="text-emerald-600">*</span>
+                        {t('اسمك', 'Your Name')} <span className="text-emerald-600">*</span>
                       </label>
                       <input
                         type="text"
                         value={form.name}
                         onChange={set('name')}
-                        placeholder="Your full name"
+                        placeholder={t('اسمك الكامل', 'Your full name')}
                         className={inputCls}
                         required
                       />
                     </div>
                     <div>
                       <label className="block font-mono text-[10px] text-zinc-500 mb-1.5 uppercase tracking-widest">
-                        Email <span className="text-emerald-600">*</span>
+                        {t('البريد الإلكتروني', 'Email')} <span className="text-emerald-600">*</span>
                       </label>
                       <input
                         type="email"
@@ -515,20 +564,20 @@ export default function ServicesPage() {
 
                   <div>
                     <label className="block font-mono text-[10px] text-zinc-500 mb-1.5 uppercase tracking-widest">
-                      Company / Organization
+                      {t('الشركة / المؤسسة', 'Company / Organization')}
                     </label>
                     <input
                       type="text"
                       value={form.company}
                       onChange={set('company')}
-                      placeholder="Acme Corp Ltd."
+                      placeholder={t('شركة المثال المحدودة', 'Acme Corp Ltd.')}
                       className={inputCls}
                     />
                   </div>
 
                   <div>
                     <label className="block font-mono text-[10px] text-zinc-500 mb-1.5 uppercase tracking-widest">
-                      Service Needed <span className="text-emerald-600">*</span>
+                      {t('الخدمة المطلوبة', 'Service Needed')} <span className="text-emerald-600">*</span>
                     </label>
                     <select
                       value={form.service}
@@ -536,21 +585,21 @@ export default function ServicesPage() {
                       className={inputCls}
                       required
                     >
-                      <option value="">Select a service...</option>
-                      <option value="Penetration Testing">Penetration Testing</option>
-                      <option value="Security Audit (NCA/SAMA/ISO)">Security Audit (NCA/SAMA/ISO)</option>
-                      <option value="Microsoft Security Setup (Azure/M365)">Microsoft Security Setup (Azure/M365)</option>
-                      <option value="Security Monitoring Retainer">Security Monitoring Retainer</option>
-                      <option value="Security Awareness Training">Security Awareness Training</option>
-                      <option value="Incident Response">Incident Response</option>
-                      <option value="Other / Not Sure">Other / Not Sure</option>
+                      <option value="">{t('اختر خدمة...', 'Select a service...')}</option>
+                      <option value="Penetration Testing">{t('اختبار الاختراق', 'Penetration Testing')}</option>
+                      <option value="Security Audit (NCA/SAMA/ISO)">{t('تدقيق أمني (NCA/SAMA/ISO)', 'Security Audit (NCA/SAMA/ISO)')}</option>
+                      <option value="Microsoft Security Setup (Azure/M365)">{t('إعداد أمن Microsoft (Azure/M365)', 'Microsoft Security Setup (Azure/M365)')}</option>
+                      <option value="Security Monitoring Retainer">{t('اشتراك المراقبة الأمنية', 'Security Monitoring Retainer')}</option>
+                      <option value="Security Awareness Training">{t('التوعية الأمنية', 'Security Awareness Training')}</option>
+                      <option value="Incident Response">{t('الاستجابة للحوادث', 'Incident Response')}</option>
+                      <option value="Other / Not Sure">{t('أخرى / غير متأكد', 'Other / Not Sure')}</option>
                     </select>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block font-mono text-[10px] text-zinc-500 mb-1.5 uppercase tracking-widest">
-                        Preferred Date <span className="text-emerald-600">*</span>
+                        {t('التاريخ المفضّل', 'Preferred Date')} <span className="text-emerald-600">*</span>
                       </label>
                       <input
                         type="date"
@@ -563,7 +612,7 @@ export default function ServicesPage() {
                     </div>
                     <div>
                       <label className="block font-mono text-[10px] text-zinc-500 mb-1.5 uppercase tracking-widest">
-                        Preferred Time (AST)
+                        {t('الوقت المفضّل (بتوقيت السعودية)', 'Preferred Time (AST)')}
                       </label>
                       <select
                         value={form.preferredTime}
@@ -571,25 +620,25 @@ export default function ServicesPage() {
                         className={inputCls}
                       >
                         {['09:00','09:30','10:00','10:30','11:00','11:30','12:00',
-                          '13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'].map(t => (
-                          <option key={t} value={t}>{t} AST</option>
+                          '13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'].map(time => (
+                          <option key={time} value={time}>{time} {t('بتوقيت السعودية', 'AST')}</option>
                         ))}
                       </select>
                     </div>
                   </div>
                   <p className="font-mono text-[10px] text-zinc-700 -mt-2">
-                    45-min session · Google Meet link sent to your email
+                    {t('جلسة 45 دقيقة · يُرسل رابط Google Meet إلى بريدك الإلكتروني', '45-min session · Google Meet link sent to your email')}
                   </p>
 
                   <div>
                     <label className="block font-mono text-[10px] text-zinc-500 mb-1.5 uppercase tracking-widest">
-                      Situation Brief
+                      {t('موجز عن وضعك', 'Situation Brief')}
                     </label>
                     <textarea
                       value={form.message}
                       onChange={set('message')}
                       rows={4}
-                      placeholder="Brief description of your environment, what you're worried about, any compliance requirements, timeline..."
+                      placeholder={t('وصف موجز لبيئتك، وما الذي يقلقك، وأي متطلبات امتثال، والجدول الزمني...', "Brief description of your environment, what you're worried about, any compliance requirements, timeline...")}
                       className={`${inputCls} resize-none`}
                     />
                   </div>
@@ -602,18 +651,18 @@ export default function ServicesPage() {
                     {submitState === 'sending' ? (
                       <>
                         <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                        Booking meeting...
+                        {t('جارٍ حجز الاجتماع...', 'Booking meeting...')}
                       </>
                     ) : (
                       <>
                         <Zap className="h-4 w-4" />
-                        Book Free Consultation
+                        {t('احجز استشارة مجانية', 'Book Free Consultation')}
                       </>
                     )}
                   </button>
 
                   <p className="text-center font-mono text-[10px] text-zinc-700">
-                    Google Calendar invite sent immediately · No spam · No obligation
+                    {t('تُرسل دعوة Google Calendar فوراً · بلا إزعاج · بلا التزام', 'Google Calendar invite sent immediately · No spam · No obligation')}
                   </p>
                 </form>
               )}
@@ -623,17 +672,17 @@ export default function ServicesPage() {
           {/* Trust signals */}
           <div className="mt-5 grid grid-cols-3 gap-3">
             {[
-              { icon: <Clock className="h-3.5 w-3.5" />, label: '24h Response', sub: 'Guaranteed' },
-              { icon: <Users className="h-3.5 w-3.5" />, label: 'AR + EN', sub: 'Bilingual' },
-              { icon: <Shield className="h-3.5 w-3.5" />, label: 'NDA Available', sub: 'Confidential' },
-            ].map(t => (
+              { icon: <Clock className="h-3.5 w-3.5" />, label: t('استجابة خلال 24 ساعة', '24h Response'), sub: t('مضمونة', 'Guaranteed') },
+              { icon: <Users className="h-3.5 w-3.5" />, label: t('عربي + إنجليزي', 'AR + EN'), sub: t('ثنائي اللغة', 'Bilingual') },
+              { icon: <Shield className="h-3.5 w-3.5" />, label: t('اتفاقية سرية متاحة', 'NDA Available'), sub: t('سرّي', 'Confidential') },
+            ].map(item => (
               <div
-                key={t.label}
+                key={item.label}
                 className="rounded border border-zinc-800 bg-zinc-950/60 p-3 text-center hover:border-zinc-700 transition-colors"
               >
-                <div className="text-emerald-500 flex justify-center mb-2">{t.icon}</div>
-                <div className="font-mono text-[11px] font-semibold text-zinc-300">{t.label}</div>
-                <div className="font-mono text-[9px] text-zinc-600 mt-0.5 uppercase tracking-widest">{t.sub}</div>
+                <div className="text-emerald-500 flex justify-center mb-2">{item.icon}</div>
+                <div className="font-mono text-[11px] font-semibold text-zinc-300">{item.label}</div>
+                <div className="font-mono text-[9px] text-zinc-600 mt-0.5 uppercase tracking-widest">{item.sub}</div>
               </div>
             ))}
           </div>
@@ -641,17 +690,17 @@ export default function ServicesPage() {
       </main>
 
       {/* ── Footer ──────────────────────────────────────────────────────── */}
-      <footer className="border-t border-zinc-900 py-6 relative z-10">
+      <footer dir={dir} className="border-t border-zinc-900 py-6 relative z-10">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-3">
           <span className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest">
             GOODNBAD.EXE © {new Date().getFullYear()}
           </span>
           <div className="flex gap-5">
             {[
-              { href: '/',          label: 'Portfolio'      },
-              { href: '/security',  label: 'Security Atlas' },
-              { href: '/personnel', label: 'Dossier'        },
-              { href: 'mailto:alramli.hamzah@gmail.com', label: 'Email' },
+              { href: '/',          label: t('الأعمال', 'Portfolio')        },
+              { href: '/security',  label: t('أطلس الأمن', 'Security Atlas') },
+              { href: '/personnel', label: t('الملف', 'Dossier')            },
+              { href: 'mailto:alramli.hamzah@gmail.com', label: t('البريد', 'Email') },
             ].map(({ href, label }) => (
               <Link
                 key={href}

@@ -6,6 +6,7 @@ import { Noto_Kufi_Arabic } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { FullscreenButton } from "@/components/fullscreen"
 import { PortfolioAssistant } from "@/components/portfolio-assistant"
+import { LanguageProvider } from "@/components/language-provider"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata } from "next"
@@ -190,9 +191,11 @@ export default function RootLayout({
       </head>
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${notoKufiArabic.variable} font-sans pb-24 md:pb-0`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {children}
-          <FullscreenButton />
-          <PortfolioAssistant />
+          <LanguageProvider>
+            {children}
+            <FullscreenButton />
+            <PortfolioAssistant />
+          </LanguageProvider>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
