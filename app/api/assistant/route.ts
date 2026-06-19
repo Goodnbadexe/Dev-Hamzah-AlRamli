@@ -125,17 +125,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ reply })
-  } catch (error) {
-    if (error instanceof Anthropic.AuthenticationError) {
-      // Bad/expired key — treat like "not configured" so the widget stays useful.
-      return fallbackResponse(lang)
-    }
-    const status = error instanceof Anthropic.APIError ? error.status ?? 502 : 500
-    const detail = error instanceof Error ? error.message : String(error)
-    const message =
-      lang === "ar"
-        ? "تعذّر الوصول إلى المساعد. حاول مرة أخرى لاحقًا أو تواصل عبر صفحة Contact."
-        : "Couldn't reach the assistant. Please try again later or use the Contact page."
-    return NextResponse.json({ error: message, detail }, { status })
+  } catch {
+    // Any upstream failure — no credits, bad key, rate limit, transient outage —
+    // degrades to the static FAQ so the widget stays useful instead of erroring.
+    return fallbackResponse(lang)
   }
 }
