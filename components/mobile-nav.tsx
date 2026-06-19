@@ -48,6 +48,7 @@ export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
             <ul className="space-y-6">
               {[
                 { href: "/services", label: "Hire Me", highlight: true },
+                { href: "/subscribe", label: "Toolkit Vault — Subscribe", highlight: true },
                 { href: "#about", label: "About" },
                 { href: "#skills", label: "Skills" },
                 { href: "#projects", label: "Projects" },
