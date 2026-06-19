@@ -371,7 +371,7 @@ export default function HomePage() {
       {/* left-anchored hero owns the page (per the homepage concept).        */}
       {/* Renders a lightweight gradient until idle, then fades in the globe. */}
       {/* ------------------------------------------------------------------ */}
-      <div className="fixed inset-0 z-0">
+      <div className="fixed right-0 top-0 bottom-0 z-0 w-full lg:w-1/2 xl:w-[55%]">
         {/* Mobile: skip WebGL entirely — show animated CSS background */}
         {isMobile ? (
           <div
@@ -399,7 +399,7 @@ export default function HomePage() {
               <div className="absolute inset-0 animate-[fadeIn_700ms_ease-out_forwards]" style={{ opacity: 0 }}>
                 <ThreatGlobe
                   interactive={globeInspect}
-                  align="right"
+                  align="center"
                   showWorldLayers
                   activeLayers={activeLayers}
                   nightMode={activeLayers.has("Day / Night")}
@@ -502,7 +502,7 @@ export default function HomePage() {
               className="mt-[26px] max-w-[48ch] leading-[1.5] text-zinc-300"
               style={{ fontSize: globeInspect ? "1rem" : "clamp(17px, 2vw, 21px)" }}
             >
-              {t("حمزة الرملي — ", "Hamzah Al-Ramli — ")}<span className="font-semibold text-zinc-100">{t("مهندس الأمن السيبراني والأتمتة.", "Cybersecurity & Automation Architect.")}</span>{" "}
+              {t("حمزة الرملي — ", "Hamzah Al-Ramli — ")}<span className="font-semibold text-zinc-100">{t("أخصائي أمن سيبراني وأتمتة.", "Cybersecurity & Automation Architect.")}</span>{" "}
               {t("أبني أنظمة دفاعية وأدوات لرصد التهديدات والأتمتة التي تشغّلها.", "I build defensive systems, threat tooling, and the automation that runs them.")}
             </p>
 
@@ -594,7 +594,7 @@ export default function HomePage() {
                 />
                 <div className="mt-4 border-t border-zinc-900 pt-3.5">
                   <Link
-                    href="/signal"
+                    href="/news"
                     className="flex items-center gap-1.5 font-mono text-[12px] text-zinc-500 transition-colors hover:text-emerald-500"
                   >
                     <ArrowRight className="h-3 w-3" />

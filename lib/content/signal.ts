@@ -40,8 +40,8 @@ export const signalEntries: SignalEntry[] = [
     id: deployment.slug,
     date: deployment.year,
     type: "Project" as const,
-    title: deployment.name,
-    summary: deployment.result,
+    title: deployment.name.en,
+    summary: deployment.result.en,
     href: `/deployments/${deployment.slug}`,
   })),
   ...certifications.slice(0, 3).map((certification) => ({

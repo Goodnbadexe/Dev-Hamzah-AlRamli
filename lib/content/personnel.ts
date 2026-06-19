@@ -1,6 +1,9 @@
 import { memoryPlan } from "@/lib/memory/plan"
 import { PERSONAL_BRAND } from "@/lib/social/profiles"
 
+/** Bilingual user-facing string. URLs/emails/hrefs/dates stay outside this shape. */
+export type Bilingual = { ar: string; en: string }
+
 export const resumeHref = "/files/hamzah-al-ramli-resume.pdf"
 
 export const personnelIdentity = {
@@ -28,7 +31,15 @@ export const educationTimeline = memoryPlan.timeline.filter((item) =>
   item.title.toLowerCase().includes("bachelor"),
 )
 
-export const certifications = [
+export type Certification = {
+  name: string
+  issuer: string
+  date: string
+  credentialId?: string
+  href?: string
+}
+
+export const certifications: Certification[] = [
   {
     name: "Dynamic Analyst",
     issuer: "LetsDefend",
@@ -93,53 +104,151 @@ export const certifications = [
   },
 ]
 
-export const technicalCapabilities = [
+export type CapabilityGroup = {
+  /** Stable English key — used for icon/style lookup in the UI. */
+  key: string
+  label: Bilingual
+  items: Bilingual[]
+}
+
+export const technicalCapabilities: CapabilityGroup[] = [
   {
-    label: "Cybersecurity",
+    key: "Cybersecurity",
+    label: {
+      ar: "الأمن السيبراني",
+      en: "Cybersecurity",
+    },
     items: [
-      "Malware analysis & dynamic investigation",
-      "Threat intelligence & OSINT",
-      "Network security (CCNA fundamentals)",
-      "Vulnerability management",
-      "Incident response & detection",
+      {
+        ar: "تحليل البرمجيات الخبيثة والتحقيق الديناميكي",
+        en: "Malware analysis & dynamic investigation",
+      },
+      {
+        ar: "استخبارات التهديدات وOSINT",
+        en: "Threat intelligence & OSINT",
+      },
+      {
+        ar: "أمن الشبكات (أساسيات CCNA)",
+        en: "Network security (CCNA fundamentals)",
+      },
+      {
+        ar: "إدارة الثغرات",
+        en: "Vulnerability management",
+      },
+      {
+        ar: "الاستجابة للحوادث والكشف عنها",
+        en: "Incident response & detection",
+      },
     ],
   },
   {
-    label: "Creative & Multimedia",
+    key: "Creative & Multimedia",
+    label: {
+      ar: "الإبداع والوسائط المتعددة",
+      en: "Creative & Multimedia",
+    },
     items: [
-      "Graphic design & brand identity",
-      "Video editing — Adobe Premiere Pro, Avid",
-      "Animation & interactive experiences",
-      "UI/UX and responsive web design",
-      "Social media content production",
+      {
+        ar: "التصميم الجرافيكي وهوية العلامة التجارية",
+        en: "Graphic design & brand identity",
+      },
+      {
+        ar: "مونتاج الفيديو — Adobe Premiere Pro، Avid",
+        en: "Video editing — Adobe Premiere Pro, Avid",
+      },
+      {
+        ar: "الرسوم المتحركة والتجارب التفاعلية",
+        en: "Animation & interactive experiences",
+      },
+      {
+        ar: "تصميم UI/UX والويب المتجاوب",
+        en: "UI/UX and responsive web design",
+      },
+      {
+        ar: "إنتاج محتوى وسائل التواصل الاجتماعي",
+        en: "Social media content production",
+      },
     ],
   },
   {
-    label: "Development",
+    key: "Development",
+    label: {
+      ar: "التطوير",
+      en: "Development",
+    },
     items: [
-      "Next.js, React, TypeScript",
-      "Python, JavaScript, Java, PHP",
-      "iOS (Swift) & Android",
-      "Database-backed full-stack apps",
-      "AI-augmented development",
+      {
+        ar: "Next.js وReact وTypeScript",
+        en: "Next.js, React, TypeScript",
+      },
+      {
+        ar: "Python وJavaScript وJava وPHP",
+        en: "Python, JavaScript, Java, PHP",
+      },
+      {
+        ar: "iOS (Swift) وAndroid",
+        en: "iOS (Swift) & Android",
+      },
+      {
+        ar: "تطبيقات full-stack مدعومة بقواعد بيانات",
+        en: "Database-backed full-stack apps",
+      },
+      {
+        ar: "التطوير المعزز بالذكاء الاصطناعي",
+        en: "AI-augmented development",
+      },
     ],
   },
   {
-    label: "Strategy & Tools",
+    key: "Strategy & Tools",
+    label: {
+      ar: "الاستراتيجية والأدوات",
+      en: "Strategy & Tools",
+    },
     items: [
-      "Google Analytics & digital analytics",
-      "Brand management",
-      "Workflow automation (n8n, AI agents)",
-      "Project management",
-      "SEO & content strategy",
+      {
+        ar: "Google Analytics والتحليلات الرقمية",
+        en: "Google Analytics & digital analytics",
+      },
+      {
+        ar: "إدارة العلامة التجارية",
+        en: "Brand management",
+      },
+      {
+        ar: "أتمتة سير العمل (n8n، وكلاء الذكاء الاصطناعي)",
+        en: "Workflow automation (n8n, AI agents)",
+      },
+      {
+        ar: "إدارة المشاريع",
+        en: "Project management",
+      },
+      {
+        ar: "SEO واستراتيجية المحتوى",
+        en: "SEO & content strategy",
+      },
     ],
   },
 ]
 
-export const recruiterHighlights = [
-  "Cybersecurity expert with hands-on malware analysis, threat intelligence, and detection work (LetsDefend certified).",
-  "Creative multimedia designer — graphic design, brand identity, video production, and interactive experiences.",
-  "Full-stack builder: Next.js, React, Python, iOS/Android — ships things that actually work.",
-  "Computer Science degree from Taylor's University (Award recipient 2024).",
-  "Based in Riyadh, Saudi Arabia. Available for remote and on-site opportunities across GCC.",
+export const recruiterHighlights: Bilingual[] = [
+  {
+    ar: "خبير أمن سيبراني بخبرة عملية في تحليل البرمجيات الخبيثة واستخبارات التهديدات وأعمال الكشف (معتمد من LetsDefend).",
+    en: "Cybersecurity expert with hands-on malware analysis, threat intelligence, and detection work (LetsDefend certified).",
+  },
+  {
+    ar: "مصمم وسائط متعددة مبدع — تصميم جرافيكي وهوية علامة تجارية وإنتاج فيديو وتجارب تفاعلية.",
+    en: "Creative multimedia designer — graphic design, brand identity, video production, and interactive experiences.",
+  },
+  {
+    ar: "مطوّر full-stack: Next.js وReact وPython وiOS/Android — يبني أشياء تعمل فعلاً.",
+    en: "Full-stack builder: Next.js, React, Python, iOS/Android — ships things that actually work.",
+  },
+  {
+    ar: "شهادة علوم حاسب من Taylor's University (حائز على جائزة الجامعة 2024).",
+    en: "Computer Science degree from Taylor's University (Award recipient 2024).",
+  },
+  {
+    ar: "مقيم في الرياض، المملكة العربية السعودية. متاح لفرص العمل عن بُعد وفي الموقع في دول الخليج.",
+    en: "Based in Riyadh, Saudi Arabia. Available for remote and on-site opportunities across GCC.",
+  },
 ]
