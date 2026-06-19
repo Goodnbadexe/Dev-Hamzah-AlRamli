@@ -11,6 +11,7 @@ import {
   BUILD_STEPS, PLANS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, checkoutUrl, planById, type Plan,
 } from "@/lib/subscribe/config"
 import { MoyasarPayment } from "./MoyasarPayment"
+import { useLanguage } from "@/components/language-provider"
 
 const ICONS: Record<string, LucideIcon> = {
   user: User, zap: Zap, wrench: Wrench, alert: AlertTriangle, layers: Layers, clock: Clock,
@@ -49,15 +50,12 @@ export default function SubscribePage() {
   const [expiresAt, setExpiresAt] = useState<number | null>(null)
   const [selected, setSelected] = useState<Plan["id"]>("monthly")
   const [payResult, setPayResult] = useState<{ status: string; id: string | null; message: string | null } | null>(null)
-  const [lang, setLang] = useState<"ar" | "en">("ar")
+  const { setLang, isAr, t: tr, dir } = useLanguage()
   const topRef = useRef<HTMLDivElement>(null)
 
   const { display: countdown, expired } = useCountdown(expiresAt)
   const name = answers.name ?? ""
   const email = answers.email ?? ""
-  const isAr = lang === "ar"
-  const tr = (ar: string, en: string) => (isAr ? ar : en)
-  const dir = isAr ? "rtl" : "ltr"
 
   const scrollTop = useCallback(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
