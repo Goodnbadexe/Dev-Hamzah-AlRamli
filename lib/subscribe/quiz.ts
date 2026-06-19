@@ -5,6 +5,9 @@
 //          → micro-commitments → name + email. The order matters: each easy tap
 //          is a small commitment that makes the next one (and the paywall) feel
 //          like a natural continuation rather than a cold ask.
+// Routing: `niche` is the PRIMARY segmentation signal, supported by `role`,
+//          `goal`, `level`, `apply`. See lib/subscribe/segment.ts — these answers
+//          now actually pick the tailored tool set shown on the paywall.
 // Author:  @Goodnbad.exe
 // === END METADATA ===
 
@@ -44,11 +47,11 @@ export const QUIZ: QuizQuestion[] = [
     ar: "وش يوصفك أكثر؟",
     en: "What best describes you?",
     options: [
-      { value: "student", ar: "طالب / متعلّم", en: "Student / learner" },
-      { value: "dev", ar: "مطوّر / مبرمج", en: "Developer" },
+      { value: "dev", ar: "مطوّر / مبرمج", en: "Developer / engineer" },
+      { value: "security", ar: "أمن سيبراني", en: "Security / hacker" },
       { value: "founder", ar: "صاحب مشروع / مستقل", en: "Founder / freelancer" },
       { value: "creator", ar: "صانع محتوى / تسويق", en: "Creator / marketer" },
-      { value: "other", ar: "غير ذلك", en: "Something else" },
+      { value: "student", ar: "طالب / متعلّم", en: "Student / still exploring" },
     ],
   },
   {
@@ -56,9 +59,9 @@ export const QUIZ: QuizQuestion[] = [
     type: "single",
     icon: "zap",
     ar: "كم تستخدم أدوات الذكاء الاصطناعي حالياً؟",
-    en: "How often do you use AI tools today?",
+    en: "How deep are you with AI tools today?",
     options: [
-      { value: "daily", ar: "كل يوم", en: "Every day" },
+      { value: "daily", ar: "كل يوم — جزء من شغلي", en: "Daily — part of my workflow" },
       { value: "weekly", ar: "كم مرة بالأسبوع", en: "A few times a week" },
       { value: "rarely", ar: "نادراً", en: "Rarely" },
       { value: "new", ar: "لسّا بادي", en: "Just getting started" },
@@ -71,8 +74,8 @@ export const QUIZ: QuizQuestion[] = [
     ar: "أكثر أداة تعتمد عليها؟",
     en: "Which AI tool do you lean on most?",
     options: [
-      { value: "chatgpt", ar: "ChatGPT", en: "ChatGPT" },
       { value: "claude", ar: "Claude", en: "Claude" },
+      { value: "chatgpt", ar: "ChatGPT", en: "ChatGPT" },
       { value: "code", ar: "Cursor / Codex / Copilot", en: "Cursor / Codex / Copilot" },
       { value: "mix", ar: "خليط منهم", en: "A mix of them" },
       { value: "none", ar: "ولا واحد لين الحين", en: "None yet" },
@@ -89,7 +92,7 @@ export const QUIZ: QuizQuestion[] = [
     options: [
       { value: "repeat", ar: "أعيد شرح نفسي للـ AI كل مرة", en: "Repeating myself to the AI every time" },
       { value: "messy", ar: "ملفاتي ومساحات عملي مبعثرة", en: "Messy, scattered workspaces" },
-      { value: "tools", ar: "ما أعرف وش أفضل الأدوات", en: "Don't know the best tools" },
+      { value: "tools", ar: "ما أعرف وش أفضل الأدوات لمجالي", en: "Don't know the best tools for my field" },
       { value: "slow", ar: "النتائج بطيئة", en: "Results come too slow" },
       { value: "lost", ar: "ما أعرف وش الممكن أصلاً", en: "Not sure what's even possible" },
     ],
@@ -120,19 +123,6 @@ export const QUIZ: QuizQuestion[] = [
       { value: "15+", ar: "أكثر من ١٥ ساعة", en: "15+ hours" },
     ],
   },
-  {
-    id: "missing_out",
-    type: "single",
-    icon: "eye",
-    ar: "تحس إن فيه أدوات يستخدمها غيرك وأنت فايتك؟",
-    en: "Feel others use tools that put you behind?",
-    options: [
-      { value: "yes", ar: "أكيد", en: "Definitely" },
-      { value: "probably", ar: "على الأغلب", en: "Probably" },
-      { value: "maybe", ar: "يمكن", en: "Maybe" },
-      { value: "no", ar: "لا", en: "Not really" },
-    ],
-  },
 
   // ── C · Desire / goals (paint the outcome) ─────────────────────────────────
   {
@@ -142,10 +132,10 @@ export const QUIZ: QuizQuestion[] = [
     ar: "وش تبي توصل له؟",
     en: "What are you trying to achieve?",
     options: [
-      { value: "income", ar: "دخل إضافي", en: "Extra income" },
       { value: "ship", ar: "أنجز مشاريعي أسرع", en: "Ship projects faster" },
       { value: "master", ar: "أتقن workflow الـ AI", en: "Master AI workflows" },
       { value: "automate", ar: "أتمتة شغلي", en: "Automate my work" },
+      { value: "income", ar: "دخل إضافي", en: "Extra income" },
       { value: "career", ar: "وظيفة / فرصة أفضل", en: "A better role" },
     ],
   },
@@ -160,20 +150,6 @@ export const QUIZ: QuizQuestion[] = [
       { value: "3-5k", ar: "٣-٥ آلاف شهرياً", en: "3–5k SAR/mo" },
       { value: "6-10k", ar: "٦-١٠ آلاف شهرياً", en: "6–10k SAR/mo" },
       { value: "10k+", ar: "+١٠ آلاف / أستقل بشغلي", en: "10k+ / replace my job" },
-    ],
-  },
-  {
-    id: "outcome",
-    type: "single",
-    icon: "sparkles",
-    ar: "لو صار شغلك نخبوي، وش أول شي يتغيّر؟",
-    en: "If your workflow went elite, what changes first?",
-    options: [
-      { value: "money", ar: "فلوس أكثر", en: "More money" },
-      { value: "time", ar: "وقت فراغ أكثر", en: "More free time" },
-      { value: "output", ar: "إنتاجية أعلى", en: "More output" },
-      { value: "stress", ar: "توتر أقل", en: "Less stress" },
-      { value: "standout", ar: "أتميّز عن الكل", en: "I stand out" },
     ],
   },
   {
@@ -192,29 +168,30 @@ export const QUIZ: QuizQuestion[] = [
 
   // ── D · Qualify / personalize (so the plan feels tailored) ─────────────────
   {
+    id: "niche",
+    type: "single",
+    icon: "compass",
+    ar: "مجالك الأساسي؟ (اللي راح نبني حقيبتك حوله)",
+    en: "Your main focus area?",
+    subEn: "This is what we tune your toolkit around.",
+    options: [
+      { value: "dev", ar: "البرمجة / التطوير", en: "Dev / coding" },
+      { value: "security", ar: "الأمن السيبراني", en: "Cybersecurity" },
+      { value: "automation", ar: "الأتمتة وسير العمل", en: "Automation / workflows" },
+      { value: "content", ar: "المحتوى / التسويق", en: "Content / marketing" },
+      { value: "business", ar: "ريادة / أعمال", en: "Business / startup" },
+    ],
+  },
+  {
     id: "level",
     type: "single",
     icon: "gauge",
-    ar: "مستواك مع هالأدوات؟",
-    en: "Your level with these tools?",
+    ar: "مستواك في مجالك؟",
+    en: "Your level in that field?",
     options: [
       { value: "beginner", ar: "مبتدئ", en: "Beginner" },
       { value: "intermediate", ar: "متوسط", en: "Intermediate" },
       { value: "advanced", ar: "متقدّم", en: "Advanced" },
-    ],
-  },
-  {
-    id: "niche",
-    type: "single",
-    icon: "compass",
-    ar: "مجالك الأساسي؟",
-    en: "Your main focus area?",
-    options: [
-      { value: "security", ar: "الأمن السيبراني", en: "Cybersecurity" },
-      { value: "dev", ar: "البرمجة / التطوير", en: "Dev / coding" },
-      { value: "automation", ar: "الأتمتة", en: "Automation" },
-      { value: "content", ar: "المحتوى / التسويق", en: "Content / marketing" },
-      { value: "business", ar: "ريادة / أعمال", en: "Business / startup" },
     ],
   },
   {
@@ -257,18 +234,6 @@ export const QUIZ: QuizQuestion[] = [
       { value: "30m", ar: "٣٠ دقيقة", en: "30 minutes" },
       { value: "1h", ar: "ساعة", en: "1 hour" },
       { value: "2h+", ar: "ساعتين أو أكثر", en: "2+ hours" },
-    ],
-  },
-  {
-    id: "tried_before",
-    type: "single",
-    icon: "history",
-    ar: "حاولت من قبل تحسّن إعدادك مع الـ AI؟",
-    en: "Tried to upgrade your AI setup before?",
-    options: [
-      { value: "stuck", ar: "إي، بس ما استمريت", en: "Yes — it didn't stick" },
-      { value: "some", ar: "إي، وطلعت بنتائج", en: "Yes — got some wins" },
-      { value: "first", ar: "لا، أول مرة", en: "No — first time" },
     ],
   },
   {
