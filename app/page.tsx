@@ -3,7 +3,7 @@
 import { useCallback, useState, useEffect, type ElementType } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { ArrowRight, Terminal, Layers, Radio, Mail, User, ChevronRight, ChevronDown, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun } from "lucide-react"
+import { ArrowRight, Terminal, Layers, Radio, Mail, User, ChevronRight, ChevronDown, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun, Lock } from "lucide-react"
 import { OSDesktop, OSTaskbar, AmbientFeed } from "@/components/os"
 import { cn } from "@/lib/utils"
 import type { FeedEntry } from "@/components/os"
@@ -45,6 +45,7 @@ const MODULE_ITEMS: { href: string; code: string; label: string; sub: string; Ic
   { href: "/signal",      code: "03", label: "SIGNAL",      sub: "Live activity · Feed",         Icon: Radio    },
   { href: "/contact",     code: "04", label: "CONTACT",     sub: "Encrypted channel",            Icon: Mail     },
   { href: "/terminal",    code: "05", label: "TERMINAL",    sub: "Command interface",            Icon: Terminal },
+  { href: "/subscribe",   code: "06", label: "TOOLKIT VAULT", sub: "Weekly security + AI tools · Subscribe", Icon: Lock },
 ]
 
 // Hero credential chips

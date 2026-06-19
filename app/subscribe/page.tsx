@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { QUIZ, QUIZ_TOTAL } from "@/lib/subscribe/quiz"
 import {
-  BUILD_STEPS, PLANS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, planById, type Plan,
+  BUILD_STEPS, PLANS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, checkoutUrl, planById, type Plan,
 } from "@/lib/subscribe/config"
 import { MoyasarPayment } from "./MoyasarPayment"
 
@@ -47,7 +47,7 @@ export default function SubscribePage() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [promo, setPromo] = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState<number | null>(null)
-  const [selected, setSelected] = useState<Plan["id"]>("month")
+  const [selected, setSelected] = useState<Plan["id"]>("monthly")
   const [payResult, setPayResult] = useState<{ status: string; id: string | null; message: string | null } | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
 
@@ -148,10 +148,9 @@ export default function SubscribePage() {
   }, [phase, scrollTop])
 
   const handleGetPlan = useCallback(() => {
-    sendLead(selected, promo) // capture the lead, then pay in-page (no exit)
-    setPhase("pay")
-    scrollTop()
-  }, [selected, promo, sendLead, scrollTop])
+    sendLead(selected, promo) // capture the lead, then hand off to Gumroad checkout (recurrence pre-selected)
+    window.location.href = checkoutUrl(selected)
+  }, [selected, promo, sendLead])
 
   const progressPct = useMemo(() => Math.round((qIndex / QUIZ_TOTAL) * 100), [qIndex])
 
@@ -361,12 +360,12 @@ export default function SubscribePage() {
                       </div>
                       <div className="shrink-0 text-right">
                         <div className="flex items-baseline justify-end gap-1.5">
-                          <span className="font-mono text-[11px] text-zinc-600 line-through">{plan.original}</span>
-                          <span className={["font-mono text-2xl font-bold", isSel ? "text-emerald-300" : "text-zinc-200"].join(" ")}>{plan.price}</span>
-                          <span className="font-mono text-xs text-zinc-500">SAR</span>
+                          {plan.original ? <span className="font-mono text-[11px] text-zinc-600 line-through">${plan.original}</span> : null}
+                          <span className={["font-mono text-2xl font-bold", isSel ? "text-emerald-300" : "text-zinc-200"].join(" ")}>${plan.price}</span>
+                          <span className="font-mono text-xs text-zinc-500">{plan.id === "yearly" ? "/yr" : "/mo"}</span>
                         </div>
                         <p className="mt-0.5 font-mono text-[10px] text-zinc-600">{plan.perDay}</p>
-                        <p className="font-mono text-[9px] text-zinc-700">{plan.usd}</p>
+                        {plan.usd ? <p className="font-mono text-[9px] text-emerald-500">{plan.usd}</p> : null}
                       </div>
                     </div>
                   </button>

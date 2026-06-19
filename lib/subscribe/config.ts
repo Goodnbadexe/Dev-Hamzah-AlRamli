@@ -11,21 +11,17 @@
 // === END METADATA ===
 
 export type Plan = {
-  id: "trial" | "month" | "quarter"
+  id: "monthly" | "yearly"
   en: string
   ar: string
-  badge: string | null
-  badgeAr: string | null
   tag: string | null
-  tagAr: string | null
-  original: number // SAR, strike-through
-  price: number // SAR
-  perDay: string // "1.04 SAR/day"
-  perDayAr: string // "١.٠٤ ر.س/يوم"
-  usd: string // "≈ $7.7"
-  weeks: number
-  highlight: boolean
+  badge: string | null
+  original: number | null // USD, strike-through (yearly only)
+  price: number // USD
+  perDay: string // small note line under the price
+  usd: string // secondary note (e.g. "save 36%")
   best: boolean
+  recurrence: "monthly" | "yearly" // Gumroad recurrence key for checkout deep-link
 }
 
 /** Real 10-minute discount window (persisted, never silently reset). */
@@ -35,55 +31,30 @@ export const SAR_PER_USD = 3.75
 
 export const PLANS: Plan[] = [
   {
-    id: "trial",
-    en: "1-Week Trial",
-    ar: "تجربة أسبوع",
-    badge: null,
-    badgeAr: null,
+    id: "monthly",
+    en: "Monthly",
+    ar: "اشتراك شهري",
     tag: null,
-    tagAr: null,
-    original: 19,
+    badge: null,
+    original: null,
     price: 9,
-    perDay: "1.29 SAR/day",
-    perDayAr: "١.٢٩ ر.س/يوم",
-    usd: "≈ $2.4",
-    weeks: 1,
-    highlight: false,
+    perDay: "billed monthly",
+    usd: "",
     best: false,
+    recurrence: "monthly",
   },
   {
-    id: "month",
-    en: "4-Week Plan",
-    ar: "خطة ٤ أسابيع",
-    badge: "SAVE 61%",
-    badgeAr: "وفّر ٦١٪",
-    tag: "MOST POPULAR",
-    tagAr: "الأكثر اختياراً",
-    original: 75,
-    price: 29,
-    perDay: "1.04 SAR/day",
-    perDayAr: "١.٠٤ ر.س/يوم",
-    usd: "≈ $7.7",
-    weeks: 4,
-    highlight: true,
-    best: false,
-  },
-  {
-    id: "quarter",
-    en: "12-Week Plan",
-    ar: "خطة ١٢ أسبوع",
-    badge: "SAVE 65%",
-    badgeAr: "وفّر ٦٥٪",
+    id: "yearly",
+    en: "Yearly",
+    ar: "اشتراك سنوي",
     tag: "BEST VALUE",
-    tagAr: "أفضل قيمة",
-    original: 199,
+    badge: "SAVE 36%",
+    original: 108,
     price: 69,
-    perDay: "0.82 SAR/day",
-    perDayAr: "٠.٨٢ ر.س/يوم",
-    usd: "≈ $18",
-    weeks: 12,
-    highlight: false,
+    perDay: "≈ $5.75/mo",
+    usd: "save 36%",
     best: true,
+    recurrence: "yearly",
   },
 ]
 
@@ -131,17 +102,14 @@ export function buildPromoCode(firstName: string): string {
 }
 
 /**
- * Resolve the checkout URL for a plan. Env (NEXT_PUBLIC_CHECKOUT_*) holds the
- * Moyasar/Tap/Stripe Payment Link. Returns "" when unconfigured so the funnel
- * uses the lead-capture fallback instead of a broken/fake checkout.
+ * The live Gumroad membership. checkoutUrl() deep-links straight into Gumroad
+ * checkout with the plan's recurrence pre-selected — verified working:
+ * `?wanted=true&recurrence=monthly|yearly` opens checkout pre-filled at $9 / $69.
  */
+export const GUMROAD_PRODUCT = "https://vault.goodnbad.info/l/xqybso"
+
 export function checkoutUrl(planId: Plan["id"]): string {
-  const map: Record<Plan["id"], string | undefined> = {
-    trial: process.env.NEXT_PUBLIC_CHECKOUT_TRIAL,
-    month: process.env.NEXT_PUBLIC_CHECKOUT_MONTH,
-    quarter: process.env.NEXT_PUBLIC_CHECKOUT_QUARTER,
-  }
-  return (map[planId] ?? "").trim()
+  return `${GUMROAD_PRODUCT}?wanted=true&recurrence=${planById(planId).recurrence}`
 }
 
 /**
@@ -155,5 +123,5 @@ export const MOYASAR_PK = (process.env.NEXT_PUBLIC_MOYASAR_PK || "pk_test_MWeYAj
 export const MOYASAR_TEST = MOYASAR_PK.startsWith("pk_test")
 
 export function planById(id: Plan["id"]): Plan {
-  return PLANS.find((p) => p.id === id) ?? PLANS[1]
+  return PLANS.find((p) => p.id === id) ?? PLANS[0]
 }
