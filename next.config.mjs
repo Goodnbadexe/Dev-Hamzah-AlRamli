@@ -14,13 +14,14 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: '/security',
-        destination: '/personnel',
-        permanent: true,
-      },
-      {
         source: '/cybersecurity-ai',
         destination: '/deployments',
+        permanent: true,
+      },
+      // Signal + News merged into a single canonical threat page at /news.
+      {
+        source: '/signal',
+        destination: '/news',
         permanent: true,
       },
     ]
