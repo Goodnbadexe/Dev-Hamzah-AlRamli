@@ -131,10 +131,11 @@ export async function POST(request: Request) {
       return fallbackResponse(lang)
     }
     const status = error instanceof Anthropic.APIError ? error.status ?? 502 : 500
+    const detail = error instanceof Error ? error.message : String(error)
     const message =
       lang === "ar"
         ? "تعذّر الوصول إلى المساعد. حاول مرة أخرى لاحقًا أو تواصل عبر صفحة Contact."
         : "Couldn't reach the assistant. Please try again later or use the Contact page."
-    return NextResponse.json({ error: message }, { status })
+    return NextResponse.json({ error: message, detail }, { status })
   }
 }
