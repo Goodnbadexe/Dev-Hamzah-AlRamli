@@ -49,11 +49,15 @@ export default function SubscribePage() {
   const [expiresAt, setExpiresAt] = useState<number | null>(null)
   const [selected, setSelected] = useState<Plan["id"]>("monthly")
   const [payResult, setPayResult] = useState<{ status: string; id: string | null; message: string | null } | null>(null)
+  const [lang, setLang] = useState<"ar" | "en">("ar")
   const topRef = useRef<HTMLDivElement>(null)
 
   const { display: countdown, expired } = useCountdown(expiresAt)
   const name = answers.name ?? ""
   const email = answers.email ?? ""
+  const isAr = lang === "ar"
+  const tr = (ar: string, en: string) => (isAr ? ar : en)
+  const dir = isAr ? "rtl" : "ltr"
 
   const scrollTop = useCallback(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -165,15 +169,22 @@ export default function SubscribePage() {
       <div ref={topRef} className="relative z-10 mx-auto max-w-lg px-4 pt-10 sm:pt-14">
 
         {/* Brand header */}
-        <div className="mb-7 text-center">
+        <div className="mb-6 text-center">
+          {/* Language toggle — always visible, front and center */}
+          <div className="mb-4 flex justify-center">
+            <div className="inline-flex rounded-full border border-zinc-700 bg-zinc-900/70 p-0.5 font-mono text-[11px]" role="group" aria-label="Language">
+              <button type="button" onClick={() => setLang("ar")} className={["rounded-full px-3.5 py-1 transition-colors", isAr ? "bg-emerald-500 font-semibold text-emerald-950" : "text-zinc-400 hover:text-zinc-200"].join(" ")}>العربية</button>
+              <button type="button" onClick={() => setLang("en")} className={["rounded-full px-3.5 py-1 transition-colors", !isAr ? "bg-emerald-500 font-semibold text-emerald-950" : "text-zinc-400 hover:text-zinc-200"].join(" ")}>English</button>
+            </div>
+          </div>
           <span className="mb-3 inline-block rounded border border-emerald-900 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-emerald-700">
             goodnbad · {PRODUCT.brandEn}
           </span>
-          <h1 className="mb-1 text-2xl font-bold leading-tight text-zinc-100 sm:text-3xl" dir="rtl">
-            {PRODUCT.brandAr}
+          <h1 className="mb-1 text-2xl font-bold leading-tight text-zinc-100 sm:text-3xl" dir={dir}>
+            {tr(PRODUCT.brandAr, PRODUCT.brandEn)}
           </h1>
-          <p className="font-mono text-sm leading-snug text-zinc-500">
-            Curated AI tools & underground repos — a weekly toolkit, built around you.
+          <p className="font-mono text-sm leading-snug text-zinc-500" dir={dir}>
+            {tr("أدوات ذكاء اصطناعي ومستودعات مختارة — حقيبة أسبوعية مبنية حولك.", "Curated AI tools & underground repos — a weekly toolkit, built around you.")}
           </p>
         </div>
 
@@ -182,14 +193,11 @@ export default function SubscribePage() {
           <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5 text-center">
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 backdrop-blur-sm">
               <Rocket className="mx-auto mb-4 h-7 w-7 text-emerald-500" />
-              <h2 className="text-xl font-bold text-zinc-100" dir="rtl">
-                خلّنا نبني خطتك في دقيقة
+              <h2 className="text-xl font-bold text-zinc-100" dir={dir}>
+                {tr("خلّنا نبني خطتك في دقيقة", "Let's build your plan in a minute")}
               </h2>
-              <p className="mt-1.5 text-sm text-zinc-400" dir="rtl">
-                {QUIZ_TOTAL} سؤال سريع، وبنطلّع لك خطة أدوات مصمّمة على مقاسك.
-              </p>
-              <p className="mt-2 font-mono text-[11px] text-zinc-600">
-                {QUIZ_TOTAL} quick taps → your personalized AI toolkit plan.
+              <p className="mt-1.5 text-sm text-zinc-400" dir={dir}>
+                {tr(`${QUIZ_TOTAL} سؤال سريع، وبنطلّع لك خطة أدوات مصمّمة على مقاسك.`, `${QUIZ_TOTAL} quick taps → your personalized AI toolkit plan.`)}
               </p>
             </div>
             <button
@@ -197,10 +205,10 @@ export default function SubscribePage() {
               onClick={() => { setPhase("quiz"); scrollTop() }}
               className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-3.5 font-mono text-sm font-semibold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
             >
-              <span dir="rtl">ابدأ · Start</span>
+              <span dir={dir}>{tr("ابدأ", "Start")}</span>
               <ArrowRight className="h-4 w-4" />
             </button>
-            <p className="font-mono text-[10px] text-zinc-700">free · no card to take the quiz</p>
+            <p className="font-mono text-[10px] text-zinc-700">{tr("مجاناً · بدون بطاقة لأخذ الاختبار", "free · no card to take the quiz")}</p>
           </section>
         )}
 
@@ -214,7 +222,7 @@ export default function SubscribePage() {
               <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-zinc-600">
                 {qIndex > 0 ? (
                   <button type="button" onClick={() => { setQIndex((i) => i - 1); scrollTop() }} className="flex items-center gap-1 hover:text-zinc-400">
-                    <ArrowLeft className="h-3 w-3" /> back
+                    <ArrowLeft className="h-3 w-3" /> {tr("رجوع", "back")}
                   </button>
                 ) : <span />}
                 <span>{qIndex + 1} / {QUIZ_TOTAL}</span>
@@ -222,11 +230,10 @@ export default function SubscribePage() {
             </div>
 
             <div key={q.id} className="animate-[os-panel-in_0.35s_cubic-bezier(0.16,1,0.3,1)_both] rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 backdrop-blur-sm">
-              <div className="mb-4 flex items-start justify-between gap-3" dir="rtl">
+              <div className="mb-4 flex items-start justify-between gap-3" dir={dir}>
                 <div className="flex-1">
-                  <p className="text-base font-semibold text-zinc-100">{q.ar}</p>
-                  <p className="mt-1 font-mono text-[11px] text-zinc-500" dir="ltr">{q.en}</p>
-                  {"subEn" in q && q.subEn && <p className="mt-1 text-[11px] text-zinc-600" dir="ltr">{q.subEn}</p>}
+                  <p className="text-base font-semibold text-zinc-100" dir={dir}>{tr(q.ar, q.en)}</p>
+                  {!isAr && "subEn" in q && q.subEn && <p className="mt-1 text-[11px] text-zinc-600" dir="ltr">{q.subEn}</p>}
                 </div>
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-emerald-900/70 bg-emerald-950/20 text-emerald-500">
                   {(() => { const Icon = ICONS[q.icon] ?? Sparkles; return <Icon className="h-4 w-4" /> })()}
@@ -249,8 +256,7 @@ export default function SubscribePage() {
                             : "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900",
                         ].join(" ")}
                       >
-                        <span className="font-mono text-[11px] text-zinc-500">{opt.en}</span>
-                        <span dir="rtl">{opt.ar}</span>
+                        <span dir={dir} className="text-sm font-medium">{tr(opt.ar, opt.en)}</span>
                       </button>
                     )
                   })}
@@ -274,7 +280,7 @@ export default function SubscribePage() {
                     disabled={!canAdvanceText}
                     className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-3 font-mono text-sm font-semibold text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-30"
                   >
-                    {qIndex === QUIZ_TOTAL - 1 ? "Build my plan" : "Continue"} <ArrowRight className="h-4 w-4" />
+                    {tr(qIndex === QUIZ_TOTAL - 1 ? "ابنِ خطتي" : "متابعة", qIndex === QUIZ_TOTAL - 1 ? "Build my plan" : "Continue")} <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               )}
@@ -287,9 +293,8 @@ export default function SubscribePage() {
           <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5 pt-6 text-center">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-emerald-500" />
             <div>
-              <p className="text-lg font-semibold text-zinc-100" dir="rtl">نبني خطتك…</p>
-              <p className="mt-1 font-mono text-sm text-emerald-400">{BUILD_STEPS[buildStep]?.en}</p>
-              <p className="mt-0.5 text-xs text-zinc-500" dir="rtl">{BUILD_STEPS[buildStep]?.ar}</p>
+              <p className="text-lg font-semibold text-zinc-100" dir={dir}>{tr("نبني خطتك…", "Building your plan…")}</p>
+              <p className="mt-1 font-mono text-sm text-emerald-400" dir={dir}>{tr(BUILD_STEPS[buildStep]?.ar ?? "", BUILD_STEPS[buildStep]?.en ?? "")}</p>
             </div>
             <div className="mx-auto h-1 w-56 overflow-hidden rounded-full bg-zinc-800">
               <div className="h-full bg-emerald-500 transition-all duration-100" style={{ width: `${buildPct}%` }} />
@@ -303,12 +308,9 @@ export default function SubscribePage() {
           <section className="animate-[os-panel-in_0.45s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5">
 
             <div className="text-center">
-              <h2 className="text-xl font-bold leading-tight text-zinc-100 sm:text-2xl" dir="rtl">
-                {PRODUCT.headlineAr}
+              <h2 className="text-xl font-bold leading-tight text-zinc-100 sm:text-2xl" dir={dir}>
+                {tr(PRODUCT.headlineAr, PRODUCT.headlineEn)}
               </h2>
-              <p className="mt-1.5 font-mono text-xs text-zinc-500">
-                {PRODUCT.headlineEn.replace("personalized AI plan", "")}<span className="text-emerald-400">personalized AI plan</span>
-              </p>
             </div>
 
             {/* Promo + real countdown */}
@@ -321,8 +323,8 @@ export default function SubscribePage() {
               <div className={["mt-3 flex items-center justify-center gap-2 font-mono text-sm", expired ? "text-red-400" : "text-yellow-400"].join(" ")}>
                 <Clock className="h-3.5 w-3.5" />
                 {expired
-                  ? <span dir="rtl">انتهى العرض · offer expired</span>
-                  : <span>expires in <span className="font-bold tabular-nums">{countdown}</span></span>}
+                  ? <span dir={dir}>{tr("انتهى العرض", "offer expired")}</span>
+                  : <span dir={dir}>{tr("ينتهي خلال ", "expires in ")}<span className="font-bold tabular-nums">{countdown}</span></span>}
               </div>
             </div>
 
@@ -347,14 +349,14 @@ export default function SubscribePage() {
                         </span>
                         <div>
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-200">{plan.en}</span>
+                            <span className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-200">{tr(plan.ar, plan.en)}</span>
                             {plan.tag && (
                               <span className={["rounded px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest", plan.best ? "bg-yellow-500/15 text-yellow-400 border border-yellow-700/40" : "bg-emerald-500/15 text-emerald-400 border border-emerald-700/40"].join(" ")}>
                                 {plan.tag}
                               </span>
                             )}
                           </div>
-                          <p className="mt-0.5 text-xs text-zinc-500" dir="rtl">{plan.ar}</p>
+                          <p className="mt-0.5 text-xs text-zinc-500" dir={dir}>{plan.perDay}</p>
                           {plan.badge && <p className="mt-1 font-mono text-[10px] text-emerald-500">{plan.badge}</p>}
                         </div>
                       </div>
@@ -379,27 +381,26 @@ export default function SubscribePage() {
               onClick={handleGetPlan}
               className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-4 font-mono text-sm font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
             >
-              GET MY PLAN <ArrowRight className="h-4 w-4" />
+              {tr("احصل على خطتي", "GET MY PLAN")} <ArrowRight className="h-4 w-4" />
             </button>
 
-            <p className="text-center font-mono text-[11px] text-emerald-600/80" dir="rtl">{PRODUCT.socialProofAr}</p>
+            <p className="text-center font-mono text-[11px] text-emerald-600/80" dir={dir}>{tr(PRODUCT.socialProofAr, PRODUCT.socialProofEn)}</p>
 
             {/* What you get */}
             <div className="space-y-2 rounded-xl border border-zinc-800/60 bg-zinc-900/30 px-4 py-4">
-              <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-zinc-600">what you get · ما تحصل عليه</p>
+              <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-zinc-600" dir={dir}>{tr("ما تحصل عليه", "what you get")}</p>
               {PRODUCT.benefits.map((b) => (
                 <div key={b.en} className="flex items-start gap-2">
                   <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
                   <div>
-                    <p className="text-xs text-zinc-300" dir="rtl">{b.ar}</p>
-                    <p className="font-mono text-[10px] text-zinc-600">{b.en}</p>
+                    <p className="text-xs text-zinc-300" dir={dir}>{tr(b.ar, b.en)}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <p className="text-center font-mono text-[10px] text-zinc-700" dir="rtl">
-              إلغاء في أي وقت · بدون تجديد تلقائي · cancel anytime
+            <p className="text-center font-mono text-[10px] text-zinc-700" dir={dir}>
+              {tr("إلغاء في أي وقت · بدون تجديد تلقائي", "cancel anytime · no auto-renewal surprises")}
             </p>
           </section>
         )}
