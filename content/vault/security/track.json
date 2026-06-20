@@ -1,0 +1,13 @@
+{
+  "track": "security",
+  "deliverables": [
+    {
+      "id": "recon-playbook",
+      "week": 1,
+      "fileStem": "recon-playbook",
+      "outcomeEn": "Map any authorized target in an afternoon",
+      "outcomeAr": "ارسم خريطة أي هدف مصرّح به في عصرية",
+      "mdFile": "recon-playbook.md"
+    }
+  ]
+}

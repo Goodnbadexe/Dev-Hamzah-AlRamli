@@ -15,6 +15,8 @@ import {
   type TrackId,
   type ToolId,
   type OsId,
+  TOOL_IDS,
+  OS_IDS,
   DEFAULT_TOOL,
   DEFAULT_OS,
 } from "@/lib/subscribe/tracks"
@@ -32,20 +34,51 @@ export interface Deliverable {
   variants: { tools: ToolId[]; os: OsId[] }
 }
 
+// Every flagship deliverable is generated for the full {tool × os} matrix by
+// scripts/build-vault-pdfs.mjs. Source playbooks live in content/vault/<track>/.
+const FULL = { tools: TOOL_IDS, os: OS_IDS }
+
 export const VAULT: Record<TrackId, Deliverable[]> = {
   security: [
     {
       id: "recon-playbook",
       week: 1,
-      outcomeEn: "Map any target in an afternoon — recon, run with your AI",
-      outcomeAr: "ارسم خريطة أي هدف في عصرية — استطلاع تشغّله مع الـ AI",
+      outcomeEn: "Map any authorized target in an afternoon",
+      outcomeAr: "ارسم خريطة أي هدف مصرّح به في عصرية",
       fileStem: "recon-playbook",
-      variants: { tools: [DEFAULT_TOOL], os: [DEFAULT_OS] },
+      variants: FULL,
     },
   ],
-  developers: [],
-  agents: [],
-  automation: [],
+  developers: [
+    {
+      id: "ship-velocity-kit",
+      week: 2,
+      outcomeEn: "Ship features faster with an AI-paired workflow",
+      outcomeAr: "أنجز الميزات أسرع مع سير عمل مقترن بالذكاء الاصطناعي",
+      fileStem: "ship-velocity-kit",
+      variants: FULL,
+    },
+  ],
+  agents: [
+    {
+      id: "agent-builder-blueprint",
+      week: 3,
+      outcomeEn: "Build an AI agent that does real work for you",
+      outcomeAr: "ابنِ وكيل ذكاء اصطناعي يسوّي شغلاً حقيقياً عنك",
+      fileStem: "agent-builder-blueprint",
+      variants: FULL,
+    },
+  ],
+  automation: [
+    {
+      id: "autopilot-stack",
+      week: 4,
+      outcomeEn: "Wire your stack so it runs without you",
+      outcomeAr: "اربط أدواتك بحيث تشتغل من دونك",
+      fileStem: "autopilot-stack",
+      variants: FULL,
+    },
+  ],
 }
 
 const VAULT_ROOT = "content/vault"

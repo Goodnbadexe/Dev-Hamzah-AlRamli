@@ -1,0 +1,13 @@
+{
+  "track": "agents",
+  "deliverables": [
+    {
+      "id": "agent-builder-blueprint",
+      "week": 3,
+      "fileStem": "agent-builder-blueprint",
+      "outcomeEn": "Build an AI agent that does real work for you",
+      "outcomeAr": "ابنِ وكيل ذكاء اصطناعي يسوّي شغلاً حقيقياً عنك",
+      "mdFile": "agent-builder-blueprint.md"
+    }
+  ]
+}

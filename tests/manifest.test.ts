@@ -18,9 +18,17 @@ describe("manifest · resolution", () => {
     )
   })
 
-  it("falls back to the default variant when a {tool,os} build is missing", () => {
-    const d = VAULT.security[0] // only {other,windows} generated
+  it("resolves the exact {tool,os} build when it exists", () => {
+    const d = VAULT.security[0] // full matrix generated
     expect(resolveFile("security", d, "claude", "linux")).toBe(
+      "content/vault/security/recon-playbook__claude__linux.pdf",
+    )
+  })
+
+  it("falls back to the default variant when a {tool,os} build is missing", () => {
+    // synthetic deliverable that only generated the default build
+    const limited = { ...VAULT.security[0], variants: { tools: ["other" as const], os: ["windows" as const] } }
+    expect(resolveFile("security", limited, "claude", "linux")).toBe(
       "content/vault/security/recon-playbook__other__windows.pdf",
     )
   })

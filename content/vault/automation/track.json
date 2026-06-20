@@ -1,0 +1,13 @@
+{
+  "track": "automation",
+  "deliverables": [
+    {
+      "id": "autopilot-stack",
+      "week": 4,
+      "fileStem": "autopilot-stack",
+      "outcomeEn": "Wire your stack so it runs without you",
+      "outcomeAr": "اربط أدواتك بحيث تشتغل من دونك",
+      "mdFile": "autopilot-stack.md"
+    }
+  ]
+}

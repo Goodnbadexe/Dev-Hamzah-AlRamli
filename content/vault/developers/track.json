@@ -1,0 +1,13 @@
+{
+  "track": "developers",
+  "deliverables": [
+    {
+      "id": "ship-velocity-kit",
+      "week": 2,
+      "fileStem": "ship-velocity-kit",
+      "outcomeEn": "Ship features faster with an AI-paired workflow",
+      "outcomeAr": "أنجز الميزات أسرع مع سير عمل مقترن بالذكاء الاصطناعي",
+      "mdFile": "ship-velocity-kit.md"
+    }
+  ]
+}
