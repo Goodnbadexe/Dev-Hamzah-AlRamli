@@ -157,6 +157,33 @@ export const PLANS: Plan[] = [
   },
 ]
 
+// ── Gumroad storefront (stopgap until a live card processor is connected) ──────
+// Each track + the all-access bundle is a Gumroad product. The quiz recommends
+// which one to buy; the CTA opens its Gumroad overlay checkout. Set the product
+// URLs as NEXT_PUBLIC_GUMROAD_* env (inlined at build — redeploy after changing).
+const GUMROAD: Record<TrackId | "all" | "store", string | undefined> = {
+  security: process.env.NEXT_PUBLIC_GUMROAD_SECURITY,
+  developers: process.env.NEXT_PUBLIC_GUMROAD_DEVELOPERS,
+  agents: process.env.NEXT_PUBLIC_GUMROAD_AGENTS,
+  automation: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION,
+  all: process.env.NEXT_PUBLIC_GUMROAD_ALL,
+  store: process.env.NEXT_PUBLIC_GUMROAD_STORE,
+}
+
+/** Best Gumroad product URL for the ticked tracks: 1 track → that vault, 2+ →
+ *  all-access. Falls back to the all-access link, then the store, then "". */
+export function gumroadUrl(selectedTracks: TrackId[]): string {
+  const tier = tierForTracks(selectedTracks)
+  if (tier !== "single") return (GUMROAD.all || GUMROAD.store || "").trim()
+  const t = selectedTracks[0]
+  return ((t && GUMROAD[t]) || GUMROAD.all || GUMROAD.store || "").trim()
+}
+
+/** One-time price shown on the Gumroad paywall (uses the 4-week column as anchor). */
+export function gumroadPrice(selectedTracks: TrackId[]): PriceCell {
+  return BUNDLE_MATRIX[tierForTracks(selectedTracks)].month
+}
+
 export const PRODUCT = {
   brandAr: "خزينة الأدوات",
   brandEn: "the toolkit vault",

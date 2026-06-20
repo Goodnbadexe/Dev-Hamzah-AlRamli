@@ -8,11 +8,10 @@ import {
 } from "lucide-react"
 import { QUIZ, QUIZ_TOTAL } from "@/lib/subscribe/quiz"
 import {
-  BUILD_STEPS, PLANS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, planById, priceFor,
+  BUILD_STEPS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, gumroadUrl, gumroadPrice,
 } from "@/lib/subscribe/config"
 import { personalize } from "@/lib/subscribe/personalize"
 import { trackById } from "@/lib/subscribe/tracks"
-import { MoyasarPayment } from "./MoyasarPayment"
 
 const ICONS: Record<string, LucideIcon> = {
   user: User, zap: Zap, wrench: Wrench, alert: AlertTriangle, layers: Layers, clock: Clock,
@@ -24,7 +23,7 @@ const ICONS: Record<string, LucideIcon> = {
 const OFFER_KEY = "gnb_vault_offer_expires"
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-type Phase = "intro" | "quiz" | "loading" | "plan" | "pay" | "success" | "payfail"
+type Phase = "intro" | "quiz" | "loading" | "plan"
 
 function useCountdown(expiresAt: number | null) {
   const [remaining, setRemaining] = useState(PROMO_WINDOW_MS)
@@ -51,8 +50,6 @@ export default function SubscribePage() {
   const [answers, setAnswers] = useState<Record<string, string[]>>({})
   const [promo, setPromo] = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState<number | null>(null)
-  const [selected, setSelected] = useState<"trial" | "month" | "quarter">("month")
-  const [payResult, setPayResult] = useState<{ status: string; id: string | null; message: string | null } | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
 
   const { display: countdown, expired } = useCountdown(expiresAt)
@@ -60,7 +57,8 @@ export default function SubscribePage() {
   const name = single("name")
   const email = single("email")
 
-  // Live personalization derived from the answers (tracks, tool/os variant, match%).
+  // Live personalization derived from the answers (tracks, match%). With Gumroad
+  // the variant is no longer used for delivery — it just recommends the product.
   const person = useMemo(() => personalize(answers), [answers])
   const selectedTracks = person.selectedTracks
 
@@ -68,19 +66,8 @@ export default function SubscribePage() {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
 
-  // Moyasar redirects the browser back here after 3-D Secure with
-  // ?id=&status=&message= — read it and show the result, then clean the URL.
-  useEffect(() => {
-    const sp = new URLSearchParams(window.location.search)
-    const status = sp.get("status")
-    if (!status) return
-    setPayResult({ status, id: sp.get("id"), message: sp.get("message") })
-    setPhase(status === "paid" ? "success" : "payfail")
-    window.history.replaceState({}, "", "/subscribe")
-  }, [])
-
-  // Fire-and-forget lead capture (never blocks the funnel). Sends the full
-  // personalization so Supabase + Telegram/email get tracks/tool/os/match.
+  // Fire-and-forget lead capture (never blocks the funnel). Logs to Supabase +
+  // Telegram/email so you still own every signup even though Gumroad takes payment.
   const sendLead = useCallback((plan?: string, code?: string | null) => {
     if (!name || !EMAIL_RE.test(email)) return
     const payload = {
@@ -174,14 +161,22 @@ export default function SubscribePage() {
     return () => clearInterval(id)
   }, [phase, scrollTop])
 
-  const handleGetPlan = useCallback(() => {
-    sendLead(selected, promo) // capture the lead, then pay in-page (no exit)
-    setPhase("pay")
-    scrollTop()
-  }, [selected, promo, sendLead, scrollTop])
+  // Load Gumroad's overlay script so the buy button opens an in-page checkout modal.
+  useEffect(() => {
+    if (phase !== "plan") return
+    if (document.querySelector("script[data-gumroad]")) return
+    const s = document.createElement("script")
+    s.src = "https://gumroad.com/js/gumroad.js"
+    s.setAttribute("data-gumroad", "1")
+    s.async = true
+    document.body.appendChild(s)
+  }, [phase])
 
   const progressPct = useMemo(() => Math.round((qIndex / QUIZ_TOTAL) * 100), [qIndex])
   const tracksLabel = selectedTracks.map((t) => trackById(t).en).join(" + ")
+  const buyUrl = gumroadUrl(selectedTracks)
+  const price = gumroadPrice(selectedTracks)
+  const vaultName = person.recommendedBundle === "single" ? `${tracksLabel} Vault` : "All-Access Vault"
 
   return (
     <main className="relative min-h-screen bg-zinc-950 text-zinc-100 pb-24">
@@ -370,7 +365,7 @@ export default function SubscribePage() {
           </section>
         )}
 
-        {/* ── PLAN / PAYWALL ─────────────────────────────────────────────── */}
+        {/* ── PLAN / PAYWALL (Gumroad) ───────────────────────────────────── */}
         {phase === "plan" && promo && (
           <section className="animate-[os-panel-in_0.45s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5">
 
@@ -378,10 +373,6 @@ export default function SubscribePage() {
               <h2 className="text-xl font-bold leading-tight text-zinc-100 sm:text-2xl" dir="rtl">
                 {PRODUCT.headlineAr}
               </h2>
-              <p className="mt-1.5 font-mono text-xs text-zinc-500">
-                {PRODUCT.headlineEn.replace("personalized AI plan", "")}<span className="text-emerald-400">personalized AI plan</span>
-              </p>
-              {/* Per-person curation signal — match % + the vaults they picked */}
               {selectedTracks.length > 0 && (
                 <p className="mt-2 font-mono text-[11px] text-emerald-400">
                   {person.readFactor}% matched · {tracksLabel}
@@ -404,62 +395,40 @@ export default function SubscribePage() {
               </div>
             </div>
 
-            {/* Plans (radio-select duration; price reflects the ticked tracks) */}
-            <div className="space-y-3">
-              {PLANS.map((plan) => {
-                const isSel = selected === plan.id
-                const quote = priceFor(selectedTracks, plan.id)
-                return (
-                  <button
-                    key={plan.id}
-                    type="button"
-                    onClick={() => setSelected(plan.id)}
-                    className={[
-                      "w-full rounded-xl border p-4 text-left transition-all",
-                      isSel ? "border-emerald-500 bg-emerald-950/25 ring-1 ring-emerald-500/40" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700",
-                    ].join(" ")}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <span className={["mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border", isSel ? "border-emerald-500 bg-emerald-500 text-emerald-950" : "border-zinc-600"].join(" ")}>
-                          {isSel && <Check className="h-3 w-3" />}
-                        </span>
-                        <div>
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-200">{plan.en}</span>
-                            {plan.tag && (
-                              <span className={["rounded px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest", plan.best ? "bg-yellow-500/15 text-yellow-400 border border-yellow-700/40" : "bg-emerald-500/15 text-emerald-400 border border-emerald-700/40"].join(" ")}>
-                                {plan.tag}
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-0.5 text-xs text-zinc-500" dir="rtl">{plan.ar}</p>
-                          <p className="mt-1 font-mono text-[10px] text-emerald-500">SAVE {quote.savedPct}%</p>
-                        </div>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <div className="flex items-baseline justify-end gap-1.5">
-                          <span className="font-mono text-[11px] text-zinc-600 line-through">{quote.original}</span>
-                          <span className={["font-mono text-2xl font-bold", isSel ? "text-emerald-300" : "text-zinc-200"].join(" ")}>{quote.price}</span>
-                          <span className="font-mono text-xs text-zinc-500">SAR</span>
-                        </div>
-                        <p className="mt-0.5 font-mono text-[10px] text-zinc-600">{quote.perDay}</p>
-                        <p className="font-mono text-[9px] text-zinc-700">{quote.usd}</p>
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
+            {/* Recommended vault + price */}
+            <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/20 p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-600">your vault</p>
+                  <p className="mt-1 text-lg font-bold text-zinc-100">{vaultName}</p>
+                  <p className="mt-0.5 text-xs text-zinc-500" dir="rtl">{tracksLabel}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="flex items-baseline justify-end gap-1.5">
+                    <span className="font-mono text-[11px] text-zinc-600 line-through">{price.original}</span>
+                    <span className="font-mono text-3xl font-bold text-emerald-300">{price.price}</span>
+                    <span className="font-mono text-xs text-zinc-500">SAR</span>
+                  </div>
+                  <p className="mt-0.5 font-mono text-[10px] text-zinc-600">one-time · lifetime access</p>
+                </div>
+              </div>
             </div>
 
-            {/* Primary CTA */}
-            <button
-              type="button"
-              onClick={handleGetPlan}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-4 font-mono text-sm font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
-            >
-              GET MY PLAN <ArrowRight className="h-4 w-4" />
-            </button>
+            {/* Primary CTA → Gumroad overlay checkout */}
+            {buyUrl ? (
+              <a
+                href={buyUrl}
+                onClick={() => sendLead("gumroad", promo)}
+                data-gumroad-overlay-checkout="true"
+                className="gumroad-button flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-4 font-mono text-sm font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
+              >
+                GET MY VAULT <ArrowRight className="h-4 w-4" />
+              </a>
+            ) : (
+              <div className="rounded-md border border-zinc-700 bg-zinc-900/50 px-4 py-4 text-center">
+                <p className="font-mono text-xs text-zinc-400">Checkout opening soon — leave it with us.</p>
+              </div>
+            )}
 
             <p className="text-center font-mono text-[11px] text-emerald-600/80" dir="rtl">{PRODUCT.socialProofAr}</p>
 
@@ -478,93 +447,8 @@ export default function SubscribePage() {
             </div>
 
             <p className="text-center font-mono text-[10px] text-zinc-700" dir="rtl">
-              إلغاء في أي وقت · بدون تجديد تلقائي · cancel anytime
+              وصول فوري · دفع آمن عبر Gumroad · instant access
             </p>
-          </section>
-        )}
-
-        {/* ── PAY (in-page Moyasar card form — no exit before paying) ─────── */}
-        {phase === "pay" && promo && (() => {
-          const sel = planById(selected)
-          const quote = priceFor(selectedTracks, selected)
-          return (
-            <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4">
-              <button
-                type="button"
-                onClick={() => { setPhase("plan"); scrollTop() }}
-                className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-zinc-600 hover:text-zinc-400"
-              >
-                <ArrowLeft className="h-3 w-3" /> change plan
-              </button>
-
-              <div className="rounded-xl border border-emerald-800 bg-emerald-950/15 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-200">{sel.en}</p>
-                    <p className="text-xs text-zinc-500" dir="rtl">{sel.ar}</p>
-                    {tracksLabel && <p className="mt-1 font-mono text-[10px] text-emerald-600">{tracksLabel}</p>}
-                  </div>
-                  <div className="text-right">
-                    <span className="font-mono text-2xl font-bold text-emerald-300">{quote.price}</span>
-                    <span className="font-mono text-xs text-zinc-500"> SAR</span>
-                    <p className="font-mono text-[10px] text-zinc-600">{quote.perDay}</p>
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center gap-2 border-t border-emerald-900/40 pt-2.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="font-mono text-[10px] text-emerald-600">promo <span className="text-emerald-400">{promo}</span> applied</span>
-                </div>
-              </div>
-
-              <MoyasarPayment
-                amountSar={quote.price}
-                description={`Toolkit Vault · ${sel.en} · ${quote.tier} · ${promo}`}
-                metadata={{
-                  plan: sel.id,
-                  bundle: person.recommendedBundle,
-                  tracks: selectedTracks.join(","),
-                  tool: person.toolVariant,
-                  os: person.osVariant,
-                  promo: promo ?? "",
-                  name,
-                  email,
-                }}
-              />
-
-              <p className="text-center font-mono text-[10px] text-zinc-700" dir="rtl">
-                دفع آمن · إلغاء في أي وقت · secure payment
-              </p>
-            </section>
-          )
-        })()}
-
-        {/* ── SUCCESS (Moyasar returned paid) ─────────────────────────────── */}
-        {phase === "success" && (
-          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4 pt-8 text-center">
-            <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
-            <h2 className="text-xl font-bold text-zinc-100" dir="rtl">تم الدفع! أهلاً فيك</h2>
-            <p className="text-sm text-zinc-400" dir="rtl">بنرسل لك أول حقيبة أدوات على إيميلك قريب.</p>
-            <p className="font-mono text-xs text-zinc-600">
-              Payment confirmed — your first toolkit is on its way.
-              {payResult?.id ? ` (ref ${payResult.id.slice(0, 12)})` : ""}
-            </p>
-          </section>
-        )}
-
-        {/* ── PAYMENT FAILED ──────────────────────────────────────────────── */}
-        {phase === "payfail" && (
-          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4 pt-8 text-center">
-            <AlertTriangle className="mx-auto h-10 w-10 text-red-400" />
-            <h2 className="text-xl font-bold text-zinc-100" dir="rtl">ما تم الدفع</h2>
-            <p className="text-sm text-zinc-400" dir="rtl">صار خطأ في الدفع. جرّب مرة ثانية.</p>
-            {payResult?.message && <p className="font-mono text-[11px] text-zinc-600">{payResult.message}</p>}
-            <button
-              type="button"
-              onClick={() => { setPhase("plan"); scrollTop() }}
-              className="mx-auto flex items-center gap-2 rounded-md border border-zinc-700 px-4 py-2.5 font-mono text-xs text-zinc-300 transition-colors hover:border-zinc-500"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> try again
-            </button>
           </section>
         )}
 
