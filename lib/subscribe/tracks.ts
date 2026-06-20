@@ -10,13 +10,13 @@
 //           resolution with no translation layer.
 // === END METADATA ===
 
-export type TrackId = "security" | "developers" | "agents" | "automation" | "quant"
+export type TrackId = "security" | "developers" | "agents" | "automation" | "quant" | "creative"
 export type ToolId = "claude" | "codex" | "gemini" | "chatgpt" | "other"
 export type OsId = "windows" | "linux" | "macos"
 
 export type Track = {
   id: TrackId
-  week: 1 | 2 | 3 | 4 | 5
+  week: 1 | 2 | 3 | 4 | 5 | 6
   en: string
   ar: string
   /** one-line outcome teaser shown on the track-selection step */
@@ -64,6 +64,14 @@ export const TRACKS: Track[] = [
     ar: "التداول الكمّي",
     tagEn: "The open-source engines real quant funds run — backtest first",
     tagAr: "محركات مفتوحة المصدر تستخدمها صناديق الكوانت — تعلّم وجرّب أولاً",
+  },
+  {
+    id: "creative",
+    week: 6,
+    en: "Build in the Browser",
+    ar: "ابنِ في المتصفح",
+    tagEn: "3D worlds, models & scenes — built and shared from the browser",
+    tagAr: "عوالم ونماذج ومشاهد ثلاثية الأبعاد — تبنيها وتشاركها من المتصفح",
   },
 ]
 

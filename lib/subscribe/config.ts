@@ -167,6 +167,7 @@ const GUMROAD: Record<TrackId | "all" | "store", string | undefined> = {
   agents: process.env.NEXT_PUBLIC_GUMROAD_AGENTS,
   automation: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION,
   quant: process.env.NEXT_PUBLIC_GUMROAD_QUANT,
+  creative: process.env.NEXT_PUBLIC_GUMROAD_CREATIVE,
   all: process.env.NEXT_PUBLIC_GUMROAD_ALL,
   store: process.env.NEXT_PUBLIC_GUMROAD_STORE,
 }

@@ -294,6 +294,7 @@ export const QUIZ: QuizQuestion[] = [
       { value: "agents", ar: "الوكلاء — أسبوع ٣", en: "Agents — Week 3" },
       { value: "automation", ar: "الأتمتة — أسبوع ٤", en: "Automation — Week 4" },
       { value: "quant", ar: "التداول الكمّي — أسبوع ٥", en: "Quant & Trading — Week 5" },
+      { value: "creative", ar: "ابنِ في المتصفح — أسبوع ٦", en: "Build in the Browser — Week 6" },
     ],
   },
 
