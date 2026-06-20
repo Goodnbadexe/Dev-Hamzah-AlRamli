@@ -1,54 +1,38 @@
 // === METADATA ===
-// Purpose: Guard the vault manifest — path composition, {tool,os} fallback, and
-//          that EVERY catalogued deliverable's default build physically exists
-//          (so the funnel never advertises a missing file).
+// Purpose: Guard the vault catalog — path composition + that every catalogued
+//          issue's full PDF and teaser PDF physically exist on disk.
 // Tests:   npm test -- -t manifest
 // === END METADATA ===
 import { describe, it, expect } from "vitest"
 import { existsSync } from "node:fs"
 import { resolve } from "node:path"
-import { VAULT, resolveFile, deliverableById, allDeliverables } from "@/lib/vault/manifest"
-import { TOOL_IDS, OS_IDS, type TrackId } from "@/lib/subscribe/tracks"
+import { VAULT, resolveFile, teaserFile, deliverableById, allDeliverables } from "@/lib/vault/manifest"
+import type { TrackId } from "@/lib/subscribe/tracks"
 
 describe("manifest · resolution", () => {
-  it("composes content/vault/<track>/<stem>__<tool>__<os>.pdf", () => {
+  it("composes content/vault/<track>/<stem>.pdf", () => {
     const d = VAULT.security[0]
-    expect(resolveFile("security", d, "other", "windows")).toBe(
-      "content/vault/security/recon-playbook__other__windows.pdf",
-    )
-  })
-
-  it("resolves the exact {tool,os} build when it exists", () => {
-    const d = VAULT.security[0] // full matrix generated
-    expect(resolveFile("security", d, "claude", "linux")).toBe(
-      "content/vault/security/recon-playbook__claude__linux.pdf",
-    )
-  })
-
-  it("falls back to the default variant when a {tool,os} build is missing", () => {
-    // synthetic deliverable that only generated the default build
-    const limited = { ...VAULT.security[0], variants: { tools: ["other" as const], os: ["windows" as const] } }
-    expect(resolveFile("security", limited, "claude", "linux")).toBe(
-      "content/vault/security/recon-playbook__other__windows.pdf",
-    )
+    expect(resolveFile("security", d)).toBe("content/vault/security/security-vault.pdf")
+    expect(teaserFile("security", d)).toBe("content/vault/security/security-vault-teaser.pdf")
   })
 
   it("finds a deliverable by id and returns its track", () => {
-    const hit = deliverableById("recon-playbook")
-    expect(hit?.track).toBe("security")
-    expect(deliverableById("does-not-exist")).toBeNull()
+    expect(deliverableById("agents-vault")?.track).toBe("agents")
+    expect(deliverableById("nope")).toBeNull()
+  })
+
+  it("has one issue per track, weeks 1–4", () => {
+    expect(allDeliverables().map((x) => x.deliverable.week).sort()).toEqual([1, 2, 3, 4])
   })
 })
 
-describe("manifest · every catalogued file exists", () => {
-  it("resolves to a real file for every tool×os (via fallback)", () => {
+describe("manifest · every catalogued PDF exists", () => {
+  it("full + teaser PDFs are on disk for every track", () => {
     for (const { track, deliverable } of allDeliverables()) {
-      for (const tool of TOOL_IDS) {
-        for (const os of OS_IDS) {
-          const rel = resolveFile(track as TrackId, deliverable, tool, os)
-          expect(existsSync(resolve(process.cwd(), rel)), `missing: ${rel}`).toBe(true)
-        }
-      }
+      const full = resolveFile(track as TrackId, deliverable)
+      const teaser = teaserFile(track as TrackId, deliverable)
+      expect(existsSync(resolve(process.cwd(), full)), `missing: ${full}`).toBe(true)
+      expect(existsSync(resolve(process.cwd(), teaser)), `missing: ${teaser}`).toBe(true)
     }
   })
 })
