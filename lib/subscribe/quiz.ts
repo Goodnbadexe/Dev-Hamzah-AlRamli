@@ -2,11 +2,18 @@
 // Purpose: Quiz content for the /subscribe funnel — bilingual (Arabic-first),
 //          sequenced for conversion psychology, not random order.
 // Flow:    opener/identity → agitate pain → amplify desire → qualify/personalize
-//          → micro-commitments → name + email. The order matters: each easy tap
-//          is a small commitment that makes the next one (and the paywall) feel
-//          like a natural continuation rather than a cold ask.
+//          → pick tracks → micro-commitments → name + email. Each easy tap is a
+//          small commitment that makes the next one (and the paywall) feel like a
+//          natural continuation rather than a cold ask.
+// Shape:   21 questions. SINGLE-select where "pick one" is correct — including the
+//          two variant selectors `ai_tool` (Claude/Codex/Gemini/ChatGPT/Other) and
+//          `os` (Windows/Linux/macOS), which choose a tuned build of each PDF.
+//          MULTI-select where a person legitimately has several answers (tick many).
+//          The `tracks` question's values equal TrackId and ALSO drive pricing.
 // Author:  @Goodnbad.exe
 // === END METADATA ===
+
+import { TRACK_IDS } from "./tracks"
 
 export type QuizOption = { value: string; en: string; ar: string }
 
@@ -20,6 +27,19 @@ export type QuizQuestion =
       /** small English helper under the Arabic prompt */
       subEn?: string
       options: QuizOption[]
+    }
+  | {
+      id: string
+      type: "multi"
+      icon: string
+      en: string
+      ar: string
+      subEn?: string
+      options: QuizOption[]
+      /** require at least this many ticks before "Continue" enables (default 1) */
+      minSelect?: number
+      /** cap the number of ticks (omit for unlimited) */
+      maxSelect?: number
     }
   | {
       id: string
@@ -39,15 +59,17 @@ export const QUIZ: QuizQuestion[] = [
   // ── A · Opener / identity (frictionless, builds momentum) ──────────────────
   {
     id: "role",
-    type: "single",
+    type: "multi",
     icon: "user",
-    ar: "وش يوصفك أكثر؟",
-    en: "What best describes you?",
+    ar: "وش يوصفك؟ (اختر كل ما ينطبق)",
+    en: "What describes you? (tick all that apply)",
+    minSelect: 1,
     options: [
       { value: "student", ar: "طالب / متعلّم", en: "Student / learner" },
       { value: "dev", ar: "مطوّر / مبرمج", en: "Developer" },
       { value: "founder", ar: "صاحب مشروع / مستقل", en: "Founder / freelancer" },
       { value: "creator", ar: "صانع محتوى / تسويق", en: "Creator / marketer" },
+      { value: "security", ar: "مهتم بالأمن السيبراني", en: "Into cybersecurity" },
       { value: "other", ar: "غير ذلك", en: "Something else" },
     ],
   },
@@ -65,46 +87,51 @@ export const QUIZ: QuizQuestion[] = [
     ],
   },
   {
-    id: "tools",
+    // VARIANT SELECTOR — values MUST equal ToolId. Pick ONE primary tool; the
+    // toolkit you receive is tuned to it.
+    id: "ai_tool",
     type: "single",
     icon: "wrench",
-    ar: "أكثر أداة تعتمد عليها؟",
-    en: "Which AI tool do you lean on most?",
+    ar: "أداتك الأساسية؟ (نخصّص لك على أساسها)",
+    en: "Your primary AI tool?",
+    subEn: "We tune every toolkit to the one you actually use.",
     options: [
-      { value: "chatgpt", ar: "ChatGPT", en: "ChatGPT" },
       { value: "claude", ar: "Claude", en: "Claude" },
-      { value: "code", ar: "Cursor / Codex / Copilot", en: "Cursor / Codex / Copilot" },
-      { value: "mix", ar: "خليط منهم", en: "A mix of them" },
-      { value: "none", ar: "ولا واحد لين الحين", en: "None yet" },
+      { value: "codex", ar: "Codex / Cursor / Copilot", en: "Codex / Cursor / Copilot" },
+      { value: "gemini", ar: "Gemini", en: "Gemini" },
+      { value: "chatgpt", ar: "ChatGPT", en: "ChatGPT" },
+      { value: "other", ar: "غير ذلك / خليط", en: "Other / a mix" },
+    ],
+  },
+  {
+    // VARIANT SELECTOR — values MUST equal OsId. Tailors commands + setup steps.
+    id: "os",
+    type: "single",
+    icon: "monitor",
+    ar: "نظام جهازك؟",
+    en: "Your operating system?",
+    subEn: "So setup steps and commands match your machine.",
+    options: [
+      { value: "windows", ar: "ويندوز", en: "Windows" },
+      { value: "linux", ar: "لينكس", en: "Linux" },
+      { value: "macos", ar: "ماك", en: "macOS" },
     ],
   },
 
   // ── B · Pain / current state (agitate the gap) ─────────────────────────────
   {
     id: "frustration",
-    type: "single",
+    type: "multi",
     icon: "alert",
-    ar: "أكبر شي يضايقك في طريقة شغلك الحالية؟",
-    en: "Biggest frustration with your current setup?",
+    ar: "أكثر شي يضايقك حالياً؟ (اختر كل ما ينطبق)",
+    en: "Biggest frustrations right now? (tick all)",
+    minSelect: 1,
     options: [
       { value: "repeat", ar: "أعيد شرح نفسي للـ AI كل مرة", en: "Repeating myself to the AI every time" },
       { value: "messy", ar: "ملفاتي ومساحات عملي مبعثرة", en: "Messy, scattered workspaces" },
       { value: "tools", ar: "ما أعرف وش أفضل الأدوات", en: "Don't know the best tools" },
       { value: "slow", ar: "النتائج بطيئة", en: "Results come too slow" },
       { value: "lost", ar: "ما أعرف وش الممكن أصلاً", en: "Not sure what's even possible" },
-    ],
-  },
-  {
-    id: "workspace",
-    type: "single",
-    icon: "layers",
-    ar: "كيف تقيّم تنظيم مساحة عملك؟",
-    en: "How organized is your workflow right now?",
-    options: [
-      { value: "chaos", ar: "فوضى كاملة", en: "Total chaos" },
-      { value: "some", ar: "شوي منظّم", en: "Somewhat" },
-      { value: "tidy", ar: "مرتّب نوعاً ما", en: "Pretty tidy" },
-      { value: "systems", ar: "عندي أنظمة جاهزة", en: "I have real systems" },
     ],
   },
   {
@@ -136,17 +163,33 @@ export const QUIZ: QuizQuestion[] = [
 
   // ── C · Desire / goals (paint the outcome) ─────────────────────────────────
   {
-    id: "goal",
-    type: "single",
+    id: "goals",
+    type: "multi",
     icon: "target",
-    ar: "وش تبي توصل له؟",
-    en: "What are you trying to achieve?",
+    ar: "وش تبي توصل له؟ (اختر كل ما ينطبق)",
+    en: "What are you trying to achieve? (tick all)",
+    minSelect: 1,
     options: [
       { value: "income", ar: "دخل إضافي", en: "Extra income" },
       { value: "ship", ar: "أنجز مشاريعي أسرع", en: "Ship projects faster" },
       { value: "master", ar: "أتقن workflow الـ AI", en: "Master AI workflows" },
       { value: "automate", ar: "أتمتة شغلي", en: "Automate my work" },
       { value: "career", ar: "وظيفة / فرصة أفضل", en: "A better role" },
+    ],
+  },
+  {
+    id: "outcome",
+    type: "multi",
+    icon: "sparkles",
+    ar: "لو صار شغلك نخبوي، وش يتغيّر؟ (اختر كل ما ينطبق)",
+    en: "If your workflow went elite, what changes? (tick all)",
+    minSelect: 1,
+    options: [
+      { value: "money", ar: "فلوس أكثر", en: "More money" },
+      { value: "time", ar: "وقت فراغ أكثر", en: "More free time" },
+      { value: "output", ar: "إنتاجية أعلى", en: "More output" },
+      { value: "stress", ar: "توتر أقل", en: "Less stress" },
+      { value: "standout", ar: "أتميّز عن الكل", en: "I stand out" },
     ],
   },
   {
@@ -160,20 +203,6 @@ export const QUIZ: QuizQuestion[] = [
       { value: "3-5k", ar: "٣-٥ آلاف شهرياً", en: "3–5k SAR/mo" },
       { value: "6-10k", ar: "٦-١٠ آلاف شهرياً", en: "6–10k SAR/mo" },
       { value: "10k+", ar: "+١٠ آلاف / أستقل بشغلي", en: "10k+ / replace my job" },
-    ],
-  },
-  {
-    id: "outcome",
-    type: "single",
-    icon: "sparkles",
-    ar: "لو صار شغلك نخبوي، وش أول شي يتغيّر؟",
-    en: "If your workflow went elite, what changes first?",
-    options: [
-      { value: "money", ar: "فلوس أكثر", en: "More money" },
-      { value: "time", ar: "وقت فراغ أكثر", en: "More free time" },
-      { value: "output", ar: "إنتاجية أعلى", en: "More output" },
-      { value: "stress", ar: "توتر أقل", en: "Less stress" },
-      { value: "standout", ar: "أتميّز عن الكل", en: "I stand out" },
     ],
   },
   {
@@ -205,10 +234,11 @@ export const QUIZ: QuizQuestion[] = [
   },
   {
     id: "niche",
-    type: "single",
+    type: "multi",
     icon: "compass",
-    ar: "مجالك الأساسي؟",
-    en: "Your main focus area?",
+    ar: "مجالاتك؟ (اختر كل ما ينطبق)",
+    en: "Your focus areas? (tick all)",
+    minSelect: 1,
     options: [
       { value: "security", ar: "الأمن السيبراني", en: "Cybersecurity" },
       { value: "dev", ar: "البرمجة / التطوير", en: "Dev / coding" },
@@ -219,24 +249,25 @@ export const QUIZ: QuizQuestion[] = [
   },
   {
     id: "apply",
-    type: "single",
+    type: "multi",
     icon: "briefcase",
-    ar: "وين تبي تطبّق هذا؟",
-    en: "Where will you apply this?",
+    ar: "وين تبي تطبّق هذا؟ (اختر كل ما ينطبق)",
+    en: "Where will you apply this? (tick all)",
+    minSelect: 1,
     options: [
       { value: "work", ar: "في شغلي", en: "At work" },
       { value: "side", ar: "مشروع جانبي", en: "A side business" },
       { value: "personal", ar: "مشاريع شخصية", en: "Personal projects" },
       { value: "study", ar: "دراستي", en: "My studies" },
-      { value: "all", ar: "كل ما سبق", en: "All of it" },
     ],
   },
   {
     id: "learn_style",
-    type: "single",
+    type: "multi",
     icon: "book",
-    ar: "كيف تحب تتعلّم وتطوّر؟",
-    en: "How do you like to level up?",
+    ar: "كيف تحب تتعلّم؟ (اختر كل ما ينطبق)",
+    en: "How do you like to level up? (tick all)",
+    minSelect: 1,
     options: [
       { value: "kits", ar: "أدوات جاهزة أنسخها مباشرة", en: "Ready-to-use kits" },
       { value: "steps", ar: "خطوة بخطوة", en: "Step-by-step guides" },
@@ -245,7 +276,27 @@ export const QUIZ: QuizQuestion[] = [
     ],
   },
 
-  // ── E · Micro-commitments + investment (sunk-cost, then close) ──────────────
+  // ── E · Pick your tracks (THIS drives the bundle price) ─────────────────────
+  {
+    // values MUST equal TrackId. Number of ticks → bundle tier (1=single, 2=duo,
+    // 3–4=all). This is both the personalization signal AND the product selection.
+    id: "tracks",
+    type: "multi",
+    icon: "layers",
+    ar: "وش الحقائب اللي تبيها؟ (اختر كل ما تبي — يحدّد باقتك)",
+    en: "Which vaults do you want? (pick what you need)",
+    subEn: "The more you pick, the better the bundle price.",
+    minSelect: 1,
+    maxSelect: TRACK_IDS.length,
+    options: [
+      { value: "security", ar: "الأمن — أسبوع ١", en: "Security — Week 1" },
+      { value: "developers", ar: "المطوّرين والأدوات — أسبوع ٢", en: "Developers & Tools — Week 2" },
+      { value: "agents", ar: "الوكلاء — أسبوع ٣", en: "Agents — Week 3" },
+      { value: "automation", ar: "الأتمتة — أسبوع ٤", en: "Automation — Week 4" },
+    ],
+  },
+
+  // ── F · Micro-commitments + investment (sunk-cost, then close) ──────────────
   {
     id: "invest_time",
     type: "single",
@@ -260,23 +311,12 @@ export const QUIZ: QuizQuestion[] = [
     ],
   },
   {
-    id: "tried_before",
-    type: "single",
-    icon: "history",
-    ar: "حاولت من قبل تحسّن إعدادك مع الـ AI؟",
-    en: "Tried to upgrade your AI setup before?",
-    options: [
-      { value: "stuck", ar: "إي، بس ما استمريت", en: "Yes — it didn't stick" },
-      { value: "some", ar: "إي، وطلعت بنتائج", en: "Yes — got some wins" },
-      { value: "first", ar: "لا، أول مرة", en: "No — first time" },
-    ],
-  },
-  {
     id: "blocker",
-    type: "single",
+    type: "multi",
     icon: "lock",
-    ar: "وش اللي وقفك لين الحين؟",
-    en: "What's held you back so far?",
+    ar: "وش اللي وقفك لين الحين؟ (اختر كل ما ينطبق)",
+    en: "What's held you back so far? (tick all)",
+    minSelect: 1,
     options: [
       { value: "start", ar: "ما أعرف من وين أبدأ", en: "Don't know where to start" },
       { value: "options", ar: "خيارات كثيرة ومشتتة", en: "Too many options" },

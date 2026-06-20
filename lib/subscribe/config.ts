@@ -10,6 +10,9 @@
 //          never fakes a charge.
 // === END METADATA ===
 
+import type { TrackId } from "./tracks"
+import { type BundleTier, tierForCount } from "./personalize"
+
 export type Plan = {
   id: "trial" | "month" | "quarter"
   en: string
@@ -33,6 +36,73 @@ export const PROMO_WINDOW_MS = 10 * 60 * 1000
 
 export const SAR_PER_USD = 3.75
 
+// ── Tiered-bundle pricing ──────────────────────────────────────────────────────
+// Two axes: bundle TIER (how many tracks the member ticked) × DURATION (1/4/12wk).
+// Every cell carries a REAL strike-through `original` — no fake "was" prices. The
+// `single` tier equals today's locked 9/29/69 so the existing funnel is a strict
+// subset (no regression); the legacy PLANS array below derives its numbers from it.
+export type DurationId = Plan["id"] // "trial" | "month" | "quarter"
+export type PriceCell = { original: number; price: number } // SAR
+
+export const BUNDLE_MATRIX: Record<BundleTier, Record<DurationId, PriceCell>> = {
+  single: {
+    trial: { original: 19, price: 9 },
+    month: { original: 75, price: 29 },
+    quarter: { original: 199, price: 69 },
+  },
+  duo: {
+    trial: { original: 35, price: 15 },
+    month: { original: 129, price: 49 },
+    quarter: { original: 329, price: 119 },
+  },
+  all: {
+    trial: { original: 55, price: 25 },
+    month: { original: 199, price: 79 },
+    quarter: { original: 499, price: 179 },
+  },
+}
+
+const WEEKS_BY_DURATION: Record<DurationId, number> = { trial: 1, month: 4, quarter: 12 }
+
+/** Tier from the ticked tracks: 1→single, 2→duo, 3–4→all. */
+export function tierForTracks(selectedTracks: TrackId[]): BundleTier {
+  return tierForCount(selectedTracks.length)
+}
+
+export type PriceQuote = {
+  tier: BundleTier
+  duration: DurationId
+  original: number
+  price: number
+  perDay: string
+  perDayAr: string
+  usd: string
+  weeks: number
+  savedPct: number
+}
+
+const AR_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"]
+function toArabicNum(s: string): string {
+  return s.replace(/[0-9]/g, (d) => AR_DIGITS[Number(d)])
+}
+
+/**
+ * Resolve the live price for a track selection + duration. Per-day + USD are
+ * derived from the real `price`, so the displayed math is always honest.
+ */
+export function priceFor(selectedTracks: TrackId[], duration: DurationId): PriceQuote {
+  const tier = tierForTracks(selectedTracks)
+  const cell = BUNDLE_MATRIX[tier][duration]
+  const weeks = WEEKS_BY_DURATION[duration]
+  const days = weeks * 7
+  const perDayNum = (cell.price / days).toFixed(2)
+  const perDay = `${perDayNum} SAR/day`
+  const perDayAr = `${toArabicNum(perDayNum)} ر.س/يوم`
+  const usd = `≈ $${(cell.price / SAR_PER_USD).toFixed(cell.price / SAR_PER_USD >= 10 ? 0 : 1)}`
+  const savedPct = cell.original > 0 ? Math.round((1 - cell.price / cell.original) * 100) : 0
+  return { tier, duration, original: cell.original, price: cell.price, perDay, perDayAr, usd, weeks, savedPct }
+}
+
 export const PLANS: Plan[] = [
   {
     id: "trial",
@@ -42,8 +112,8 @@ export const PLANS: Plan[] = [
     badgeAr: null,
     tag: null,
     tagAr: null,
-    original: 19,
-    price: 9,
+    original: BUNDLE_MATRIX.single.trial.original,
+    price: BUNDLE_MATRIX.single.trial.price,
     perDay: "1.29 SAR/day",
     perDayAr: "١.٢٩ ر.س/يوم",
     usd: "≈ $2.4",
@@ -59,8 +129,8 @@ export const PLANS: Plan[] = [
     badgeAr: "وفّر ٦١٪",
     tag: "MOST POPULAR",
     tagAr: "الأكثر اختياراً",
-    original: 75,
-    price: 29,
+    original: BUNDLE_MATRIX.single.month.original,
+    price: BUNDLE_MATRIX.single.month.price,
     perDay: "1.04 SAR/day",
     perDayAr: "١.٠٤ ر.س/يوم",
     usd: "≈ $7.7",
@@ -76,8 +146,8 @@ export const PLANS: Plan[] = [
     badgeAr: "وفّر ٦٥٪",
     tag: "BEST VALUE",
     tagAr: "أفضل قيمة",
-    original: 199,
-    price: 69,
+    original: BUNDLE_MATRIX.single.quarter.original,
+    price: BUNDLE_MATRIX.single.quarter.price,
     perDay: "0.82 SAR/day",
     perDayAr: "٠.٨٢ ر.س/يوم",
     usd: "≈ $18",

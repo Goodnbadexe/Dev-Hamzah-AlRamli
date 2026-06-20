@@ -6,6 +6,7 @@ import { Noto_Kufi_Arabic } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { FullscreenButton } from "@/components/fullscreen"
 import { PortfolioAssistant } from "@/components/portfolio-assistant"
+import { AntiInspect } from "@/components/anti-inspect"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata } from "next"
@@ -193,6 +194,8 @@ export default function RootLayout({
           {children}
           <FullscreenButton />
           <PortfolioAssistant />
+          {/* Deterrent only — real content protection is the gated PDF route. */}
+          <AntiInspect />
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

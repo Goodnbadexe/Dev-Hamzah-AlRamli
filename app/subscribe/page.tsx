@@ -3,20 +3,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, BookOpen, Briefcase, Check, CheckCircle2,
-  Clock, Compass, Eye, Gauge, History, Hourglass, Layers, Loader2, Lock, Mail, Rocket,
+  Clock, Compass, Eye, Gauge, History, Hourglass, Layers, Loader2, Lock, Mail, Monitor, Rocket,
   Sparkles, Target, TrendingUp, User, Wrench, Zap, type LucideIcon,
 } from "lucide-react"
 import { QUIZ, QUIZ_TOTAL } from "@/lib/subscribe/quiz"
 import {
-  BUILD_STEPS, PLANS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, planById, type Plan,
+  BUILD_STEPS, PLANS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, planById, priceFor,
 } from "@/lib/subscribe/config"
+import { personalize } from "@/lib/subscribe/personalize"
+import { trackById } from "@/lib/subscribe/tracks"
 import { MoyasarPayment } from "./MoyasarPayment"
 
 const ICONS: Record<string, LucideIcon> = {
   user: User, zap: Zap, wrench: Wrench, alert: AlertTriangle, layers: Layers, clock: Clock,
   eye: Eye, target: Target, trending: TrendingUp, sparkles: Sparkles, gauge: Gauge,
   compass: Compass, briefcase: Briefcase, book: BookOpen, hourglass: Hourglass, history: History,
-  lock: Lock, rocket: Rocket, id: BadgeCheck, mail: Mail,
+  lock: Lock, rocket: Rocket, id: BadgeCheck, mail: Mail, monitor: Monitor,
 }
 
 const OFFER_KEY = "gnb_vault_offer_expires"
@@ -44,16 +46,23 @@ function useCountdown(expiresAt: number | null) {
 export default function SubscribePage() {
   const [phase, setPhase] = useState<Phase>("intro")
   const [qIndex, setQIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
+  // Answers are arrays for ALL question types (multi/single/text) — single+text
+  // store a one-element array. Lets multi-select share one state shape.
+  const [answers, setAnswers] = useState<Record<string, string[]>>({})
   const [promo, setPromo] = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState<number | null>(null)
-  const [selected, setSelected] = useState<Plan["id"]>("month")
+  const [selected, setSelected] = useState<"trial" | "month" | "quarter">("month")
   const [payResult, setPayResult] = useState<{ status: string; id: string | null; message: string | null } | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
 
   const { display: countdown, expired } = useCountdown(expiresAt)
-  const name = answers.name ?? ""
-  const email = answers.email ?? ""
+  const single = useCallback((id: string) => answers[id]?.[0] ?? "", [answers])
+  const name = single("name")
+  const email = single("email")
+
+  // Live personalization derived from the answers (tracks, tool/os variant, match%).
+  const person = useMemo(() => personalize(answers), [answers])
+  const selectedTracks = person.selectedTracks
 
   const scrollTop = useCallback(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -70,14 +79,21 @@ export default function SubscribePage() {
     window.history.replaceState({}, "", "/subscribe")
   }, [])
 
-  // Fire-and-forget lead capture (never blocks the funnel).
+  // Fire-and-forget lead capture (never blocks the funnel). Sends the full
+  // personalization so Supabase + Telegram/email get tracks/tool/os/match.
   const sendLead = useCallback((plan?: string, code?: string | null) => {
-    if (!answers.name || !EMAIL_RE.test(answers.email ?? "")) return
+    if (!name || !EMAIL_RE.test(email)) return
     const payload = {
-      name: answers.name,
-      email: answers.email,
+      name,
+      email,
       plan,
+      bundle: person.recommendedBundle,
       promo: code ?? promo ?? undefined,
+      tracks: selectedTracks,
+      tool: person.toolVariant,
+      os: person.osVariant,
+      readFactor: person.readFactor,
+      source: "funnel" as const,
       answers,
     }
     fetch("/api/subscribe/lead", {
@@ -86,11 +102,11 @@ export default function SubscribePage() {
       body: JSON.stringify(payload),
       keepalive: true,
     }).catch(() => {})
-  }, [answers, promo])
+  }, [answers, promo, name, email, person, selectedTracks])
 
   // Persistent (honest) 10-min offer window — reuse a live one, don't reset it.
   const startBuild = useCallback(() => {
-    const code = buildPromoCode(answers.name ?? "")
+    const code = buildPromoCode(name)
     setPromo(code)
     let exp: number
     try {
@@ -104,12 +120,14 @@ export default function SubscribePage() {
     sendLead(undefined, code)
     setPhase("loading")
     scrollTop()
-  }, [answers, sendLead, scrollTop])
+  }, [name, sendLead, scrollTop])
 
   const q = QUIZ[qIndex]
-  const current = answers[q?.id]
+  const currentVal = single(q?.id ?? "")
+  const currentArr = answers[q?.id ?? ""] ?? []
   const canAdvanceText =
-    q?.type === "text" && (q.field === "email" ? EMAIL_RE.test(current ?? "") : (current ?? "").trim().length > 0)
+    q?.type === "text" && (q.field === "email" ? EMAIL_RE.test(currentVal) : currentVal.trim().length > 0)
+  const canAdvanceMulti = q?.type === "multi" && currentArr.length >= (q.minSelect ?? 1)
 
   const next = useCallback(() => {
     if (qIndex < QUIZ_TOTAL - 1) {
@@ -121,9 +139,18 @@ export default function SubscribePage() {
   }, [qIndex, startBuild, scrollTop])
 
   const pickSingle = useCallback((qid: string, value: string) => {
-    setAnswers((a) => ({ ...a, [qid]: value }))
+    setAnswers((a) => ({ ...a, [qid]: [value] }))
     window.setTimeout(() => next(), 240)
   }, [next])
+
+  const toggleMulti = useCallback((qid: string, value: string, max?: number) => {
+    setAnswers((a) => {
+      const arr = a[qid] ?? []
+      if (arr.includes(value)) return { ...a, [qid]: arr.filter((v) => v !== value) }
+      if (max && arr.length >= max) return a
+      return { ...a, [qid]: [...arr, value] }
+    })
+  }, [])
 
   // Loading beat → reveal plan after the build animation.
   const [buildPct, setBuildPct] = useState(0)
@@ -154,6 +181,7 @@ export default function SubscribePage() {
   }, [selected, promo, sendLead, scrollTop])
 
   const progressPct = useMemo(() => Math.round((qIndex / QUIZ_TOTAL) * 100), [qIndex])
+  const tracksLabel = selectedTracks.map((t) => trackById(t).en).join(" + ")
 
   return (
     <main className="relative min-h-screen bg-zinc-950 text-zinc-100 pb-24">
@@ -234,10 +262,10 @@ export default function SubscribePage() {
                 </span>
               </div>
 
-              {q.type === "single" ? (
+              {q.type === "single" && (
                 <div className="space-y-2.5">
                   {q.options.map((opt) => {
-                    const isSel = current === opt.value
+                    const isSel = currentVal === opt.value
                     return (
                       <button
                         key={opt.value}
@@ -256,14 +284,57 @@ export default function SubscribePage() {
                     )
                   })}
                 </div>
-              ) : (
+              )}
+
+              {q.type === "multi" && (
+                <div className="space-y-2.5">
+                  {q.options.map((opt) => {
+                    const isSel = currentArr.includes(opt.value)
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        aria-pressed={isSel}
+                        onClick={() => toggleMulti(q.id, opt.value, q.maxSelect)}
+                        className={[
+                          "flex w-full items-center justify-between gap-3 rounded-md border px-4 py-3.5 text-sm font-medium transition-all duration-150",
+                          isSel
+                            ? "border-emerald-600 bg-emerald-950/50 text-emerald-300"
+                            : "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900",
+                        ].join(" ")}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className={[
+                            "grid h-4 w-4 shrink-0 place-items-center rounded border",
+                            isSel ? "border-emerald-500 bg-emerald-500 text-emerald-950" : "border-zinc-600",
+                          ].join(" ")}>
+                            {isSel && <Check className="h-3 w-3" />}
+                          </span>
+                          <span className="font-mono text-[11px] text-zinc-500">{opt.en}</span>
+                        </span>
+                        <span dir="rtl">{opt.ar}</span>
+                      </button>
+                    )
+                  })}
+                  <button
+                    type="button"
+                    onClick={next}
+                    disabled={!canAdvanceMulti}
+                    className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-3 font-mono text-sm font-semibold text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    {qIndex === QUIZ_TOTAL - 1 ? "Build my plan" : "Continue"} <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {q.type === "text" && (
                 <div className="space-y-3">
                   <input
                     type={q.inputType}
                     inputMode={q.inputType === "email" ? "email" : "text"}
                     autoComplete={q.inputType === "email" ? "email" : "given-name"}
-                    value={current ?? ""}
-                    onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                    value={currentVal}
+                    onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: [e.target.value] }))}
                     onKeyDown={(e) => { if (e.key === "Enter" && canAdvanceText) next() }}
                     placeholder={q.placeholder}
                     dir="ltr"
@@ -310,6 +381,12 @@ export default function SubscribePage() {
               <p className="mt-1.5 font-mono text-xs text-zinc-500">
                 {PRODUCT.headlineEn.replace("personalized AI plan", "")}<span className="text-emerald-400">personalized AI plan</span>
               </p>
+              {/* Per-person curation signal — match % + the vaults they picked */}
+              {selectedTracks.length > 0 && (
+                <p className="mt-2 font-mono text-[11px] text-emerald-400">
+                  {person.readFactor}% matched · {tracksLabel}
+                </p>
+              )}
             </div>
 
             {/* Promo + real countdown */}
@@ -327,10 +404,11 @@ export default function SubscribePage() {
               </div>
             </div>
 
-            {/* Plans (radio-select) */}
+            {/* Plans (radio-select duration; price reflects the ticked tracks) */}
             <div className="space-y-3">
               {PLANS.map((plan) => {
                 const isSel = selected === plan.id
+                const quote = priceFor(selectedTracks, plan.id)
                 return (
                   <button
                     key={plan.id}
@@ -356,17 +434,17 @@ export default function SubscribePage() {
                             )}
                           </div>
                           <p className="mt-0.5 text-xs text-zinc-500" dir="rtl">{plan.ar}</p>
-                          {plan.badge && <p className="mt-1 font-mono text-[10px] text-emerald-500">{plan.badge}</p>}
+                          <p className="mt-1 font-mono text-[10px] text-emerald-500">SAVE {quote.savedPct}%</p>
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
                         <div className="flex items-baseline justify-end gap-1.5">
-                          <span className="font-mono text-[11px] text-zinc-600 line-through">{plan.original}</span>
-                          <span className={["font-mono text-2xl font-bold", isSel ? "text-emerald-300" : "text-zinc-200"].join(" ")}>{plan.price}</span>
+                          <span className="font-mono text-[11px] text-zinc-600 line-through">{quote.original}</span>
+                          <span className={["font-mono text-2xl font-bold", isSel ? "text-emerald-300" : "text-zinc-200"].join(" ")}>{quote.price}</span>
                           <span className="font-mono text-xs text-zinc-500">SAR</span>
                         </div>
-                        <p className="mt-0.5 font-mono text-[10px] text-zinc-600">{plan.perDay}</p>
-                        <p className="font-mono text-[9px] text-zinc-700">{plan.usd}</p>
+                        <p className="mt-0.5 font-mono text-[10px] text-zinc-600">{quote.perDay}</p>
+                        <p className="font-mono text-[9px] text-zinc-700">{quote.usd}</p>
                       </div>
                     </div>
                   </button>
@@ -408,6 +486,7 @@ export default function SubscribePage() {
         {/* ── PAY (in-page Moyasar card form — no exit before paying) ─────── */}
         {phase === "pay" && promo && (() => {
           const sel = planById(selected)
+          const quote = priceFor(selectedTracks, selected)
           return (
             <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4">
               <button
@@ -423,11 +502,12 @@ export default function SubscribePage() {
                   <div>
                     <p className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-200">{sel.en}</p>
                     <p className="text-xs text-zinc-500" dir="rtl">{sel.ar}</p>
+                    {tracksLabel && <p className="mt-1 font-mono text-[10px] text-emerald-600">{tracksLabel}</p>}
                   </div>
                   <div className="text-right">
-                    <span className="font-mono text-2xl font-bold text-emerald-300">{sel.price}</span>
+                    <span className="font-mono text-2xl font-bold text-emerald-300">{quote.price}</span>
                     <span className="font-mono text-xs text-zinc-500"> SAR</span>
-                    <p className="font-mono text-[10px] text-zinc-600">{sel.perDay}</p>
+                    <p className="font-mono text-[10px] text-zinc-600">{quote.perDay}</p>
                   </div>
                 </div>
                 <div className="mt-3 flex items-center gap-2 border-t border-emerald-900/40 pt-2.5">
@@ -437,9 +517,18 @@ export default function SubscribePage() {
               </div>
 
               <MoyasarPayment
-                amountSar={sel.price}
-                description={`Toolkit Vault · ${sel.en} · ${promo}`}
-                metadata={{ plan: sel.id, promo: promo ?? "", name, email }}
+                amountSar={quote.price}
+                description={`Toolkit Vault · ${sel.en} · ${quote.tier} · ${promo}`}
+                metadata={{
+                  plan: sel.id,
+                  bundle: person.recommendedBundle,
+                  tracks: selectedTracks.join(","),
+                  tool: person.toolVariant,
+                  os: person.osVariant,
+                  promo: promo ?? "",
+                  name,
+                  email,
+                }}
               />
 
               <p className="text-center font-mono text-[10px] text-zinc-700" dir="rtl">
