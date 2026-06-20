@@ -13,7 +13,7 @@ import type { TrackId, ToolId, OsId } from "@/lib/subscribe/tracks"
 
 export interface Deliverable {
   id: string
-  week: 1 | 2 | 3 | 4
+  week: 1 | 2 | 3 | 4 | 5
   outcomeEn: string
   outcomeAr: string
   /** file stem → content/vault/<track>/<fileStem>.pdf (+ <fileStem>-teaser.pdf) */
@@ -55,6 +55,15 @@ export const VAULT: Record<TrackId, Deliverable[]> = {
       outcomeEn: "Week 4 · Automation — 5 tools that run your stack",
       outcomeAr: "الأسبوع ٤ · الأتمتة — ٥ أدوات تشغّل أدواتك عنك",
       fileStem: "automation-vault",
+    },
+  ],
+  quant: [
+    {
+      id: "quant-vault",
+      week: 5,
+      outcomeEn: "Week 5 · Quant & Trading — 5 open-source engines funds run",
+      outcomeAr: "الأسبوع ٥ · التداول الكمّي — ٥ محركات مفتوحة تستخدمها الصناديق",
+      fileStem: "quant-vault",
     },
   ],
 }

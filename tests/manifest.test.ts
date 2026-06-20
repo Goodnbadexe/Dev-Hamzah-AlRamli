@@ -21,8 +21,8 @@ describe("manifest · resolution", () => {
     expect(deliverableById("nope")).toBeNull()
   })
 
-  it("has one issue per track, weeks 1–4", () => {
-    expect(allDeliverables().map((x) => x.deliverable.week).sort()).toEqual([1, 2, 3, 4])
+  it("has one issue per track, weeks 1–5", () => {
+    expect(allDeliverables().map((x) => x.deliverable.week).sort()).toEqual([1, 2, 3, 4, 5])
   })
 })
 

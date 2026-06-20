@@ -293,6 +293,7 @@ export const QUIZ: QuizQuestion[] = [
       { value: "developers", ar: "المطوّرين والأدوات — أسبوع ٢", en: "Developers & Tools — Week 2" },
       { value: "agents", ar: "الوكلاء — أسبوع ٣", en: "Agents — Week 3" },
       { value: "automation", ar: "الأتمتة — أسبوع ٤", en: "Automation — Week 4" },
+      { value: "quant", ar: "التداول الكمّي — أسبوع ٥", en: "Quant & Trading — Week 5" },
     ],
   },
 
