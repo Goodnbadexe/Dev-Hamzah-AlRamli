@@ -405,11 +405,13 @@ export default function SubscribePage() {
                 </div>
                 <div className="shrink-0 text-right">
                   <div className="flex items-baseline justify-end gap-1.5">
-                    <span className="font-mono text-[11px] text-zinc-600 line-through">{price.original}</span>
-                    <span className="font-mono text-3xl font-bold text-emerald-300">{price.price}</span>
-                    <span className="font-mono text-xs text-zinc-500">SAR</span>
+                    {price.original > price.price && (
+                      <span className="font-mono text-[11px] text-zinc-600 line-through">${price.original}</span>
+                    )}
+                    <span className="font-mono text-3xl font-bold text-emerald-300">${price.price}</span>
                   </div>
-                  <p className="mt-0.5 font-mono text-[10px] text-zinc-600">one-time · lifetime access</p>
+                  <p className="mt-0.5 font-mono text-[10px] text-emerald-600/80">{price.breakdown}</p>
+                  <p className="font-mono text-[10px] text-zinc-700">one-time · lifetime access</p>
                 </div>
               </div>
             </div>

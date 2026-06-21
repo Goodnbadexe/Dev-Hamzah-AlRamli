@@ -5,7 +5,7 @@
 // Tests:   npm test -- -t pricing
 // === END METADATA ===
 import { describe, it, expect } from "vitest"
-import { priceFor, tierForTracks, BUNDLE_MATRIX, PLANS } from "@/lib/subscribe/config"
+import { priceFor, tierForTracks, BUNDLE_MATRIX, PLANS, gumroadPrice, PRICING } from "@/lib/subscribe/config"
 import type { TrackId } from "@/lib/subscribe/tracks"
 
 const S = ["security"] as TrackId[]
@@ -63,5 +63,28 @@ describe("pricing · honest derived math", () => {
         expect(cell.original).toBeGreaterThan(cell.price)
       }
     }
+  })
+})
+
+describe("pricing · gumroad base + per-tool", () => {
+  it("one issue = $2 base + $1.20 × 5 tools = $8", () => {
+    expect(gumroadPrice(["security"] as TrackId[]).price).toBe(8)
+    expect(gumroadPrice(["security"] as TrackId[]).original).toBe(8)
+  })
+
+  it("two vaults add per-tool, with an honest strike-through", () => {
+    const q = gumroadPrice(["security", "developers"] as TrackId[])
+    expect(q.price).toBe(14) // 2 + 1.2*10
+    expect(q.original).toBe(16) // 2 × $8
+  })
+
+  it("3+ vaults = flat all-access price, undercutting buying separately", () => {
+    const q = gumroadPrice(SDA)
+    expect(q.price).toBe(PRICING.allAccess) // 25
+    expect(q.original).toBeGreaterThan(q.price)
+  })
+
+  it("exposes a breakdown string for the paywall", () => {
+    expect(gumroadPrice(["security"] as TrackId[]).breakdown).toContain("base")
   })
 })

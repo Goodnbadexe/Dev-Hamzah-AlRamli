@@ -10,7 +10,7 @@
 //          never fakes a charge.
 // === END METADATA ===
 
-import type { TrackId, OsId } from "./tracks"
+import { type TrackId, type OsId, TRACK_IDS } from "./tracks"
 import { type BundleTier, tierForCount } from "./personalize"
 
 export type Plan = {
@@ -223,9 +223,23 @@ export function gumroadUrl(selectedTracks: TrackId[], os: OsId = "windows"): str
   return ((e && (e[os] || e.any)) || all[os] || all.any || GUMROAD_STORE || "").trim()
 }
 
-/** One-time price shown on the Gumroad paywall (uses the 4-week column as anchor). */
-export function gumroadPrice(selectedTracks: TrackId[]): PriceCell {
-  return BUNDLE_MATRIX[tierForTracks(selectedTracks)].month
+// Base + per-tool pricing (USD, matches the Gumroad products). One issue = 5 tools
+// → $2 base + $1.20 × 5 = $8. All-access (3+ vaults) is a flat bundle price that
+// undercuts buying every issue separately.
+export const PRICING = { base: 2, perTool: 1.2, toolsPerIssue: 5, perIssue: 8, allAccess: 25 }
+
+export type GumroadPrice = { price: number; original: number; breakdown: string }
+
+/** USD price + honest strike-through + a base/per-tool breakdown line for the paywall. */
+export function gumroadPrice(selectedTracks: TrackId[]): GumroadPrice {
+  const n = Math.max(1, selectedTracks.length)
+  if (n >= 3) {
+    const original = PRICING.perIssue * TRACK_IDS.length // value of buying all separately
+    return { price: PRICING.allAccess, original, breakdown: `all ${TRACK_IDS.length} vaults · one price` }
+  }
+  const tools = PRICING.toolsPerIssue * n
+  const price = Math.round(PRICING.base + PRICING.perTool * tools)
+  return { price, original: PRICING.perIssue * n, breakdown: `$${PRICING.base} base + $${PRICING.perTool}/tool × ${tools}` }
 }
 
 export const PRODUCT = {
