@@ -127,7 +127,7 @@ function listingMd(issue, os) {
   const setup = setupBlock({
     name: `${NAMES[issue.track] || issue.track} Vault — ${os.label}`,
     slug: `${issue.track}-vault-${os.id}`,
-    price: "$8 (one-time) — or set a membership tier, your call",
+    price: "$8 / month (membership)",
     cover: "cover.png",
     thumb: "thumbnail.png",
     file: `${issue.track}-vault-${os.id}.pdf`,
@@ -155,7 +155,7 @@ function allAccessMd(os, weeks) {
   const setup = setupBlock({
     name: `All-Access Vault — ${os.label}`,
     slug: `all-access-${os.id}`,
-    price: "$25 (one-time) — or a membership tier",
+    price: "$25 / month (membership)",
     cover: "cover.png",
     thumb: "thumbnail.png",
     file: `all-access-${os.id}.zip`,

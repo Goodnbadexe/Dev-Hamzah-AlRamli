@@ -409,9 +409,10 @@ export default function SubscribePage() {
                       <span className="font-mono text-[11px] text-zinc-600 line-through">${price.original}</span>
                     )}
                     <span className="font-mono text-3xl font-bold text-emerald-300">${price.price}</span>
+                    <span className="font-mono text-xs text-zinc-500">/mo</span>
                   </div>
                   <p className="mt-0.5 font-mono text-[10px] text-emerald-600/80">{price.breakdown}</p>
-                  <p className="font-mono text-[10px] text-zinc-700">one-time · lifetime access</p>
+                  <p className="font-mono text-[10px] text-zinc-700">per month · cancel anytime</p>
                 </div>
               </div>
             </div>
