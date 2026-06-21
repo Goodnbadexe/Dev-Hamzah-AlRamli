@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "start": "next start",
     "test": "vitest --run",
-    "build:vault": "node scripts/build-vault-pdfs.mjs"
+    "build:vault": "node scripts/build-vault-pdfs.mjs",
+    "build:gumroad": "node scripts/build-gumroad-assets.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
