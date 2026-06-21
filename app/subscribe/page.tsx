@@ -174,7 +174,7 @@ export default function SubscribePage() {
 
   const progressPct = useMemo(() => Math.round((qIndex / QUIZ_TOTAL) * 100), [qIndex])
   const tracksLabel = selectedTracks.map((t) => trackById(t).en).join(" + ")
-  const buyUrl = gumroadUrl(selectedTracks)
+  const buyUrl = gumroadUrl(selectedTracks, person.osVariant)
   const price = gumroadPrice(selectedTracks)
   const vaultName = person.recommendedBundle === "single" ? `${tracksLabel} Vault` : "All-Access Vault"
 

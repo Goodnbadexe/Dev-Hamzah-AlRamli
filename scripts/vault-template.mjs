@@ -1,12 +1,14 @@
 // === METADATA ===
 // Purpose: Data-driven generator for "The Toolkit Vault" issue PDFs. Reproduces
 //          the original designed magazine layout (cover → how-to → 5 picks →
-//          outro) so every weekly issue looks identical and on-brand.
-// Design:  ported verbatim from deliverables/toolkit-vault/toolkit-week-01.html
-//          (Hamzah's own product). Dark theme, emerald accent, EN + AR per pick,
-//          a paste-ready prompt per tool, and a blurred "teaser" mode for the
-//          free lead-magnet version.
-// Usage:   issueHtml(issue, { teaser }) -> full HTML string for Playwright.
+//          outro) so every weekly issue looks identical and on-brand, and now
+//          renders an OS-TUNED build per issue (Windows / Linux / macOS) so each
+//          product is genuinely tailored to the buyer's machine — not one file
+//          resold to everyone.
+// Design:  ported from deliverables/toolkit-vault/toolkit-week-01.html (Hamzah's
+//          own product). Dark theme, emerald accent, EN + AR per pick, a paste-
+//          ready prompt per tool, a blurred "teaser" mode, and an OS overlay.
+// Usage:   issueHtml(issue, { teaser, os }) -> full HTML string for Playwright.
 // === END METADATA ===
 
 const CSS = `
@@ -35,6 +37,8 @@ const CSS = `
   .cov h1 .v{color:var(--grn);text-shadow:0 0 30px rgba(0,255,163,.4)}
   .cov .sub{margin-top:22px;font-size:23px;color:#9fb2c9;max-width:600px}
   .cov .meta{margin-top:30px;font-family:Consolas,monospace;font-size:15px;color:var(--mut);letter-spacing:1px}
+  .osbadge{display:inline-block;margin-top:18px;font-family:Consolas,monospace;font-size:12px;
+    letter-spacing:2px;color:#070b12;background:var(--grn);border-radius:5px;padding:6px 13px;font-weight:700}
   .cov .picks{font-family:Consolas,monospace;font-size:15px;color:#6b7f99;line-height:2}
   .cov .picks b{color:var(--grn);font-weight:400}
   .lock{font-size:30px;color:var(--grn)}
@@ -43,9 +47,12 @@ const CSS = `
   .foot .s{color:var(--white)}
   h2{font-size:34px;color:var(--white);font-weight:800;letter-spacing:-1px;margin-bottom:8px}
   .lead{font-size:16px;color:#a9b8cc;line-height:1.65;margin-bottom:22px}
-  .how{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin-bottom:22px}
+  .how{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin-bottom:18px}
   .how h3{font-size:13px;letter-spacing:2px;color:var(--grn);font-family:Consolas,monospace;margin-bottom:14px}
   .how ol{margin-left:18px;font-size:14.5px;line-height:1.9;color:var(--ink)}
+  .ostune{font-family:Consolas,monospace;font-size:12.5px;color:#9fb2c9;background:#0a1018;
+    border:1px solid var(--line);border-left:3px solid var(--grn);border-radius:7px;padding:11px 14px;margin-bottom:22px}
+  .ostune b{color:var(--grn);font-weight:400}
   .ar{direction:rtl;text-align:right;font-size:15px;color:#9fb2c9;line-height:1.9;
     border-right:2px solid var(--grn);padding-right:14px}
   .toc{list-style:none}
@@ -70,6 +77,7 @@ const CSS = `
   .prompt{background:#0a1018;border:1px solid var(--line);border-left:3px solid var(--grn);border-radius:7px;padding:16px 18px}
   .prompt .lbl{font-family:Consolas,monospace;font-size:11px;letter-spacing:2px;color:var(--mut);margin-bottom:10px}
   .prompt .lbl b{color:var(--grn);font-weight:400}
+  .prompt .lbl .os{color:#74879f}
   .prompt .txt{font-family:Consolas,monospace;font-size:13px;line-height:1.65;color:#bceede}
   .cta{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:24px;margin:20px 0}
   .cta b{color:var(--grn)}
@@ -82,16 +90,35 @@ const CSS = `
   body.teaser .unlock .lk{font-size:14px}
 `
 
+export const OS_META = {
+  windows: {
+    label: "Windows",
+    shell: "PowerShell",
+    note: "Commands are written for PowerShell — install prerequisites with winget, or drop into WSL2 (Ubuntu) when a step needs native Linux tooling.",
+  },
+  linux: {
+    label: "Linux",
+    shell: "bash",
+    note: "Commands are written for bash — use your distro's package manager (apt / dnf / pacman). Run everything in a scoped, authorized environment.",
+  },
+  macos: {
+    label: "macOS",
+    shell: "zsh",
+    note: "Commands are written for zsh — install prerequisites with Homebrew (brew install …).",
+  },
+}
+
 function esc(s) {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 }
 const nb = (s) => esc(s).replace(/ /g, "&nbsp;")
 const pad2 = (n) => String(n).padStart(2, "0")
 
-function coverPage(d) {
+function coverPage(d, os) {
   const picks = d.picks
     .map((p) => `<b>&gt;</b> <span class="paywall-hidden">${esc(p.name)}</span>`)
     .join(" &nbsp; ")
+  const badge = os ? `<div class="osbadge">TUNED FOR ${os.label.toUpperCase()} · ${esc(os.shell)}</div>` : ""
   return `<section class="page"><div class="grid"></div><div class="glow"></div>
     <div class="z cov">
       <div>
@@ -99,6 +126,7 @@ function coverPage(d) {
         <div class="kick">${esc(d.kicker)}</div>
         <h1>WEEK&nbsp;${pad2(d.week)}<br><span class="v">VAULT</span></h1>
         <div class="sub">${esc(d.subtitle)}</div>
+        ${badge}
         <div class="meta">${esc(d.meta)}</div>
       </div>
       <div>
@@ -110,13 +138,16 @@ function coverPage(d) {
   </section>`
 }
 
-function introPage(d) {
+function introPage(d, os) {
   const toc = d.picks
     .map(
       (p) =>
         `<li><span class="n">${pad2(p.num)}</span><span class="t paywall-hidden">${esc(p.name)}</span><span class="c">${esc(p.tag)}</span></li>`,
     )
     .join("")
+  const ostune = os
+    ? `<div class="ostune"><b>&#9656; YOUR BUILD · ${os.label.toUpperCase()}</b> &nbsp; ${esc(os.note)}</div>`
+    : ""
   return `<section class="page"><div class="grid"></div>
     <div class="z">
       <div class="rh"><span>// ${nb("HOW THIS WORKS")}</span><span class="g">ISSUE ${pad2(d.week)} · 02</span></div>
@@ -131,6 +162,7 @@ function introPage(d) {
           <li>Let it walk you through setup &amp; first use. No guesswork.</li>
         </ol>
       </div>
+      ${ostune}
       <p class="ar">${esc(d.introAr)}</p>
       <h3 style="font-family:Consolas,monospace;font-size:13px;letter-spacing:2px;color:#74879f;margin:26px 0 10px">THIS WEEK</h3>
       <ul class="toc">${toc}</ul>
@@ -139,7 +171,8 @@ function introPage(d) {
   </section>`
 }
 
-function pickPage(p) {
+function pickPage(p, os) {
+  const osTag = os ? ` <span class="os">· ${esc(os.label)} / ${esc(os.shell)}</span>` : ""
   return `<section class="page"><div class="grid"></div>
     <div class="z">
       <div class="rh"><span>// ${nb("PICK " + pad2(p.num))}</span><span class="g">${esc(p.tag)}</span></div>
@@ -153,7 +186,7 @@ function pickPage(p) {
       <div class="blk"><h4>WHY IT MATTERS FOR YOU</h4><p>${esc(p.whyItMatters)}</p></div>
       <div class="link"><span class="a">repo &gt; </span><span class="paywall-hidden">${esc(p.repo)}</span></div>
       <div class="prompt">
-        <div class="lbl">&gt;_ <b>DROP THIS INTO YOUR AI</b></div>
+        <div class="lbl">&gt;_ <b>DROP THIS INTO YOUR AI</b>${osTag}</div>
         <div class="txt paywall-hidden">${esc(p.prompt)}</div>
       </div>
       <div class="unlock"><span class="lk">&#128274;</span> The tool name, GitHub link &amp; paste-ready prompt are blurred &#8594; unlock at <b>goodnbad.info/subscribe</b></div>
@@ -161,7 +194,8 @@ function pickPage(p) {
   </section>`
 }
 
-function outroPage(d) {
+function outroPage(d, os) {
+  const osFoot = os ? ` &nbsp;·&nbsp; ${esc(os.label)} build` : ""
   return `<section class="page"><div class="grid"></div><div class="glow"></div>
     <div class="z">
       <div class="rh"><span>// ${nb("THAT'S WEEK " + pad2(d.week))}</span><span class="g">ISSUE ${pad2(d.week)} · END</span></div>
@@ -174,13 +208,15 @@ function outroPage(d) {
       <p class="ar">${esc(d.outroAr)}</p>
       <div class="foot" style="margin-top:60px">
         <span class="lock">&#9635;</span>
-        <span>The Toolkit Vault &nbsp;·&nbsp; curated by Hamzah Al-Ramli &nbsp;·&nbsp; <span class="s">goodnbad.info</span></span>
+        <span>The Toolkit Vault &nbsp;·&nbsp; curated by Hamzah Al-Ramli &nbsp;·&nbsp; <span class="s">goodnbad.info</span>${osFoot}</span>
       </div>
     </div>
   </section>`
 }
 
-export function issueHtml(d, { teaser = false } = {}) {
-  const body = [coverPage(d), introPage(d), ...d.picks.map(pickPage), outroPage(d)].join("\n")
+export function issueHtml(d, { teaser = false, os = null } = {}) {
+  // Teaser is the OS-agnostic free lead magnet; full builds are OS-tuned.
+  const osm = teaser ? null : os ? OS_META[os] : null
+  const body = [coverPage(d, osm), introPage(d, osm), ...d.picks.map((p) => pickPage(p, osm)), outroPage(d, osm)].join("\n")
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><style>${CSS}</style></head><body class="${teaser ? "teaser" : ""}">${body}</body></html>`
 }

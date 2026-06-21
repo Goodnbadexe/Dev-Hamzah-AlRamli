@@ -39,7 +39,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ file: string }>
   }
 
   // 4) resolve the tuned file for the buyer's stack, strictly inside content/vault
-  const rel = resolveFile(hit.track, hit.deliverable, ent.tool, ent.os)
+  const rel = resolveFile(hit.track, hit.deliverable, ent.os)
   const root = path.resolve(process.cwd(), "content", "vault")
   const abs = path.resolve(process.cwd(), rel)
   if (abs !== root && !abs.startsWith(root + path.sep)) {

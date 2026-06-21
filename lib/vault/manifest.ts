@@ -9,7 +9,7 @@
 //          Paid files are NOT in public/.
 // === END METADATA ===
 
-import type { TrackId, ToolId, OsId } from "@/lib/subscribe/tracks"
+import type { TrackId, OsId } from "@/lib/subscribe/tracks"
 
 export interface Deliverable {
   id: string
@@ -79,10 +79,9 @@ export const VAULT: Record<TrackId, Deliverable[]> = {
 
 const VAULT_ROOT = "content/vault"
 
-/** Repo-relative path to a deliverable's full (payer) PDF. tool/os are accepted
- *  for the dormant gated route's call signature but no longer change the file. */
-export function resolveFile(track: TrackId, d: Deliverable, _tool?: ToolId, _os?: OsId): string {
-  return `${VAULT_ROOT}/${track}/${d.fileStem}.pdf`
+/** Repo-relative path to a deliverable's OS-tuned full (payer) PDF. */
+export function resolveFile(track: TrackId, d: Deliverable, os: OsId = "windows"): string {
+  return `${VAULT_ROOT}/${track}/${d.fileStem}-${os}.pdf`
 }
 
 /** Repo-relative path to the free blurred teaser PDF. */

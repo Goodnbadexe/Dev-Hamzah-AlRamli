@@ -10,7 +10,7 @@
 //          never fakes a charge.
 // === END METADATA ===
 
-import type { TrackId } from "./tracks"
+import type { TrackId, OsId } from "./tracks"
 import { type BundleTier, tierForCount } from "./personalize"
 
 export type Plan = {
@@ -161,24 +161,66 @@ export const PLANS: Plan[] = [
 // Each track + the all-access bundle is a Gumroad product. The quiz recommends
 // which one to buy; the CTA opens its Gumroad overlay checkout. Set the product
 // URLs as NEXT_PUBLIC_GUMROAD_* env (inlined at build — redeploy after changing).
-const GUMROAD: Record<TrackId | "all" | "store", string | undefined> = {
-  security: process.env.NEXT_PUBLIC_GUMROAD_SECURITY,
-  developers: process.env.NEXT_PUBLIC_GUMROAD_DEVELOPERS,
-  agents: process.env.NEXT_PUBLIC_GUMROAD_AGENTS,
-  automation: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION,
-  quant: process.env.NEXT_PUBLIC_GUMROAD_QUANT,
-  creative: process.env.NEXT_PUBLIC_GUMROAD_CREATIVE,
-  all: process.env.NEXT_PUBLIC_GUMROAD_ALL,
-  store: process.env.NEXT_PUBLIC_GUMROAD_STORE,
-}
+// Each product exists per OS (Windows/Linux/macOS) so a buyer gets a build tuned
+// to their machine. `any` is an OS-agnostic fallback link. NOTE: Next inlines
+// NEXT_PUBLIC_* only for STATIC references, so every slot is declared explicitly.
+type GumroadEntry = { windows?: string; linux?: string; macos?: string; any?: string }
 
-/** Best Gumroad product URL for the ticked tracks: 1 track → that vault, 2+ →
- *  all-access. Falls back to the all-access link, then the store, then "". */
-export function gumroadUrl(selectedTracks: TrackId[]): string {
+const GUMROAD: Record<TrackId | "all", GumroadEntry> = {
+  security: {
+    windows: process.env.NEXT_PUBLIC_GUMROAD_SECURITY_WINDOWS,
+    linux: process.env.NEXT_PUBLIC_GUMROAD_SECURITY_LINUX,
+    macos: process.env.NEXT_PUBLIC_GUMROAD_SECURITY_MACOS,
+    any: process.env.NEXT_PUBLIC_GUMROAD_SECURITY,
+  },
+  developers: {
+    windows: process.env.NEXT_PUBLIC_GUMROAD_DEVELOPERS_WINDOWS,
+    linux: process.env.NEXT_PUBLIC_GUMROAD_DEVELOPERS_LINUX,
+    macos: process.env.NEXT_PUBLIC_GUMROAD_DEVELOPERS_MACOS,
+    any: process.env.NEXT_PUBLIC_GUMROAD_DEVELOPERS,
+  },
+  agents: {
+    windows: process.env.NEXT_PUBLIC_GUMROAD_AGENTS_WINDOWS,
+    linux: process.env.NEXT_PUBLIC_GUMROAD_AGENTS_LINUX,
+    macos: process.env.NEXT_PUBLIC_GUMROAD_AGENTS_MACOS,
+    any: process.env.NEXT_PUBLIC_GUMROAD_AGENTS,
+  },
+  automation: {
+    windows: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION_WINDOWS,
+    linux: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION_LINUX,
+    macos: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION_MACOS,
+    any: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION,
+  },
+  quant: {
+    windows: process.env.NEXT_PUBLIC_GUMROAD_QUANT_WINDOWS,
+    linux: process.env.NEXT_PUBLIC_GUMROAD_QUANT_LINUX,
+    macos: process.env.NEXT_PUBLIC_GUMROAD_QUANT_MACOS,
+    any: process.env.NEXT_PUBLIC_GUMROAD_QUANT,
+  },
+  creative: {
+    windows: process.env.NEXT_PUBLIC_GUMROAD_CREATIVE_WINDOWS,
+    linux: process.env.NEXT_PUBLIC_GUMROAD_CREATIVE_LINUX,
+    macos: process.env.NEXT_PUBLIC_GUMROAD_CREATIVE_MACOS,
+    any: process.env.NEXT_PUBLIC_GUMROAD_CREATIVE,
+  },
+  all: {
+    windows: process.env.NEXT_PUBLIC_GUMROAD_ALL_WINDOWS,
+    linux: process.env.NEXT_PUBLIC_GUMROAD_ALL_LINUX,
+    macos: process.env.NEXT_PUBLIC_GUMROAD_ALL_MACOS,
+    any: process.env.NEXT_PUBLIC_GUMROAD_ALL,
+  },
+}
+const GUMROAD_STORE = process.env.NEXT_PUBLIC_GUMROAD_STORE
+
+/** Best Gumroad product URL for the ticked tracks + the buyer's OS: 1 track → that
+ *  vault, 2+ → all-access. Prefers the OS-specific link, then the track's generic
+ *  link, then all-access, then the store. */
+export function gumroadUrl(selectedTracks: TrackId[], os: OsId = "windows"): string {
   const tier = tierForTracks(selectedTracks)
-  if (tier !== "single") return (GUMROAD.all || GUMROAD.store || "").trim()
-  const t = selectedTracks[0]
-  return ((t && GUMROAD[t]) || GUMROAD.all || GUMROAD.store || "").trim()
+  const key: TrackId | "all" = tier === "single" ? selectedTracks[0] : "all"
+  const e = GUMROAD[key]
+  const all = GUMROAD.all
+  return ((e && (e[os] || e.any)) || all[os] || all.any || GUMROAD_STORE || "").trim()
 }
 
 /** One-time price shown on the Gumroad paywall (uses the 4-week column as anchor). */
