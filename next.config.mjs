@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Ship the gated vault PDFs with the serverless function that reads them — the
+  // file-tracer can't see fs.readFile paths built at runtime, so include them here.
+  outputFileTracingIncludes: {
+    '/api/vault/[file]': ['./content/vault/**/*.pdf'],
+  },
   images: {
     // NOTE: unoptimized was previously true, disabling all image compression and
     // resizing. Re-enabled Next.js image optimization. If any remote image hosts

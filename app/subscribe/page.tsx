@@ -3,28 +3,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, BookOpen, Briefcase, Check, CheckCircle2,
-  Clock, Compass, Eye, Gauge, History, Hourglass, Layers, Loader2, Lock, Mail, Rocket,
+  Clock, Compass, Eye, Gauge, History, Hourglass, Layers, Loader2, Lock, Mail, Monitor, Rocket,
   Sparkles, Target, TrendingUp, User, Wrench, Zap, type LucideIcon,
 } from "lucide-react"
 import { QUIZ, QUIZ_TOTAL } from "@/lib/subscribe/quiz"
 import {
-  BUILD_STEPS, PLANS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, checkoutUrl, planById, type Plan,
+  BUILD_STEPS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, gumroadUrl, gumroadPrice,
 } from "@/lib/subscribe/config"
-import { segment } from "@/lib/subscribe/segment"
-import { MoyasarPayment } from "./MoyasarPayment"
-import { useLanguage } from "@/components/language-provider"
+import { personalize } from "@/lib/subscribe/personalize"
+import { trackById } from "@/lib/subscribe/tracks"
 
 const ICONS: Record<string, LucideIcon> = {
   user: User, zap: Zap, wrench: Wrench, alert: AlertTriangle, layers: Layers, clock: Clock,
   eye: Eye, target: Target, trending: TrendingUp, sparkles: Sparkles, gauge: Gauge,
   compass: Compass, briefcase: Briefcase, book: BookOpen, hourglass: Hourglass, history: History,
-  lock: Lock, rocket: Rocket, id: BadgeCheck, mail: Mail,
+  lock: Lock, rocket: Rocket, id: BadgeCheck, mail: Mail, monitor: Monitor,
 }
 
 const OFFER_KEY = "gnb_vault_offer_expires"
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-type Phase = "intro" | "quiz" | "loading" | "plan" | "pay" | "success" | "payfail"
+type Phase = "intro" | "quiz" | "loading" | "plan"
 
 function useCountdown(expiresAt: number | null) {
   const [remaining, setRemaining] = useState(PROMO_WINDOW_MS)
@@ -46,41 +45,44 @@ function useCountdown(expiresAt: number | null) {
 export default function SubscribePage() {
   const [phase, setPhase] = useState<Phase>("intro")
   const [qIndex, setQIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
+  // Answers are arrays for ALL question types (multi/single/text) — single+text
+  // store a one-element array. Lets multi-select share one state shape.
+  const [answers, setAnswers] = useState<Record<string, string[]>>({})
   const [promo, setPromo] = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState<number | null>(null)
-  const [selected, setSelected] = useState<Plan["id"]>("monthly")
-  const [payResult, setPayResult] = useState<{ status: string; id: string | null; message: string | null } | null>(null)
-  const { setLang, isAr, t: tr, dir } = useLanguage()
+  const [wlEmail, setWlEmail] = useState("")
+  const [waitlisted, setWaitlisted] = useState(false)
   const topRef = useRef<HTMLDivElement>(null)
 
   const { display: countdown, expired } = useCountdown(expiresAt)
-  const name = answers.name ?? ""
-  const email = answers.email ?? ""
+  const single = useCallback((id: string) => answers[id]?.[0] ?? "", [answers])
+  const name = single("name")
+  const email = single("email")
+
+  // Live personalization derived from the answers (tracks, match%). With Gumroad
+  // the variant is no longer used for delivery — it just recommends the product.
+  const person = useMemo(() => personalize(answers), [answers])
+  const selectedTracks = person.selectedTracks
 
   const scrollTop = useCallback(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
 
-  // Moyasar redirects the browser back here after 3-D Secure with
-  // ?id=&status=&message= — read it and show the result, then clean the URL.
-  useEffect(() => {
-    const sp = new URLSearchParams(window.location.search)
-    const status = sp.get("status")
-    if (!status) return
-    setPayResult({ status, id: sp.get("id"), message: sp.get("message") })
-    setPhase(status === "paid" ? "success" : "payfail")
-    window.history.replaceState({}, "", "/subscribe")
-  }, [])
-
-  // Fire-and-forget lead capture (never blocks the funnel).
+  // Fire-and-forget lead capture (never blocks the funnel). Logs to Supabase +
+  // Telegram/email so you still own every signup even though Gumroad takes payment.
   const sendLead = useCallback((plan?: string, code?: string | null) => {
-    if (!answers.name || !EMAIL_RE.test(answers.email ?? "")) return
+    if (!name || !EMAIL_RE.test(email)) return
     const payload = {
-      name: answers.name,
-      email: answers.email,
+      name,
+      email,
       plan,
+      bundle: person.recommendedBundle,
       promo: code ?? promo ?? undefined,
+      tracks: selectedTracks,
+      tool: person.toolVariant,
+      os: person.osVariant,
+      readFactor: person.readFactor,
+      source: "funnel" as const,
       answers,
     }
     fetch("/api/subscribe/lead", {
@@ -89,11 +91,36 @@ export default function SubscribePage() {
       body: JSON.stringify(payload),
       keepalive: true,
     }).catch(() => {})
-  }, [answers, promo])
+  }, [answers, promo, name, email, person, selectedTracks])
+
+  // "Coming soon" waitlist — capture the email so we can notify them when this
+  // vault goes live. Logged to Supabase (+ Telegram/email) via the lead route.
+  const joinWaitlist = useCallback(() => {
+    const e = (wlEmail || email).trim()
+    if (!EMAIL_RE.test(e)) return
+    fetch("/api/subscribe/lead", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({
+        name: name || "Waitlist",
+        email: e,
+        bundle: person.recommendedBundle,
+        promo: promo ?? undefined,
+        tracks: selectedTracks,
+        tool: person.toolVariant,
+        os: person.osVariant,
+        readFactor: person.readFactor,
+        source: "waitlist",
+        answers,
+      }),
+    }).catch(() => {})
+    setWaitlisted(true)
+  }, [wlEmail, email, name, person, promo, selectedTracks, answers])
 
   // Persistent (honest) 10-min offer window — reuse a live one, don't reset it.
   const startBuild = useCallback(() => {
-    const code = buildPromoCode(answers.name ?? "")
+    const code = buildPromoCode(name)
     setPromo(code)
     let exp: number
     try {
@@ -107,12 +134,14 @@ export default function SubscribePage() {
     sendLead(undefined, code)
     setPhase("loading")
     scrollTop()
-  }, [answers, sendLead, scrollTop])
+  }, [name, sendLead, scrollTop])
 
   const q = QUIZ[qIndex]
-  const current = answers[q?.id]
+  const currentVal = single(q?.id ?? "")
+  const currentArr = answers[q?.id ?? ""] ?? []
   const canAdvanceText =
-    q?.type === "text" && (q.field === "email" ? EMAIL_RE.test(current ?? "") : (current ?? "").trim().length > 0)
+    q?.type === "text" && (q.field === "email" ? EMAIL_RE.test(currentVal) : currentVal.trim().length > 0)
+  const canAdvanceMulti = q?.type === "multi" && currentArr.length >= (q.minSelect ?? 1)
 
   const next = useCallback(() => {
     if (qIndex < QUIZ_TOTAL - 1) {
@@ -124,9 +153,18 @@ export default function SubscribePage() {
   }, [qIndex, startBuild, scrollTop])
 
   const pickSingle = useCallback((qid: string, value: string) => {
-    setAnswers((a) => ({ ...a, [qid]: value }))
+    setAnswers((a) => ({ ...a, [qid]: [value] }))
     window.setTimeout(() => next(), 240)
   }, [next])
+
+  const toggleMulti = useCallback((qid: string, value: string, max?: number) => {
+    setAnswers((a) => {
+      const arr = a[qid] ?? []
+      if (arr.includes(value)) return { ...a, [qid]: arr.filter((v) => v !== value) }
+      if (max && arr.length >= max) return a
+      return { ...a, [qid]: [...arr, value] }
+    })
+  }, [])
 
   // Loading beat → reveal plan after the build animation.
   const [buildPct, setBuildPct] = useState(0)
@@ -150,16 +188,22 @@ export default function SubscribePage() {
     return () => clearInterval(id)
   }, [phase, scrollTop])
 
-  const handleGetPlan = useCallback(() => {
-    sendLead(selected, promo) // capture the lead, then hand off to Gumroad checkout (recurrence pre-selected)
-    window.location.href = checkoutUrl(selected)
-  }, [selected, promo, sendLead])
+  // Load Gumroad's overlay script so the buy button opens an in-page checkout modal.
+  useEffect(() => {
+    if (phase !== "plan") return
+    if (document.querySelector("script[data-gumroad]")) return
+    const s = document.createElement("script")
+    s.src = "https://gumroad.com/js/gumroad.js"
+    s.setAttribute("data-gumroad", "1")
+    s.async = true
+    document.body.appendChild(s)
+  }, [phase])
 
   const progressPct = useMemo(() => Math.round((qIndex / QUIZ_TOTAL) * 100), [qIndex])
-
-  // Segment is computed from the visitor's own answers — the paywall now shows a
-  // tool set matched to their niche instead of the same generic list for everyone.
-  const userSegment = useMemo(() => segment(answers), [answers])
+  const tracksLabel = selectedTracks.map((t) => trackById(t).en).join(" + ")
+  const buyUrl = gumroadUrl(selectedTracks, person.osVariant)
+  const price = gumroadPrice(selectedTracks)
+  const vaultName = person.recommendedBundle === "single" ? `${tracksLabel} Vault` : "All-Access Vault"
 
   return (
     <main className="relative min-h-screen bg-zinc-950 text-zinc-100 pb-24">
@@ -172,22 +216,15 @@ export default function SubscribePage() {
       <div ref={topRef} className="relative z-10 mx-auto max-w-lg px-4 pt-10 sm:pt-14">
 
         {/* Brand header */}
-        <div className="mb-6 text-center">
-          {/* Language toggle — always visible, front and center */}
-          <div className="mb-4 flex justify-center">
-            <div className="inline-flex rounded-full border border-zinc-700 bg-zinc-900/70 p-0.5 font-mono text-[11px]" role="group" aria-label="Language">
-              <button type="button" onClick={() => setLang("ar")} className={["rounded-full px-3.5 py-1 transition-colors", isAr ? "bg-emerald-500 font-semibold text-emerald-950" : "text-zinc-400 hover:text-zinc-200"].join(" ")}>العربية</button>
-              <button type="button" onClick={() => setLang("en")} className={["rounded-full px-3.5 py-1 transition-colors", !isAr ? "bg-emerald-500 font-semibold text-emerald-950" : "text-zinc-400 hover:text-zinc-200"].join(" ")}>English</button>
-            </div>
-          </div>
+        <div className="mb-7 text-center">
           <span className="mb-3 inline-block rounded border border-emerald-900 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-emerald-700">
             goodnbad · {PRODUCT.brandEn}
           </span>
-          <h1 className="mb-1 text-2xl font-bold leading-tight text-zinc-100 sm:text-3xl" dir={dir}>
-            {tr(PRODUCT.brandAr, PRODUCT.brandEn)}
+          <h1 className="mb-1 text-2xl font-bold leading-tight text-zinc-100 sm:text-3xl" dir="rtl">
+            {PRODUCT.brandAr}
           </h1>
-          <p className="font-mono text-sm leading-snug text-zinc-500" dir={dir}>
-            {tr("أدوات ذكاء اصطناعي ومستودعات مختارة — حقيبة أسبوعية مبنية حولك.", "Curated AI tools & underground repos — a weekly toolkit, built around you.")}
+          <p className="font-mono text-sm leading-snug text-zinc-500">
+            Curated AI tools & underground repos — a weekly toolkit, built around you.
           </p>
         </div>
 
@@ -196,11 +233,14 @@ export default function SubscribePage() {
           <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5 text-center">
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 backdrop-blur-sm">
               <Rocket className="mx-auto mb-4 h-7 w-7 text-emerald-500" />
-              <h2 className="text-xl font-bold text-zinc-100" dir={dir}>
-                {tr("خلّنا نبني خطتك في دقيقة", "Let's build your plan in a minute")}
+              <h2 className="text-xl font-bold text-zinc-100" dir="rtl">
+                خلّنا نبني خطتك في دقيقة
               </h2>
-              <p className="mt-1.5 text-sm text-zinc-400" dir={dir}>
-                {tr(`${QUIZ_TOTAL} سؤال سريع، وبنطلّع لك خطة أدوات مصمّمة على مقاسك.`, `${QUIZ_TOTAL} quick taps → your personalized AI toolkit plan.`)}
+              <p className="mt-1.5 text-sm text-zinc-400" dir="rtl">
+                {QUIZ_TOTAL} سؤال سريع، وبنطلّع لك خطة أدوات مصمّمة على مقاسك.
+              </p>
+              <p className="mt-2 font-mono text-[11px] text-zinc-600">
+                {QUIZ_TOTAL} quick taps → your personalized AI toolkit plan.
               </p>
             </div>
             <button
@@ -208,10 +248,10 @@ export default function SubscribePage() {
               onClick={() => { setPhase("quiz"); scrollTop() }}
               className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-3.5 font-mono text-sm font-semibold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
             >
-              <span dir={dir}>{tr("ابدأ", "Start")}</span>
+              <span dir="rtl">ابدأ · Start</span>
               <ArrowRight className="h-4 w-4" />
             </button>
-            <p className="font-mono text-[10px] text-zinc-700">{tr("مجاناً · بدون بطاقة لأخذ الاختبار", "free · no card to take the quiz")}</p>
+            <p className="font-mono text-[10px] text-zinc-700">free · no card to take the quiz</p>
           </section>
         )}
 
@@ -225,7 +265,7 @@ export default function SubscribePage() {
               <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-zinc-600">
                 {qIndex > 0 ? (
                   <button type="button" onClick={() => { setQIndex((i) => i - 1); scrollTop() }} className="flex items-center gap-1 hover:text-zinc-400">
-                    <ArrowLeft className="h-3 w-3" /> {tr("رجوع", "back")}
+                    <ArrowLeft className="h-3 w-3" /> back
                   </button>
                 ) : <span />}
                 <span>{qIndex + 1} / {QUIZ_TOTAL}</span>
@@ -233,20 +273,21 @@ export default function SubscribePage() {
             </div>
 
             <div key={q.id} className="animate-[os-panel-in_0.35s_cubic-bezier(0.16,1,0.3,1)_both] rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 backdrop-blur-sm">
-              <div className="mb-4 flex items-start justify-between gap-3" dir={dir}>
+              <div className="mb-4 flex items-start justify-between gap-3" dir="rtl">
                 <div className="flex-1">
-                  <p className="text-base font-semibold text-zinc-100" dir={dir}>{tr(q.ar, q.en)}</p>
-                  {!isAr && "subEn" in q && q.subEn && <p className="mt-1 text-[11px] text-zinc-600" dir="ltr">{q.subEn}</p>}
+                  <p className="text-base font-semibold text-zinc-100">{q.ar}</p>
+                  <p className="mt-1 font-mono text-[11px] text-zinc-500" dir="ltr">{q.en}</p>
+                  {"subEn" in q && q.subEn && <p className="mt-1 text-[11px] text-zinc-600" dir="ltr">{q.subEn}</p>}
                 </div>
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-emerald-900/70 bg-emerald-950/20 text-emerald-500">
                   {(() => { const Icon = ICONS[q.icon] ?? Sparkles; return <Icon className="h-4 w-4" /> })()}
                 </span>
               </div>
 
-              {q.type === "single" ? (
+              {q.type === "single" && (
                 <div className="space-y-2.5">
                   {q.options.map((opt) => {
-                    const isSel = current === opt.value
+                    const isSel = currentVal === opt.value
                     return (
                       <button
                         key={opt.value}
@@ -259,19 +300,63 @@ export default function SubscribePage() {
                             : "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900",
                         ].join(" ")}
                       >
-                        <span dir={dir} className="text-sm font-medium">{tr(opt.ar, opt.en)}</span>
+                        <span className="font-mono text-[11px] text-zinc-500">{opt.en}</span>
+                        <span dir="rtl">{opt.ar}</span>
                       </button>
                     )
                   })}
                 </div>
-              ) : (
+              )}
+
+              {q.type === "multi" && (
+                <div className="space-y-2.5">
+                  {q.options.map((opt) => {
+                    const isSel = currentArr.includes(opt.value)
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        aria-pressed={isSel}
+                        onClick={() => toggleMulti(q.id, opt.value, q.maxSelect)}
+                        className={[
+                          "flex w-full items-center justify-between gap-3 rounded-md border px-4 py-3.5 text-sm font-medium transition-all duration-150",
+                          isSel
+                            ? "border-emerald-600 bg-emerald-950/50 text-emerald-300"
+                            : "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900",
+                        ].join(" ")}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className={[
+                            "grid h-4 w-4 shrink-0 place-items-center rounded border",
+                            isSel ? "border-emerald-500 bg-emerald-500 text-emerald-950" : "border-zinc-600",
+                          ].join(" ")}>
+                            {isSel && <Check className="h-3 w-3" />}
+                          </span>
+                          <span className="font-mono text-[11px] text-zinc-500">{opt.en}</span>
+                        </span>
+                        <span dir="rtl">{opt.ar}</span>
+                      </button>
+                    )
+                  })}
+                  <button
+                    type="button"
+                    onClick={next}
+                    disabled={!canAdvanceMulti}
+                    className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-3 font-mono text-sm font-semibold text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    {qIndex === QUIZ_TOTAL - 1 ? "Build my plan" : "Continue"} <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {q.type === "text" && (
                 <div className="space-y-3">
                   <input
                     type={q.inputType}
                     inputMode={q.inputType === "email" ? "email" : "text"}
                     autoComplete={q.inputType === "email" ? "email" : "given-name"}
-                    value={current ?? ""}
-                    onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                    value={currentVal}
+                    onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: [e.target.value] }))}
                     onKeyDown={(e) => { if (e.key === "Enter" && canAdvanceText) next() }}
                     placeholder={q.placeholder}
                     dir="ltr"
@@ -283,7 +368,7 @@ export default function SubscribePage() {
                     disabled={!canAdvanceText}
                     className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-3 font-mono text-sm font-semibold text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-30"
                   >
-                    {tr(qIndex === QUIZ_TOTAL - 1 ? "ابنِ خطتي" : "متابعة", qIndex === QUIZ_TOTAL - 1 ? "Build my plan" : "Continue")} <ArrowRight className="h-4 w-4" />
+                    {qIndex === QUIZ_TOTAL - 1 ? "Build my plan" : "Continue"} <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               )}
@@ -296,8 +381,9 @@ export default function SubscribePage() {
           <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5 pt-6 text-center">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-emerald-500" />
             <div>
-              <p className="text-lg font-semibold text-zinc-100" dir={dir}>{tr("نبني خطتك…", "Building your plan…")}</p>
-              <p className="mt-1 font-mono text-sm text-emerald-400" dir={dir}>{tr(BUILD_STEPS[buildStep]?.ar ?? "", BUILD_STEPS[buildStep]?.en ?? "")}</p>
+              <p className="text-lg font-semibold text-zinc-100" dir="rtl">نبني خطتك…</p>
+              <p className="mt-1 font-mono text-sm text-emerald-400">{BUILD_STEPS[buildStep]?.en}</p>
+              <p className="mt-0.5 text-xs text-zinc-500" dir="rtl">{BUILD_STEPS[buildStep]?.ar}</p>
             </div>
             <div className="mx-auto h-1 w-56 overflow-hidden rounded-full bg-zinc-800">
               <div className="h-full bg-emerald-500 transition-all duration-100" style={{ width: `${buildPct}%` }} />
@@ -306,56 +392,17 @@ export default function SubscribePage() {
           </section>
         )}
 
-        {/* ── PLAN / PAYWALL ─────────────────────────────────────────────── */}
+        {/* ── PLAN / PAYWALL (Gumroad) ───────────────────────────────────── */}
         {phase === "plan" && promo && (
           <section className="animate-[os-panel-in_0.45s_cubic-bezier(0.16,1,0.3,1)_both] space-y-5">
 
             <div className="text-center">
-              <h2 className="text-xl font-bold leading-tight text-zinc-100 sm:text-2xl" dir={dir}>
-                {tr(PRODUCT.headlineAr, PRODUCT.headlineEn)}
+              <h2 className="text-xl font-bold leading-tight text-zinc-100 sm:text-2xl" dir="rtl">
+                {PRODUCT.headlineAr}
               </h2>
-            </div>
-
-            {/* Personalized segment — matched from the visitor's OWN answers */}
-            <div className="rounded-xl border border-emerald-900/60 bg-zinc-900/40 p-4 backdrop-blur-sm">
-              <p className="text-center text-sm text-zinc-300" dir={dir}>
-                {tr("خزينتك مضبوطة على: ", "Your vault is tuned for: ")}
-                <span className="font-semibold text-emerald-400">{tr(userSegment.label.ar, userSegment.label.en)}</span>
-              </p>
-              <p className="mt-1 text-center text-xs text-zinc-500" dir={dir}>
-                {tr(userSegment.tagline.ar, userSegment.tagline.en)}
-              </p>
-
-              <div className="mt-3.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {userSegment.tools.slice(0, 4).map((tool) => (
-                  <div key={tool.name} className="rounded-lg border border-zinc-800 bg-zinc-950/40 px-3 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                      <span className="font-mono text-xs font-semibold text-zinc-200">{tool.name}</span>
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-zinc-500" dir={dir}>
-                      {tr(tool.blurb.ar, tool.blurb.en)}
-                    </p>
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {tool.platforms.map((p) => (
-                        <span
-                          key={p}
-                          className="rounded border border-zinc-700/60 bg-zinc-800/40 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wide text-zinc-400"
-                        >
-                          {p}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {userSegment.tools.length > 4 && (
-                <p className="mt-2.5 text-center font-mono text-[10px] text-emerald-600/80" dir={dir}>
-                  {tr(
-                    `+${userSegment.tools.length - 4} أدوات أخرى داخل الحقيبة`,
-                    `+${userSegment.tools.length - 4} more tools inside your vault`,
-                  )}
+              {selectedTracks.length > 0 && (
+                <p className="mt-2 font-mono text-[11px] text-emerald-400">
+                  {person.readFactor}% matched · {tracksLabel}
                 </p>
               )}
             </div>
@@ -370,159 +417,100 @@ export default function SubscribePage() {
               <div className={["mt-3 flex items-center justify-center gap-2 font-mono text-sm", expired ? "text-red-400" : "text-yellow-400"].join(" ")}>
                 <Clock className="h-3.5 w-3.5" />
                 {expired
-                  ? <span dir={dir}>{tr("انتهى العرض", "offer expired")}</span>
-                  : <span dir={dir}>{tr("ينتهي خلال ", "expires in ")}<span className="font-bold tabular-nums">{countdown}</span></span>}
+                  ? <span dir="rtl">انتهى العرض · offer expired</span>
+                  : <span>expires in <span className="font-bold tabular-nums">{countdown}</span></span>}
               </div>
             </div>
 
-            {/* Plans (radio-select) */}
-            <div className="space-y-3">
-              {PLANS.map((plan) => {
-                const isSel = selected === plan.id
-                return (
-                  <button
-                    key={plan.id}
-                    type="button"
-                    onClick={() => setSelected(plan.id)}
-                    className={[
-                      "w-full rounded-xl border p-4 text-left transition-all",
-                      isSel ? "border-emerald-500 bg-emerald-950/25 ring-1 ring-emerald-500/40" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700",
-                    ].join(" ")}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <span className={["mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border", isSel ? "border-emerald-500 bg-emerald-500 text-emerald-950" : "border-zinc-600"].join(" ")}>
-                          {isSel && <Check className="h-3 w-3" />}
-                        </span>
-                        <div>
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-200">{tr(plan.ar, plan.en)}</span>
-                            {plan.tag && (
-                              <span className={["rounded px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest", plan.best ? "bg-yellow-500/15 text-yellow-400 border border-yellow-700/40" : "bg-emerald-500/15 text-emerald-400 border border-emerald-700/40"].join(" ")}>
-                                {plan.tag}
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-0.5 text-xs text-zinc-500" dir={dir}>{plan.perDay}</p>
-                          {plan.badge && <p className="mt-1 font-mono text-[10px] text-emerald-500">{plan.badge}</p>}
-                        </div>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <div className="flex items-baseline justify-end gap-1.5">
-                          {plan.original ? <span className="font-mono text-[11px] text-zinc-600 line-through">${plan.original}</span> : null}
-                          <span className={["font-mono text-2xl font-bold", isSel ? "text-emerald-300" : "text-zinc-200"].join(" ")}>${plan.price}</span>
-                          <span className="font-mono text-xs text-zinc-500">{plan.id === "yearly" ? "/yr" : "/mo"}</span>
-                        </div>
-                        <p className="mt-0.5 font-mono text-[10px] text-zinc-600">{plan.perDay}</p>
-                        {plan.usd ? <p className="font-mono text-[9px] text-emerald-500">{plan.usd}</p> : null}
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
+            {/* Recommended vault + price */}
+            <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/20 p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-600">your vault</p>
+                  <p className="mt-1 text-lg font-bold text-zinc-100">{vaultName}</p>
+                  <p className="mt-0.5 text-xs text-zinc-500" dir="rtl">{tracksLabel}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="flex items-baseline justify-end gap-1.5">
+                    {price.original > price.price && (
+                      <span className="font-mono text-[11px] text-zinc-600 line-through">${price.original}</span>
+                    )}
+                    <span className="font-mono text-3xl font-bold text-emerald-300">${price.price}</span>
+                    <span className="font-mono text-xs text-zinc-500">/mo</span>
+                  </div>
+                  <p className="mt-0.5 font-mono text-[10px] text-emerald-600/80">{price.breakdown}</p>
+                  <p className="font-mono text-[10px] text-zinc-700">per month · cancel anytime</p>
+                </div>
+              </div>
             </div>
 
-            {/* Primary CTA */}
-            <button
-              type="button"
-              onClick={handleGetPlan}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-4 font-mono text-sm font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
-            >
-              {tr("احصل على خطتي", "GET MY PLAN")} <ArrowRight className="h-4 w-4" />
-            </button>
+            {/* Primary CTA → Gumroad overlay checkout */}
+            {buyUrl ? (
+              <a
+                href={buyUrl}
+                onClick={() => sendLead("gumroad", promo)}
+                data-gumroad-overlay-checkout="true"
+                className="gumroad-button flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-4 font-mono text-sm font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
+              >
+                GET MY VAULT <ArrowRight className="h-4 w-4" />
+              </a>
+            ) : waitlisted ? (
+              <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/25 p-5 text-center">
+                <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-emerald-500" />
+                <p className="font-mono text-sm font-semibold text-emerald-300">You&apos;re on the list ✓</p>
+                <p className="mt-1 text-xs text-zinc-400">We&apos;ll email you the moment {vaultName} goes live.</p>
+                <p className="mt-1 text-[11px] text-zinc-500" dir="rtl">بنرسل لك أول ما تنزل.</p>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-zinc-700 bg-zinc-900/50 p-5">
+                <p className="text-center font-mono text-[10px] uppercase tracking-widest text-emerald-600">coming soon</p>
+                <p className="mt-1.5 text-center text-sm text-zinc-300">
+                  {vaultName} drops shortly. Leave your email — we&apos;ll send it the second it&apos;s live.
+                </p>
+                <p className="mt-1 text-center text-[11px] text-zinc-500" dir="rtl">اترك إيميلك ونرسلها لك أول ما تنزل.</p>
+                <div className="mt-3 flex gap-2">
+                  <input
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    value={wlEmail || email}
+                    onChange={(e) => setWlEmail(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") joinWaitlist() }}
+                    placeholder="you@email.com"
+                    dir="ltr"
+                    className="min-w-0 flex-1 rounded-md border border-zinc-800 bg-zinc-900/60 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none transition-colors focus:border-emerald-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={joinWaitlist}
+                    disabled={!EMAIL_RE.test((wlEmail || email).trim())}
+                    className="shrink-0 rounded-md bg-emerald-500 px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    Notify me
+                  </button>
+                </div>
+              </div>
+            )}
 
-            <p className="text-center font-mono text-[11px] text-emerald-600/80" dir={dir}>{tr(PRODUCT.socialProofAr, PRODUCT.socialProofEn)}</p>
+            <p className="text-center font-mono text-[11px] text-emerald-600/80" dir="rtl">{PRODUCT.socialProofAr}</p>
 
             {/* What you get */}
             <div className="space-y-2 rounded-xl border border-zinc-800/60 bg-zinc-900/30 px-4 py-4">
-              <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-zinc-600" dir={dir}>{tr("ما تحصل عليه", "what you get")}</p>
+              <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-zinc-600">what you get · ما تحصل عليه</p>
               {PRODUCT.benefits.map((b) => (
                 <div key={b.en} className="flex items-start gap-2">
                   <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
                   <div>
-                    <p className="text-xs text-zinc-300" dir={dir}>{tr(b.ar, b.en)}</p>
+                    <p className="text-xs text-zinc-300" dir="rtl">{b.ar}</p>
+                    <p className="font-mono text-[10px] text-zinc-600">{b.en}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <p className="text-center font-mono text-[10px] text-zinc-700" dir={dir}>
-              {tr("إلغاء في أي وقت · بدون تجديد تلقائي", "cancel anytime · no auto-renewal surprises")}
+            <p className="text-center font-mono text-[10px] text-zinc-700" dir="rtl">
+              وصول فوري · دفع آمن عبر Gumroad · instant access
             </p>
-          </section>
-        )}
-
-        {/* ── PAY (in-page Moyasar card form — no exit before paying) ─────── */}
-        {phase === "pay" && promo && (() => {
-          const sel = planById(selected)
-          return (
-            <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4">
-              <button
-                type="button"
-                onClick={() => { setPhase("plan"); scrollTop() }}
-                className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-zinc-600 hover:text-zinc-400"
-              >
-                <ArrowLeft className="h-3 w-3" /> change plan
-              </button>
-
-              <div className="rounded-xl border border-emerald-800 bg-emerald-950/15 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-mono text-xs font-semibold uppercase tracking-wide text-zinc-200">{sel.en}</p>
-                    <p className="text-xs text-zinc-500" dir="rtl">{sel.ar}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-mono text-2xl font-bold text-emerald-300">{sel.price}</span>
-                    <span className="font-mono text-xs text-zinc-500"> SAR</span>
-                    <p className="font-mono text-[10px] text-zinc-600">{sel.perDay}</p>
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center gap-2 border-t border-emerald-900/40 pt-2.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="font-mono text-[10px] text-emerald-600">promo <span className="text-emerald-400">{promo}</span> applied</span>
-                </div>
-              </div>
-
-              <MoyasarPayment
-                amountSar={sel.price}
-                description={`Toolkit Vault · ${sel.en} · ${promo}`}
-                metadata={{ plan: sel.id, promo: promo ?? "", name, email }}
-              />
-
-              <p className="text-center font-mono text-[10px] text-zinc-700" dir="rtl">
-                دفع آمن · إلغاء في أي وقت · secure payment
-              </p>
-            </section>
-          )
-        })()}
-
-        {/* ── SUCCESS (Moyasar returned paid) ─────────────────────────────── */}
-        {phase === "success" && (
-          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4 pt-8 text-center">
-            <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
-            <h2 className="text-xl font-bold text-zinc-100" dir="rtl">تم الدفع! أهلاً فيك</h2>
-            <p className="text-sm text-zinc-400" dir="rtl">بنرسل لك أول حقيبة أدوات على إيميلك قريب.</p>
-            <p className="font-mono text-xs text-zinc-600">
-              Payment confirmed — your first toolkit is on its way.
-              {payResult?.id ? ` (ref ${payResult.id.slice(0, 12)})` : ""}
-            </p>
-          </section>
-        )}
-
-        {/* ── PAYMENT FAILED ──────────────────────────────────────────────── */}
-        {phase === "payfail" && (
-          <section className="animate-[os-panel-in_0.4s_cubic-bezier(0.16,1,0.3,1)_both] space-y-4 pt-8 text-center">
-            <AlertTriangle className="mx-auto h-10 w-10 text-red-400" />
-            <h2 className="text-xl font-bold text-zinc-100" dir="rtl">ما تم الدفع</h2>
-            <p className="text-sm text-zinc-400" dir="rtl">صار خطأ في الدفع. جرّب مرة ثانية.</p>
-            {payResult?.message && <p className="font-mono text-[11px] text-zinc-600">{payResult.message}</p>}
-            <button
-              type="button"
-              onClick={() => { setPhase("plan"); scrollTop() }}
-              className="mx-auto flex items-center gap-2 rounded-md border border-zinc-700 px-4 py-2.5 font-mono text-xs text-zinc-300 transition-colors hover:border-zinc-500"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> try again
-            </button>
           </section>
         )}
 
