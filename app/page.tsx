@@ -3,13 +3,14 @@
 import { useCallback, useState, useEffect, type ElementType } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { ArrowRight, Terminal, Layers, Radio, Mail, User, ChevronRight, ChevronDown, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun } from "lucide-react"
+import { ArrowRight, Terminal, Layers, Mail, User, ChevronRight, ChevronDown, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun, Lock } from "lucide-react"
 import { OSDesktop, OSTaskbar, AmbientFeed } from "@/components/os"
 import { cn } from "@/lib/utils"
 import type { FeedEntry } from "@/components/os"
 import type { ThreatIoc } from "@/app/api/threats/route"
 import { IocInspector } from "@/components/signal/IocInspector"
 import { MobileSignalOverlay } from "@/components/signal/MobileSignalOverlay"
+import { useLanguage } from "@/components/language-provider"
 
 // Globe — deferred: only loads after initial paint (via requestIdleCallback)
 // and never SSR'd. This keeps the homepage TTI fast; the globe fades in
@@ -39,20 +40,12 @@ const STATIC_ENTRIES: FeedEntry[] = [
 // neutral and only lights emerald on hover. Color means something here:
 // emerald = you, red = threat. Nothing else competes.
 // ---------------------------------------------------------------------------
-const MODULE_ITEMS: { href: string; code: string; label: string; sub: string; Icon: ElementType }[] = [
-  { href: "/personnel",   code: "01", label: "PERSONNEL",   sub: "Dossier · CV · Clearance",     Icon: User     },
-  { href: "/deployments", code: "02", label: "DEPLOYMENTS", sub: "Mission files · Architecture", Icon: Layers   },
-  { href: "/signal",      code: "03", label: "SIGNAL",      sub: "Live activity · Feed",         Icon: Radio    },
-  { href: "/contact",     code: "04", label: "CONTACT",     sub: "Encrypted channel",            Icon: Mail     },
-  { href: "/terminal",    code: "05", label: "TERMINAL",    sub: "Command interface",            Icon: Terminal },
-]
-
-// Hero credential chips
-const HERO_META = [
-  "CEH (pursuing)",
-  "Security+ (pursuing)",
-  "Google Cybersecurity",
-  "BSc CS · Taylor's University",
+const MODULE_ITEMS: { href: string; code: string; label: string; ar: string; sub: string; subAr: string; Icon: ElementType }[] = [
+  { href: "/subscribe",   code: "01", label: "TOOLKIT VAULT", ar: "خزينة الأدوات", sub: "Weekly security + AI tools · Subscribe", subAr: "أدوات الأمن والذكاء الاصطناعي أسبوعياً · اشترك", Icon: Lock },
+  { href: "/personnel",   code: "02", label: "PERSONNEL",   ar: "الملف الشخصي", sub: "Dossier · CV · Clearance",     subAr: "السيرة الذاتية · الملف · التصريح", Icon: User     },
+  { href: "/deployments", code: "03", label: "DEPLOYMENTS", ar: "المشاريع",     sub: "Mission files · Architecture", subAr: "ملفات المهام · البنية",            Icon: Layers   },
+  { href: "/contact",     code: "04", label: "CONTACT",     ar: "تواصل",        sub: "Encrypted channel",            subAr: "قناة مشفّرة",                      Icon: Mail     },
+  { href: "/terminal",    code: "05", label: "TERMINAL",    ar: "الطرفية",      sub: "Command interface",            subAr: "واجهة الأوامر",                    Icon: Terminal },
 ]
 
 // All layer labels (used to seed the default active set)
@@ -283,6 +276,7 @@ function LayerPanel({ activeLayers, onToggle }: LayerPanelProps) {
 // Page
 // ---------------------------------------------------------------------------
 export default function HomePage() {
+  const { t, dir } = useLanguage()
   const [liveEntries,  setLiveEntries]  = useState<FeedEntry[]>([])
   const [recentIocs,   setRecentIocs]   = useState<ThreatIoc[]>([])
   const [hoveredIoc,   setHoveredIoc]   = useState<ThreatIoc | null>(null)
@@ -377,7 +371,7 @@ export default function HomePage() {
       {/* left-anchored hero owns the page (per the homepage concept).        */}
       {/* Renders a lightweight gradient until idle, then fades in the globe. */}
       {/* ------------------------------------------------------------------ */}
-      <div className="fixed inset-0 z-0">
+      <div className="fixed right-0 top-0 bottom-0 z-0 w-full lg:w-1/2 xl:w-[55%]">
         {/* Mobile: skip WebGL entirely — show animated CSS background */}
         {isMobile ? (
           <div
@@ -405,7 +399,7 @@ export default function HomePage() {
               <div className="absolute inset-0 animate-[fadeIn_700ms_ease-out_forwards]" style={{ opacity: 0 }}>
                 <ThreatGlobe
                   interactive={globeInspect}
-                  align="right"
+                  align="center"
                   showWorldLayers
                   activeLayers={activeLayers}
                   nightMode={activeLayers.has("Day / Night")}
@@ -486,11 +480,11 @@ export default function HomePage() {
 
         {/* ── HERO IDENTITY ─────────────────────────────────── */}
         <section className={wrap(globeInspect, globeInspect ? "pt-4 pb-3" : "pt-[9vh] pb-[7vh]")}>
-          <div className="w-full pointer-events-auto">
+          <div className="w-full pointer-events-auto" dir={dir}>
             {/* Kicker */}
             <span className="inline-flex items-center gap-2.5 mb-[30px] rounded-[5px] border border-zinc-800 bg-zinc-900/50 px-3.5 py-[7px] font-mono text-[11px] uppercase tracking-[0.26em] text-zinc-400 backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]" />
-              SUBJECT VERIFIED · RIYADH, SA
+              {t("الهوية موثّقة · الرياض، السعودية", "SUBJECT VERIFIED · RIYADH, SA")}
             </span>
 
             {/* Identity — display scale (sized to fit the left column), restrained
@@ -508,13 +502,18 @@ export default function HomePage() {
               className="mt-[26px] max-w-[48ch] leading-[1.5] text-zinc-300"
               style={{ fontSize: globeInspect ? "1rem" : "clamp(17px, 2vw, 21px)" }}
             >
-              Hamzah Al-Ramli — <span className="font-semibold text-zinc-100">Cybersecurity &amp; Automation Architect.</span>{" "}
-              I build defensive systems, threat tooling, and the automation that runs them.
+              {t("حمزة الرملي — ", "Hamzah Al-Ramli — ")}<span className="font-semibold text-zinc-100">{t("أخصائي أمن سيبراني وأتمتة.", "Cybersecurity & Automation Architect.")}</span>{" "}
+              {t("أبني أنظمة دفاعية وأدوات لرصد التهديدات والأتمتة التي تشغّلها.", "I build defensive systems, threat tooling, and the automation that runs them.")}
             </p>
 
-            {/* Credential chips */}
+            {/* Credential chips — cert names stay English; surrounding labels translate */}
             <div className="mt-[22px] flex flex-wrap gap-2.5 font-mono text-[11px] text-zinc-400">
-              {HERO_META.map((m) => (
+              {[
+                t("CEH (قيد الإنجاز)", "CEH (pursuing)"),
+                t("Security+ (قيد الإنجاز)", "Security+ (pursuing)"),
+                "Google Cybersecurity",
+                t("بكالوريوس علوم حاسب · جامعة تايلورز", "BSc CS · Taylor's University"),
+              ].map((m) => (
                 <span key={m} className="rounded border border-zinc-800 bg-zinc-950/40 px-3 py-2">
                   {m}
                 </span>
@@ -528,13 +527,13 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2.5 rounded-md bg-emerald-500 px-6 py-3.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
               >
                 <Mail className="h-4 w-4" />
-                Open encrypted channel
+                {t("افتح قناة مشفّرة", "Open encrypted channel")}
               </Link>
               <Link
                 href="/personnel"
                 className="inline-flex items-center gap-2.5 rounded-md border border-zinc-800 bg-zinc-950/40 px-6 py-3.5 font-mono text-[13px] font-medium uppercase tracking-[0.1em] text-zinc-300 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-100"
               >
-                View full dossier
+                {t("عرض الملف الكامل", "View full dossier")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -553,20 +552,21 @@ export default function HomePage() {
               <span className="h-px flex-1 bg-zinc-900" />
             </div>
             <div className={cn("grid gap-3", globeInspect ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5")}>
-              {MODULE_ITEMS.map(({ href, code, label, sub, Icon }, i) => (
+              {MODULE_ITEMS.map((item, i) => (
                 <Link
-                  key={href}
-                  href={href}
+                  key={item.href}
+                  href={item.href}
                   style={{ animationDelay: `${i * 60}ms` }}
                   className="group relative overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/55 px-5 py-5 backdrop-blur-md transition-all duration-200 os-panel-in hover:-translate-y-[3px] hover:border-emerald-800/80 hover:bg-zinc-900/90"
+                  dir={dir}
                 >
-                  <span className="font-mono text-[11px] tracking-wider text-zinc-500">{code}</span>
+                  <span className="font-mono text-[11px] tracking-wider text-zinc-500">{item.code}</span>
                   <ChevronRight className="absolute right-4 top-5 h-4 w-4 text-zinc-700 transition-all group-hover:translate-x-0.5 group-hover:text-emerald-400" />
                   <div className="mb-4 mt-4 grid h-10 w-10 place-items-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-400 transition-all group-hover:border-emerald-900 group-hover:text-emerald-400">
-                    <Icon className="h-[19px] w-[19px]" />
+                    <item.Icon className="h-[19px] w-[19px]" />
                   </div>
-                  <div className="font-mono text-sm font-semibold tracking-wide text-zinc-100">{label}</div>
-                  <div className="mt-1.5 font-mono text-[11px] leading-[1.5] text-zinc-500">{sub}</div>
+                  <div className="font-mono text-sm font-semibold tracking-wide text-zinc-100">{t(item.ar, item.label)}</div>
+                  <div className="mt-1.5 font-mono text-[11px] leading-[1.5] text-zinc-500">{t(item.subAr, item.sub)}</div>
                 </Link>
               ))}
             </div>
@@ -594,7 +594,7 @@ export default function HomePage() {
                 />
                 <div className="mt-4 border-t border-zinc-900 pt-3.5">
                   <Link
-                    href="/signal"
+                    href="/news"
                     className="flex items-center gap-1.5 font-mono text-[12px] text-zinc-500 transition-colors hover:text-emerald-500"
                   >
                     <ArrowRight className="h-3 w-3" />

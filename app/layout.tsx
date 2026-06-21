@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { FullscreenButton } from "@/components/fullscreen"
 import { PortfolioAssistant } from "@/components/portfolio-assistant"
 import { AntiInspect } from "@/components/anti-inspect"
+import { LanguageProvider } from "@/components/language-provider"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata } from "next"
@@ -115,7 +116,7 @@ export const metadata: Metadata = {
     'geo.placename': 'Saudi Arabia',
     'geo.position': '24.7136;46.6753',
     'ICBM': '24.7136, 46.6753',
-    'description:ar': 'حمزة الرملي — مهندس أمن سيبراني وأتمتة ذكاء اصطناعي في المملكة العربية السعودية. خبرة في استخبارات التهديدات والأتمتة الأمنية.',
+    'description:ar': 'حمزة الرملي — أخصائي أمن سيبراني وأتمتة ذكاء اصطناعي في المملكة العربية السعودية. خبرة في استخبارات التهديدات والأتمتة الأمنية.',
     'keywords:ar': 'أمن سيبراني السعودية، خبير أمن معلومات، اختبار اختراق، حمزة الرملي'
   }
 }
@@ -191,11 +192,13 @@ export default function RootLayout({
       </head>
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${notoKufiArabic.variable} font-sans pb-24 md:pb-0`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {children}
-          <FullscreenButton />
-          <PortfolioAssistant />
-          {/* Deterrent only — real content protection is the gated PDF route. */}
-          <AntiInspect />
+          <LanguageProvider>
+            {children}
+            <FullscreenButton />
+            <PortfolioAssistant />
+            {/* Deterrent only — real content protection is the gated PDF route. */}
+            <AntiInspect />
+          </LanguageProvider>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

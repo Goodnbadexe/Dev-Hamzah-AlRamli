@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import { OS_APPS } from "./types"
+import { LanguageToggle } from "@/components/language-toggle"
 
 // Home entry + all registered OS apps
 const NAV_ITEMS = [
@@ -130,6 +131,7 @@ export function OSTaskbar({ className }: OSTaskbarProps) {
 
       {/* System status — right side */}
       <div className="ml-auto flex items-center gap-3">
+        <LanguageToggle />
         <span className="hidden sm:flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_theme(colors.emerald.500)] animate-pulse" />
           <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest select-none">
