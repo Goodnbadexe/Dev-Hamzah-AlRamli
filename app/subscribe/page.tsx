@@ -50,6 +50,8 @@ export default function SubscribePage() {
   const [answers, setAnswers] = useState<Record<string, string[]>>({})
   const [promo, setPromo] = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState<number | null>(null)
+  const [wlEmail, setWlEmail] = useState("")
+  const [waitlisted, setWaitlisted] = useState(false)
   const topRef = useRef<HTMLDivElement>(null)
 
   const { display: countdown, expired } = useCountdown(expiresAt)
@@ -90,6 +92,31 @@ export default function SubscribePage() {
       keepalive: true,
     }).catch(() => {})
   }, [answers, promo, name, email, person, selectedTracks])
+
+  // "Coming soon" waitlist — capture the email so we can notify them when this
+  // vault goes live. Logged to Supabase (+ Telegram/email) via the lead route.
+  const joinWaitlist = useCallback(() => {
+    const e = (wlEmail || email).trim()
+    if (!EMAIL_RE.test(e)) return
+    fetch("/api/subscribe/lead", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({
+        name: name || "Waitlist",
+        email: e,
+        bundle: person.recommendedBundle,
+        promo: promo ?? undefined,
+        tracks: selectedTracks,
+        tool: person.toolVariant,
+        os: person.osVariant,
+        readFactor: person.readFactor,
+        source: "waitlist",
+        answers,
+      }),
+    }).catch(() => {})
+    setWaitlisted(true)
+  }, [wlEmail, email, name, person, promo, selectedTracks, answers])
 
   // Persistent (honest) 10-min offer window — reuse a live one, don't reset it.
   const startBuild = useCallback(() => {
@@ -427,9 +454,41 @@ export default function SubscribePage() {
               >
                 GET MY VAULT <ArrowRight className="h-4 w-4" />
               </a>
+            ) : waitlisted ? (
+              <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/25 p-5 text-center">
+                <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-emerald-500" />
+                <p className="font-mono text-sm font-semibold text-emerald-300">You&apos;re on the list ✓</p>
+                <p className="mt-1 text-xs text-zinc-400">We&apos;ll email you the moment {vaultName} goes live.</p>
+                <p className="mt-1 text-[11px] text-zinc-500" dir="rtl">بنرسل لك أول ما تنزل.</p>
+              </div>
             ) : (
-              <div className="rounded-md border border-zinc-700 bg-zinc-900/50 px-4 py-4 text-center">
-                <p className="font-mono text-xs text-zinc-400">Checkout opening soon — leave it with us.</p>
+              <div className="rounded-xl border border-zinc-700 bg-zinc-900/50 p-5">
+                <p className="text-center font-mono text-[10px] uppercase tracking-widest text-emerald-600">coming soon</p>
+                <p className="mt-1.5 text-center text-sm text-zinc-300">
+                  {vaultName} drops shortly. Leave your email — we&apos;ll send it the second it&apos;s live.
+                </p>
+                <p className="mt-1 text-center text-[11px] text-zinc-500" dir="rtl">اترك إيميلك ونرسلها لك أول ما تنزل.</p>
+                <div className="mt-3 flex gap-2">
+                  <input
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    value={wlEmail || email}
+                    onChange={(e) => setWlEmail(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") joinWaitlist() }}
+                    placeholder="you@email.com"
+                    dir="ltr"
+                    className="min-w-0 flex-1 rounded-md border border-zinc-800 bg-zinc-900/60 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none transition-colors focus:border-emerald-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={joinWaitlist}
+                    disabled={!EMAIL_RE.test((wlEmail || email).trim())}
+                    className="shrink-0 rounded-md bg-emerald-500 px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    Notify me
+                  </button>
+                </div>
               </div>
             )}
 

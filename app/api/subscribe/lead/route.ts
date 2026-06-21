@@ -25,7 +25,7 @@ const LeadSchema = z.object({
   tool: z.string().trim().max(20).optional(),
   os: z.string().trim().max(20).optional(),
   readFactor: z.number().int().min(0).max(100).optional(),
-  source: z.enum(["funnel", "promo"]).default("funnel"),
+  source: z.enum(["funnel", "promo", "waitlist"]).default("funnel"),
   // back-compat: accept string OR string[] per answer; normalize to string[] so
   // old clients sending Record<string,string> still validate.
   answers: z
