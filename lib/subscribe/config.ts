@@ -10,7 +10,7 @@
 //          never fakes a charge.
 // === END METADATA ===
 
-import { type TrackId, type OsId, TRACK_IDS } from "./tracks"
+import { type TrackId, type OsId } from "./tracks"
 import { type BundleTier, tierForCount } from "./personalize"
 
 export type Plan = {
@@ -211,35 +211,41 @@ const GUMROAD: Record<TrackId | "all", GumroadEntry> = {
   },
 }
 const GUMROAD_STORE = process.env.NEXT_PUBLIC_GUMROAD_STORE
+// Launch discount code (e.g. "launch50"). Appended to the product URL so the
+// Gumroad overlay auto-applies it — checkout shows the strike-through price.
+const GUMROAD_DISCOUNT = process.env.NEXT_PUBLIC_GUMROAD_DISCOUNT
 
 /** Best Gumroad product URL for the ticked tracks + the buyer's OS: 1 track → that
  *  vault, 2+ → all-access. Prefers the OS-specific link, then the track's generic
- *  link, then all-access, then the store. */
+ *  link, then all-access, then the store. Auto-applies the launch discount code. */
 export function gumroadUrl(selectedTracks: TrackId[], os: OsId = "windows"): string {
   const tier = tierForTracks(selectedTracks)
   const key: TrackId | "all" = tier === "single" ? selectedTracks[0] : "all"
   const e = GUMROAD[key]
   const all = GUMROAD.all
-  return ((e && (e[os] || e.any)) || all[os] || all.any || GUMROAD_STORE || "").trim()
+  const base = ((e && (e[os] || e.any)) || all[os] || all.any || GUMROAD_STORE || "").trim()
+  if (!base) return ""
+  return GUMROAD_DISCOUNT ? `${base.replace(/\/+$/, "")}/${GUMROAD_DISCOUNT}` : base
 }
 
 // Base + per-tool pricing (USD, matches the Gumroad products). One issue = 5 tools
 // → $2 base + $1.20 × 5 = $8. All-access (3+ vaults) is a flat bundle price that
 // undercuts buying every issue separately.
-export const PRICING = { base: 2, perTool: 1.2, toolsPerIssue: 5, perIssue: 8, allAccess: 25 }
+// You pay $8/mo (single) or $25/mo (all-access). The anchor is the Gumroad list
+// price (single $16, all-access $50) so the launch discount reads as a real 50%
+// off — the product is priced at the anchor and the auto-applied code nets the
+// real price. `perIssue`/`allAccess` are the real prices; anchors are the strike.
+export const PRICING = { perIssue: 8, allAccess: 25, anchorSingle: 16, anchorAll: 50 }
 
 export type GumroadPrice = { price: number; original: number; breakdown: string }
 
-/** USD price + honest strike-through + a base/per-tool breakdown line for the paywall. */
+/** Real price + strike-through anchor for the paywall (50% launch discount). */
 export function gumroadPrice(selectedTracks: TrackId[]): GumroadPrice {
   const n = Math.max(1, selectedTracks.length)
-  if (n >= 3) {
-    const original = PRICING.perIssue * TRACK_IDS.length // value of buying all separately
-    return { price: PRICING.allAccess, original, breakdown: `all ${TRACK_IDS.length} vaults · one price` }
+  if (n >= 2) {
+    return { price: PRICING.allAccess, original: PRICING.anchorAll, breakdown: "50% launch discount" }
   }
-  const tools = PRICING.toolsPerIssue * n
-  const price = Math.round(PRICING.base + PRICING.perTool * tools)
-  return { price, original: PRICING.perIssue * n, breakdown: `$${PRICING.base} base + $${PRICING.perTool}/tool × ${tools}` }
+  return { price: PRICING.perIssue, original: PRICING.anchorSingle, breakdown: "50% launch discount" }
 }
 
 export const PRODUCT = {

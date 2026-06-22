@@ -66,25 +66,28 @@ describe("pricing · honest derived math", () => {
   })
 })
 
-describe("pricing · gumroad base + per-tool", () => {
-  it("one issue = $2 base + $1.20 × 5 tools = $8", () => {
-    expect(gumroadPrice(["security"] as TrackId[]).price).toBe(8)
-    expect(gumroadPrice(["security"] as TrackId[]).original).toBe(8)
+describe("pricing · gumroad 50% launch anchor", () => {
+  it("single issue = $8, anchored at $16 (50% off)", () => {
+    const q = gumroadPrice(["security"] as TrackId[])
+    expect(q.price).toBe(PRICING.perIssue) // 8
+    expect(q.original).toBe(PRICING.anchorSingle) // 16
   })
 
-  it("two vaults add per-tool, with an honest strike-through", () => {
+  it("2+ vaults route to all-access = $25, anchored at $50", () => {
     const q = gumroadPrice(["security", "developers"] as TrackId[])
-    expect(q.price).toBe(14) // 2 + 1.2*10
-    expect(q.original).toBe(16) // 2 × $8
-  })
-
-  it("3+ vaults = flat all-access price, undercutting buying separately", () => {
-    const q = gumroadPrice(SDA)
     expect(q.price).toBe(PRICING.allAccess) // 25
-    expect(q.original).toBeGreaterThan(q.price)
+    expect(q.original).toBe(PRICING.anchorAll) // 50
+    expect(gumroadPrice(SDA).price).toBe(PRICING.allAccess)
   })
 
-  it("exposes a breakdown string for the paywall", () => {
-    expect(gumroadPrice(["security"] as TrackId[]).breakdown).toContain("base")
+  it("every anchor is a real strike-through (original > price)", () => {
+    for (const sel of [["security"], ["security", "developers"], SDA]) {
+      const q = gumroadPrice(sel as TrackId[])
+      expect(q.original).toBeGreaterThan(q.price)
+    }
+  })
+
+  it("exposes the launch-discount breakdown line", () => {
+    expect(gumroadPrice(["security"] as TrackId[]).breakdown).toContain("discount")
   })
 })
