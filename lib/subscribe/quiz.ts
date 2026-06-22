@@ -56,7 +56,7 @@ export type QuizQuestion =
     }
 
 export const QUIZ: QuizQuestion[] = [
-  // ── A · Opener / identity (frictionless, builds momentum) ──────────────────
+  // ── 1 · Identity (frictionless opener) ─────────────────────────────────────
   {
     id: "role",
     type: "multi",
@@ -71,19 +71,6 @@ export const QUIZ: QuizQuestion[] = [
       { value: "creator", ar: "صانع محتوى / تسويق", en: "Creator / marketer" },
       { value: "security", ar: "مهتم بالأمن السيبراني", en: "Into cybersecurity" },
       { value: "other", ar: "غير ذلك", en: "Something else" },
-    ],
-  },
-  {
-    id: "ai_freq",
-    type: "single",
-    icon: "zap",
-    ar: "كم تستخدم أدوات الذكاء الاصطناعي حالياً؟",
-    en: "How often do you use AI tools today?",
-    options: [
-      { value: "daily", ar: "كل يوم", en: "Every day" },
-      { value: "weekly", ar: "كم مرة بالأسبوع", en: "A few times a week" },
-      { value: "rarely", ar: "نادراً", en: "Rarely" },
-      { value: "new", ar: "لسّا بادي", en: "Just getting started" },
     ],
   },
   {
@@ -118,50 +105,7 @@ export const QUIZ: QuizQuestion[] = [
     ],
   },
 
-  // ── B · Pain / current state (agitate the gap) ─────────────────────────────
-  {
-    id: "frustration",
-    type: "multi",
-    icon: "alert",
-    ar: "أكثر شي يضايقك حالياً؟ (اختر كل ما ينطبق)",
-    en: "Biggest frustrations right now? (tick all)",
-    minSelect: 1,
-    options: [
-      { value: "repeat", ar: "أعيد شرح نفسي للـ AI كل مرة", en: "Repeating myself to the AI every time" },
-      { value: "messy", ar: "ملفاتي ومساحات عملي مبعثرة", en: "Messy, scattered workspaces" },
-      { value: "tools", ar: "ما أعرف وش أفضل الأدوات", en: "Don't know the best tools" },
-      { value: "slow", ar: "النتائج بطيئة", en: "Results come too slow" },
-      { value: "lost", ar: "ما أعرف وش الممكن أصلاً", en: "Not sure what's even possible" },
-    ],
-  },
-  {
-    id: "time_lost",
-    type: "single",
-    icon: "clock",
-    ar: "كم ساعة بالأسبوع تضيع في شغل ممكن الـ AI يسوّيه؟",
-    en: "Hours/week lost to busywork AI could handle?",
-    options: [
-      { value: "1-3", ar: "١-٣ ساعات", en: "1–3 hours" },
-      { value: "4-7", ar: "٤-٧ ساعات", en: "4–7 hours" },
-      { value: "8-15", ar: "٨-١٥ ساعة", en: "8–15 hours" },
-      { value: "15+", ar: "أكثر من ١٥ ساعة", en: "15+ hours" },
-    ],
-  },
-  {
-    id: "missing_out",
-    type: "single",
-    icon: "eye",
-    ar: "تحس إن فيه أدوات يستخدمها غيرك وأنت فايتك؟",
-    en: "Feel others use tools that put you behind?",
-    options: [
-      { value: "yes", ar: "أكيد", en: "Definitely" },
-      { value: "probably", ar: "على الأغلب", en: "Probably" },
-      { value: "maybe", ar: "يمكن", en: "Maybe" },
-      { value: "no", ar: "لا", en: "Not really" },
-    ],
-  },
-
-  // ── C · Desire / goals (paint the outcome) ─────────────────────────────────
+  // ── 2 · Desire + focus (drives match% and the recommendation) ──────────────
   {
     id: "goals",
     type: "multi",
@@ -175,61 +119,6 @@ export const QUIZ: QuizQuestion[] = [
       { value: "master", ar: "أتقن workflow الـ AI", en: "Master AI workflows" },
       { value: "automate", ar: "أتمتة شغلي", en: "Automate my work" },
       { value: "career", ar: "وظيفة / فرصة أفضل", en: "A better role" },
-    ],
-  },
-  {
-    id: "outcome",
-    type: "multi",
-    icon: "sparkles",
-    ar: "لو صار شغلك نخبوي، وش يتغيّر؟ (اختر كل ما ينطبق)",
-    en: "If your workflow went elite, what changes? (tick all)",
-    minSelect: 1,
-    options: [
-      { value: "money", ar: "فلوس أكثر", en: "More money" },
-      { value: "time", ar: "وقت فراغ أكثر", en: "More free time" },
-      { value: "output", ar: "إنتاجية أعلى", en: "More output" },
-      { value: "stress", ar: "توتر أقل", en: "Less stress" },
-      { value: "standout", ar: "أتميّز عن الكل", en: "I stand out" },
-    ],
-  },
-  {
-    id: "income_goal",
-    type: "single",
-    icon: "trending",
-    ar: "كم تتمنى تكسب من مهاراتك أو مشاريعك الجانبية؟",
-    en: "Income goal from your skills / side projects?",
-    options: [
-      { value: "1-2k", ar: "١-٢ ألف ريال شهرياً", en: "An extra 1–2k SAR/mo" },
-      { value: "3-5k", ar: "٣-٥ آلاف شهرياً", en: "3–5k SAR/mo" },
-      { value: "6-10k", ar: "٦-١٠ آلاف شهرياً", en: "6–10k SAR/mo" },
-      { value: "10k+", ar: "+١٠ آلاف / أستقل بشغلي", en: "10k+ / replace my job" },
-    ],
-  },
-  {
-    id: "timeline",
-    type: "single",
-    icon: "clock",
-    ar: "متى تبي تشوف نتيجة؟",
-    en: "How soon do you want results?",
-    options: [
-      { value: "week", ar: "هذا الأسبوع", en: "This week" },
-      { value: "month", ar: "هذا الشهر", en: "This month" },
-      { value: "quarter", ar: "خلال ٣ أشهر", en: "Within 3 months" },
-      { value: "explore", ar: "بس أستكشف", en: "Just exploring" },
-    ],
-  },
-
-  // ── D · Qualify / personalize (so the plan feels tailored) ─────────────────
-  {
-    id: "level",
-    type: "single",
-    icon: "gauge",
-    ar: "مستواك مع هالأدوات؟",
-    en: "Your level with these tools?",
-    options: [
-      { value: "beginner", ar: "مبتدئ", en: "Beginner" },
-      { value: "intermediate", ar: "متوسط", en: "Intermediate" },
-      { value: "advanced", ar: "متقدّم", en: "Advanced" },
     ],
   },
   {
@@ -247,36 +136,8 @@ export const QUIZ: QuizQuestion[] = [
       { value: "business", ar: "ريادة / أعمال", en: "Business / startup" },
     ],
   },
-  {
-    id: "apply",
-    type: "multi",
-    icon: "briefcase",
-    ar: "وين تبي تطبّق هذا؟ (اختر كل ما ينطبق)",
-    en: "Where will you apply this? (tick all)",
-    minSelect: 1,
-    options: [
-      { value: "work", ar: "في شغلي", en: "At work" },
-      { value: "side", ar: "مشروع جانبي", en: "A side business" },
-      { value: "personal", ar: "مشاريع شخصية", en: "Personal projects" },
-      { value: "study", ar: "دراستي", en: "My studies" },
-    ],
-  },
-  {
-    id: "learn_style",
-    type: "multi",
-    icon: "book",
-    ar: "كيف تحب تتعلّم؟ (اختر كل ما ينطبق)",
-    en: "How do you like to level up? (tick all)",
-    minSelect: 1,
-    options: [
-      { value: "kits", ar: "أدوات جاهزة أنسخها مباشرة", en: "Ready-to-use kits" },
-      { value: "steps", ar: "خطوة بخطوة", en: "Step-by-step guides" },
-      { value: "tools", ar: "بس أعطني الأدوات", en: "Just hand me the tools" },
-      { value: "examples", ar: "أمثلة أقدر أقلّدها", en: "Examples I can copy" },
-    ],
-  },
 
-  // ── E · Pick your tracks (THIS drives the bundle price) ─────────────────────
+  // ── 3 · Pick your tracks (THIS drives the bundle price) ─────────────────────
   {
     // values MUST equal TrackId. Number of ticks → bundle tier (1=single, 2=duo,
     // 3–4=all). This is both the personalization signal AND the product selection.
@@ -289,56 +150,16 @@ export const QUIZ: QuizQuestion[] = [
     minSelect: 1,
     maxSelect: TRACK_IDS.length,
     options: [
-      { value: "security", ar: "الأمن — أسبوع ١", en: "Security — Week 1" },
-      { value: "developers", ar: "المطوّرين والأدوات — أسبوع ٢", en: "Developers & Tools — Week 2" },
-      { value: "agents", ar: "الوكلاء — أسبوع ٣", en: "Agents — Week 3" },
-      { value: "automation", ar: "الأتمتة — أسبوع ٤", en: "Automation — Week 4" },
-      { value: "quant", ar: "التداول الكمّي — أسبوع ٥", en: "Quant & Trading — Week 5" },
-      { value: "creative", ar: "ابنِ في المتصفح — أسبوع ٦", en: "Build in the Browser — Week 6" },
+      { value: "security", ar: "الأمن", en: "Security" },
+      { value: "developers", ar: "المطوّرين والأدوات", en: "Developers & Tools" },
+      { value: "agents", ar: "الوكلاء", en: "Agents" },
+      { value: "automation", ar: "الأتمتة", en: "Automation" },
+      { value: "quant", ar: "التداول الكمّي", en: "Quant & Trading" },
+      { value: "creative", ar: "ابنِ في المتصفح", en: "Build in the Browser" },
     ],
   },
 
-  // ── F · Micro-commitments + investment (sunk-cost, then close) ──────────────
-  {
-    id: "invest_time",
-    type: "single",
-    icon: "hourglass",
-    ar: "كم وقت تقدر تعطي بالأسبوع؟",
-    en: "How much time/week can you put in?",
-    options: [
-      { value: "15m", ar: "١٥ دقيقة", en: "15 minutes" },
-      { value: "30m", ar: "٣٠ دقيقة", en: "30 minutes" },
-      { value: "1h", ar: "ساعة", en: "1 hour" },
-      { value: "2h+", ar: "ساعتين أو أكثر", en: "2+ hours" },
-    ],
-  },
-  {
-    id: "blocker",
-    type: "multi",
-    icon: "lock",
-    ar: "وش اللي وقفك لين الحين؟ (اختر كل ما ينطبق)",
-    en: "What's held you back so far? (tick all)",
-    minSelect: 1,
-    options: [
-      { value: "start", ar: "ما أعرف من وين أبدأ", en: "Don't know where to start" },
-      { value: "options", ar: "خيارات كثيرة ومشتتة", en: "Too many options" },
-      { value: "time", ar: "ما عندي وقت أبحث", en: "No time to research" },
-      { value: "cost", ar: "التكلفة", en: "Cost" },
-    ],
-  },
-  {
-    id: "ready",
-    type: "single",
-    icon: "rocket",
-    ar: "جاهز لخطة مبنية على إجاباتك أنت؟",
-    en: "Ready for a plan built around YOUR answers?",
-    options: [
-      { value: "yes", ar: "إي، وريني", en: "Yes — show me" },
-      { value: "think", ar: "أعتقد", en: "I think so" },
-    ],
-  },
-
-  // ── Capture (personalize the plan + reach them) ────────────────────────────
+  // ── 4 · Capture (personalize the plan + reach them) ────────────────────────
   {
     id: "name",
     type: "text",

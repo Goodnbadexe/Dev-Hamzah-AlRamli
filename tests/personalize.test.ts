@@ -53,21 +53,19 @@ describe("personalize · readFactor (deterministic)", () => {
     expect(computeReadFactor({}, [])).toBe(40)
   })
 
-  it("awards full marks for a maximally-aligned advanced/urgent profile", () => {
+  it("awards full marks for a maximally-aligned, high-intent profile", () => {
     const a: Answers = {
-      tracks: ["security", "developers", "automation"],
-      niche: ["security", "dev", "automation"], // 3 matches → capped at 20
-      level: ["advanced"], // +12
-      goals: ["income", "ship", "master", "automate"], // density…
-      frustration: ["repeat", "messy", "tools", "slow"], // …8 ticks → capped +16
-      timeline: ["week"], // +12
+      tracks: ["security", "developers", "automation", "creative"], // engage 4×4 → capped 16
+      niche: ["security", "dev", "automation", "content"], // 4 matches → capped 20
+      role: ["student", "dev", "founder", "creator"], // density…
+      goals: ["income", "ship", "master", "automate"], // role+goals+niche = 12 ticks → capped 24
     }
-    // 40 + 20 + 12 + 16 + 12 = 100
+    // 40 + 20 + 24 + 16 = 100
     expect(computeReadFactor(a, personalize(a).selectedTracks)).toBe(100)
   })
 
   it("is stable across repeated calls (no randomness)", () => {
-    const a: Answers = { tracks: ["security"], niche: ["security"], level: ["beginner"], timeline: ["month"] }
+    const a: Answers = { tracks: ["security"], niche: ["security"], role: ["dev"], goals: ["ship"] }
     const tracks = personalize(a).selectedTracks
     expect(computeReadFactor(a, tracks)).toBe(computeReadFactor(a, tracks))
   })

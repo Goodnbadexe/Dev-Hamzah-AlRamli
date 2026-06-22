@@ -9,6 +9,7 @@
 // === END METADATA ===
 import { NextResponse } from "next/server"
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/server"
+import { sendEmail, isEmailConfigured } from "@/lib/email/resend"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -65,6 +66,26 @@ export async function POST(req: Request) {
     }
   } catch (e) {
     console.error("[gumroad ping] failed:", e)
+  }
+
+  // 4) Welcome the buyer on their FIRST charge (not renewals). Never throw.
+  if (!sale.is_recurring_charge && isEmailConfigured()) {
+    try {
+      const product = sale.product_name ?? "your Toolkit Vault"
+      await sendEmail({
+        to: email,
+        subject: "Welcome to The Toolkit Vault 🗝️",
+        replyTo: process.env.LEAD_TO,
+        html: `<div style="font:15px/1.6 ui-sans-serif,system-ui;color:#18181b;max-width:520px">
+          <p>You're in — thanks for grabbing <b>${product.replace(/[<>]/g, "")}</b>.</p>
+          <p><b>Week 1</b> is on your Gumroad receipt (and in your Gumroad library). Over the next month, <b>Weeks 2–4</b> land in your inbox automatically — one short, designed PDF each week, tuned for your setup.</p>
+          <p style="direction:rtl">وصلك العدد الأول مع إيصال Gumroad. الأسابيع ٢–٤ بتوصلك تلقائيًا خلال الشهر — ملف PDF واحد كل أسبوع.</p>
+          <p style="color:#71717a;font-size:13px">The Toolkit Vault · goodnbad.info</p>
+        </div>`,
+      })
+    } catch (e) {
+      console.error("[gumroad ping] welcome email failed:", e)
+    }
   }
 
   return NextResponse.json({ ok: true })

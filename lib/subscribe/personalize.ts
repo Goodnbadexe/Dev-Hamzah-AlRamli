@@ -1,5 +1,5 @@
 // === METADATA ===
-// Purpose: Pure personalization engine. Turns the 21 quiz answers into a concrete
+// Purpose: Pure personalization engine. Turns the 8 quiz answers into a concrete
 //          curation: which tracks the member gets, which tuned PDF variant
 //          ({tool,os}) they receive, a deterministic "read factor" match score,
 //          and the recommended bundle tier (which also sets the price).
@@ -36,19 +36,23 @@ export interface Personalization {
 }
 
 // ── Read-factor weights (sum of maxima = 100) ──────────────────────────────────
+// Re-based on the trimmed 8-question quiz: only role / goals / niche / tracks
+// remain, so the score is built from niche↔track fit, how much the person told us
+// (signal density), and how many vaults they committed to (engagement).
 const READ_BASE = 40
 const ALIGN_PER_MATCH = 7
 const ALIGN_MAX = 20
-const LEVEL_SCORE: Record<string, number> = { advanced: 12, intermediate: 8, beginner: 4 }
 const DENSITY_PER_TICK = 2
-const DENSITY_MAX = 16
-const URGENCY_SCORE: Record<string, number> = { week: 12, month: 8, quarter: 4, explore: 0 }
+const DENSITY_MAX = 24
+const ENGAGE_PER_TRACK = 4
+const ENGAGE_MAX = 16
 
 /** Niche vocabulary → track vocabulary (the only translation point in the system). */
 const NICHE_TRACK: Record<string, TrackId> = {
   security: "security",
   dev: "developers",
   automation: "automation",
+  content: "creative",
 }
 
 const READ_ELITE_MIN = 80
@@ -80,11 +84,11 @@ export function readLabelFor(score: number): ReadLabel {
   return "starter"
 }
 
-/** Deterministic 0–100 match score from niche↔track fit, level, signal density, urgency. */
+/** Deterministic 0–100 match score from niche↔track fit, signal density, engagement. */
 export function computeReadFactor(answers: Answers, selectedTracks: TrackId[]): number {
   let score = READ_BASE
 
-  // niche ↔ selected-track alignment
+  // niche ↔ selected-track alignment (max 20)
   const trackSet = new Set(selectedTracks)
   let matches = 0
   for (const niche of list(answers, "niche")) {
@@ -93,15 +97,13 @@ export function computeReadFactor(answers: Answers, selectedTracks: TrackId[]): 
   }
   score += Math.min(matches * ALIGN_PER_MATCH, ALIGN_MAX)
 
-  // level / engagement intensity
-  score += LEVEL_SCORE[first(answers, "level") ?? ""] ?? 0
-
-  // signal density — the more they tell us, the more surface we can match
-  const density = list(answers, "goals").length + list(answers, "frustration").length
+  // signal density — the more they tell us (role + goals + niche), the better we match (max 24)
+  const density =
+    list(answers, "role").length + list(answers, "goals").length + list(answers, "niche").length
   score += Math.min(density * DENSITY_PER_TICK, DENSITY_MAX)
 
-  // urgency
-  score += URGENCY_SCORE[first(answers, "timeline") ?? ""] ?? 0
+  // engagement — committing to more vaults reads as higher intent (max 16)
+  score += Math.min(selectedTracks.length * ENGAGE_PER_TRACK, ENGAGE_MAX)
 
   return clamp(Math.round(score), 0, 100)
 }

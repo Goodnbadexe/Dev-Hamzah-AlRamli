@@ -438,8 +438,8 @@ export default function SubscribePage() {
                     <span className="font-mono text-3xl font-bold text-emerald-300">${price.price}</span>
                     <span className="font-mono text-xs text-zinc-500">/mo</span>
                   </div>
-                  <p className="mt-0.5 font-mono text-[10px] text-emerald-600/80">{price.breakdown}</p>
-                  <p className="font-mono text-[10px] text-zinc-700">per month · cancel anytime</p>
+                  <p className="mt-0.5 font-mono text-[10px] text-emerald-400/90">≈ ${(price.price / 30).toFixed(2)}/day · {price.breakdown}</p>
+                  <p className="font-mono text-[10px] text-zinc-700">billed monthly · cancel anytime</p>
                 </div>
               </div>
             </div>

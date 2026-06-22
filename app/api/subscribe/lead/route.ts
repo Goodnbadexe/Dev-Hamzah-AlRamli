@@ -11,6 +11,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/server"
+import { sendEmail, isEmailConfigured } from "@/lib/email/resend"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -83,28 +84,38 @@ async function notifyTelegram(text: string): Promise<boolean> {
   }
 }
 
-async function notifyEmail(text: string): Promise<boolean> {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, LEAD_TO } = process.env
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !LEAD_TO) return false
-  try {
-    const nodemailer = (await import("nodemailer")).default
-    const port = Number(SMTP_PORT || 587)
-    const transport = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port,
-      secure: port === 465,
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
-    })
-    await transport.sendMail({
-      from: `Repo Vault <${SMTP_USER}>`,
-      to: LEAD_TO,
-      subject: "New Repo Vault lead",
-      text,
-    })
-    return true
-  } catch {
-    return false
-  }
+// Notify the owner (Hamzah) that a new lead came in. Uses Resend; LEAD_TO is the
+// inbox. Returns false (logged inside sendEmail) when email isn't configured.
+async function notifyOwner(text: string): Promise<boolean> {
+  const to = process.env.LEAD_TO
+  if (!to || !isEmailConfigured()) return false
+  const { ok } = await sendEmail({
+    to,
+    subject: "🟢 New Toolkit Vault lead",
+    html: `<pre style="font:14px/1.5 ui-monospace,monospace">${escapeHtml(text)}</pre>`,
+    text,
+  })
+  return ok
+}
+
+// Confirm to the LEAD that we got them — keeps the funnel feeling alive. Bilingual.
+async function confirmToLead(lead: z.infer<typeof LeadSchema>): Promise<boolean> {
+  if (!isEmailConfigured()) return false
+  const vault = lead.tracks?.length ? lead.tracks.join(" + ") : "your toolkit"
+  const html = `<div style="font:15px/1.6 ui-sans-serif,system-ui;color:#18181b;max-width:520px">
+    <p>Hi ${escapeHtml(lead.name)},</p>
+    <p>You're on the list for <b>${escapeHtml(vault)}</b>. Each week you'll get one short, designed PDF — 5 real open-source tools, each with a paste-ready AI prompt tuned for your setup.</p>
+    <p>I'll email you the moment your first issue is ready. No noise, cancel anytime.</p>
+    <p style="direction:rtl">سجّلناك في <b>${escapeHtml(vault)}</b> — كل أسبوع ملف PDF واحد مختصر: ٥ أدوات مفتوحة المصدر، كل وحدة معها برومبت جاهز. بنرسل لك أول عدد أول ما يجهز.</p>
+    <p style="color:#71717a;font-size:13px">The Toolkit Vault · goodnbad.info</p>
+  </div>`
+  const { ok } = await sendEmail({
+    to: lead.email,
+    subject: "You're in — The Toolkit Vault",
+    html,
+    replyTo: process.env.LEAD_TO,
+  })
+  return ok
 }
 
 export async function POST(req: Request) {
@@ -121,7 +132,11 @@ export async function POST(req: Request) {
   }
 
   const text = formatLead(parsed.data)
-  const [tg, mail] = await Promise.all([notifyTelegram(text), notifyEmail(text)])
+  const [tg, mail, confirm] = await Promise.all([
+    notifyTelegram(text),
+    notifyOwner(text),
+    confirmToLead(parsed.data),
+  ])
 
   // Additive: persist every signup to Supabase. Wrapped so an outage or missing
   // config never breaks the funnel — Telegram/SMTP delivery is unaffected.
@@ -154,5 +169,8 @@ export async function POST(req: Request) {
     console.log("[subscribe lead] (no channel configured)\n" + text)
   }
 
-  return NextResponse.json({ ok: true, delivered: { telegram: tg, email: mail, supabase: stored } })
+  return NextResponse.json({
+    ok: true,
+    delivered: { telegram: tg, ownerEmail: mail, leadConfirm: confirm, supabase: stored },
+  })
 }
