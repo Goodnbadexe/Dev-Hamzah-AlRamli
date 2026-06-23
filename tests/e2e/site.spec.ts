@@ -30,7 +30,7 @@ test.describe('Core pages', () => {
     { path: '/',           title: /Hamzah|Goodnbad/i },
     { path: '/personnel',  title: /Personnel|Hamzah/i },
     { path: '/services',   title: /Services/i },
-    { path: '/news',       title: /News|Intelligence/i },
+    { path: '/signal',     title: /Signal|Intelligence/i },
     { path: '/signal',     title: /Signal/i },
     { path: '/deployments',title: /Deployments/i },
     { path: '/contact',    title: /Contact/i },
@@ -106,7 +106,7 @@ test.describe('API routes', () => {
       expect(text).toContain('<urlset')
       expect(text).toContain('/personnel')
       expect(text).toContain('/services')
-      expect(text).toContain('/news')
+      expect(text).toContain('/signal')
       expect(text).toContain('/horus')
     }
   })
@@ -185,10 +185,10 @@ test.describe('Mobile (iPhone 14)', () => {
     await expect(taskbar).toBeVisible()
   })
 
-  test('/news page loads on mobile without WebGL crash', async ({ page }) => {
+  test('/signal page loads on mobile without WebGL crash', async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', (e) => errors.push(e.message))
-    await gotoSafe(page, '/news', { waitUntil: 'networkidle' })
+    await gotoSafe(page, '/signal', { waitUntil: 'networkidle' })
     const fatalErrors = errors.filter((e) =>
       e.toLowerCase().includes('webgl') || e.toLowerCase().includes('three') || e.toLowerCase().includes('canvas')
     )

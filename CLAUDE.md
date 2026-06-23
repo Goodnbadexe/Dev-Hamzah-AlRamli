@@ -74,6 +74,46 @@ Before implementing anything — UI, agents, skills, plugins, automation — sca
 - `claude-obsidian` — Obsidian integration for Claude
 - `laravel-hackathon-starter` — Laravel starter kit
 
+## ⚡ SOUL BOND — Always-On Agents & Skills
+
+This is a standing mandate. Every session, every task, no exceptions.
+
+### Skills (always invoke before UI work)
+- **`frontend-design`** — distinctive, production-grade UI. No generic AI slop.
+- **`ui-ux-pro-max`** — design system, color, typography, animation intelligence.
+
+### Agents (always dispatch at Opus 4.8 for non-trivial tasks)
+- **`everything-claude-code:frontend-design`** — frontend architecture decisions
+- **`compound-engineering:ce-frontend-design`** — frontend design execution
+- **`everything-claude-code:code-reviewer`** — after every code change
+- **`everything-claude-code:security-reviewer`** — before any commit touching auth/API
+
+### Soul Bond Rules
+1. **UI task?** → Invoke `frontend-design` + `ui-ux-pro-max` skills FIRST, then code.
+2. **New component?** → Dispatch `ce-frontend-design` agent (model: opus).
+3. **Code written?** → Dispatch `code-reviewer` agent immediately after.
+4. **Never switch to plan mode** to activate these — they are always on.
+5. **Model assignment:** I (4.6 Sonnet) orchestrate; Opus 4.8 agents execute complex implementations.
+
+### eDEX-UI Design Bible (standing reference)
+The eDEX-UI animation system is the canonical inspiration for this site. Key patterns:
+- **RGB triplet theming:** `--accent: 170 207 209` (r g b separated, not hex) — enables `bg-accent/30`
+- **Panel grammar:** `augmented-ui` notched borders + bracket-tick headers + skewed parallelogram tabs
+- **Background:** CSS gradient grid (`2.04vh` cells) + scanline overlay + radial vignette
+- **Boot sequence:** accelerating log (500ms→30ms→25ms per line) → fill→outline→glitch→settle (2.6s total)
+- **Fonts:** `Fira Code` (mono/data) + `Saira Condensed` (UI display) — already loaded via next/font
+- **Telemetry:** `smoothie` lib, 30 FPS, simulated data labeled as classified intel
+- **Glitch headline:** CSS `::before`/`::after` RGB split, `50ms alternate-reverse`, toggled by `.glitch` class
+- **Hierarchy:** ONE accent color, dim secondaries with `opacity-50` — no second text color
+
+### Implementation Priority (standing order)
+1. `components/os/SysMonitor.tsx` — CPU/RAM/net sparklines (smoothie, simulated data)
+2. `components/os/NetActivity.tsx` — connection table with traffic animation
+3. `app/globals.css` + `styles/tokens.css` — RGB triplet theming, CRT post-FX utilities
+4. Legacy pages `/news /memory /security /cybersecurity-ai` → wrap in `<OSPageShell>`
+5. `components/os/OSWindow.tsx` — add drag/resize/z-order (window manager)
+6. `lib/terminal/audio.ts` — port Web Audio from `app/threats/page.tsx`
+
 ## Development rules
 - No section is locked. Rebuild weak sections completely.
 - Preserve brand direction (cybersecurity, hacker aesthetic, dark theme), not implementation.

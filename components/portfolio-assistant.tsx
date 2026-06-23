@@ -14,12 +14,16 @@ import { useEffect, useRef, useState, useCallback, Fragment } from "react"
 import { MessageSquare, X, Send, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { answerFor, GREETING, type FaqReply } from "@/lib/assistant/faq"
+import { checkAssistantGate } from "@/lib/assistant-gate"
 
 interface ChatMessage {
   role: "user" | "assistant"
   text: string
   suggestions?: string[]
 }
+
+// Quick-reply chips shown after a gated (instant) identity answer.
+const DEFAULT_GATE_SUGGESTIONS = ["His certifications", "His projects", "How to contact him"]
 
 // ---------------------------------------------------------------------------
 // Lightweight, safe linkifier — turns internal routes, emails, and known
@@ -86,6 +90,15 @@ export function PortfolioAssistant() {
     if (!text || typing) return
     setInput("")
     setMessages((prev) => [...prev, { role: "user", text }])
+
+    // Fast logic gate: common identity questions get an instant, pre-built
+    // answer — no matcher scan and no "thinking" delay.
+    const gated = checkAssistantGate(text)
+    if (gated) {
+      setMessages((prev) => [...prev, { role: "assistant", text: gated, suggestions: DEFAULT_GATE_SUGGESTIONS }])
+      return
+    }
+
     setTyping(true)
 
     const reply: FaqReply = answerFor(text)

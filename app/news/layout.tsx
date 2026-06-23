@@ -1,18 +1,15 @@
 import type { Metadata } from "next"
 
+// /news is retired and redirects to /signal. Canonicalize to /signal so search
+// engines consolidate any legacy /news links onto the live feed.
 export const metadata: Metadata = {
-  title: "Security News | Hamzah Al-Ramli",
+  title: "Threat Intel | Hamzah Al-Ramli",
   description:
-    "Latest CISA Known Exploited Vulnerabilities and cybersecurity news curated for security professionals.",
+    "Live CISA Known Exploited Vulnerabilities and cybersecurity intelligence — now at /signal.",
   alternates: {
-    canonical: "https://www.goodnbad.info/news",
+    canonical: "https://www.goodnbad.info/signal",
   },
-  openGraph: {
-    title: "Security News | Goodnbad.exe",
-    description:
-      "Latest CISA Known Exploited Vulnerabilities and cybersecurity news curated for security professionals.",
-    url: "https://www.goodnbad.info/news",
-  },
+  robots: { index: false, follow: true },
 }
 
 export default function NewsLayout({ children }: { children: React.ReactNode }) {

@@ -1,4 +1,5 @@
 export { OSWindow }                                  from "./OSWindow"
+export { SysMonitor }                                from "./SysMonitor"
 export { OSTaskbar }                                 from "./OSTaskbar"
 export { BootSequence }                              from "./BootSequence"
 export { BootLog }                                   from "./BootLog"

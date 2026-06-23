@@ -274,10 +274,15 @@ export default function SecurityPage() {
             </div>
           </div>
 
-          {/* globe */}
+          {/* globe — mirrored in Arabic so rotation/interaction reads right-to-left */}
           <div className="relative">
-            <ThreatGlobe height={380} />
-            {/* bottom fade */}
+            <div
+              className="relative"
+              style={lang === 'ar' ? { transform: 'scaleX(-1)' } : undefined}
+            >
+              <ThreatGlobe height={380} />
+            </div>
+            {/* bottom fade — sits above the mirrored globe, never flipped */}
             <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-zinc-950/80 to-transparent pointer-events-none" />
           </div>
 

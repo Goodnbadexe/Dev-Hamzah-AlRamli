@@ -12,7 +12,6 @@ export type OSAppId =
   | 'contact'
   | 'terminal'
   | 'services'
-  | 'news'
   | 'security'
 
 export type AestheticZone =
@@ -92,22 +91,13 @@ export const OS_APPS: OSApp[] = [
     code:   '06',
   },
   {
-    id:     'news',
-    osName: 'news.feed',
-    label:  'Threat Intel',
-    route:  '/news',
-    desc:   'Live CISA Known Exploited Vulnerabilities feed and global threat map.',
-    zone:   'feed',
-    code:   '07',
-  },
-  {
     id:     'security',
     osName: 'atlas.sys',
     label:  'Security Atlas',
     route:  '/security',
     desc:   'Attacks, threat actors, real-world incidents — bilingual EN/AR atlas.',
     zone:   'dossier',
-    code:   '08',
+    code:   '07',
   },
 ]
 

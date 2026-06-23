@@ -19,8 +19,7 @@ Site: https://www.goodnbad.info
 
 ## Live Resources
 - Global threat map (real-time WebGL): https://www.goodnbad.info/security
-- CISA KEV + OSINT intelligence feed: https://www.goodnbad.info/news
-- Signal intelligence aggregator: https://www.goodnbad.info/signal
+- Signal intelligence aggregator (CISA KEV + OSINT feed): https://www.goodnbad.info/signal
 - Project deployments: https://www.goodnbad.info/deployments
 - HORUS-EYE monitoring platform: https://www.goodnbad.info/horus
 

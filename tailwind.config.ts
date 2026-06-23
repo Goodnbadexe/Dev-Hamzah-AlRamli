@@ -47,9 +47,11 @@ const config = {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          // eDEX-UI RGB triplet — enables alpha syntax: bg-accent/30, text-accent/50, border-accent/10
+          DEFAULT: "rgb(var(--accent) / <alpha-value>)",
           foreground: "hsl(var(--accent-foreground))",
         },
+        "accent-alert": "rgb(var(--accent-alert) / <alpha-value>)",
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
@@ -100,6 +102,10 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "os-panel-in":  "os-panel-in 0.4s cubic-bezier(0.16,1,0.3,1) both",
         "os-signal":    "os-signal-pulse 2s ease-in-out infinite",
+      },
+      transitionTimingFunction: {
+        servo: "cubic-bezier(0.85,0.5,0.85,0.5)",   // mechanical/panel feel
+        arrive: "cubic-bezier(0.4,0,1,1)",           // data/content arrives
       },
     },
   },

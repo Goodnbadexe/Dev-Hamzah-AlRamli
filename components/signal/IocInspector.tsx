@@ -75,6 +75,8 @@ interface Props {
   pinned?: ThreatIoc | null
   /** Called when the pinned IOC changes (row click, dot click, close). */
   onPin?: (ioc: ThreatIoc | null) => void
+  /** Called when the surface itself is dismissed (e.g. the rail close button). */
+  onClose?: () => void
 }
 
 // ── Live indicator list (shared by both placements) ─────────────────────────
@@ -123,7 +125,7 @@ function IocList({
   )
 }
 
-export function IocInspector({ recent, hovered, placement = "rail", railHidden = false, pinned: pinnedProp, onPin }: Props) {
+export function IocInspector({ recent, hovered, placement = "rail", railHidden = false, pinned: pinnedProp, onPin, onClose }: Props) {
   // Controlled when `pinned`/`onPin` are supplied (e.g. globe dot clicks lift it
   // to the page); otherwise falls back to internal state for standalone use.
   const [internalPinned, setInternalPinned] = useState<ThreatIoc | null>(null)
@@ -163,6 +165,22 @@ export function IocInspector({ recent, hovered, placement = "rail", railHidden =
       {placement === "rail" && !railHidden && (
         <aside className="fixed right-4 top-1/2 z-30 hidden w-[244px] -translate-y-1/2 lg:block">
           <div className="rounded-md border border-zinc-800 bg-zinc-950/70 backdrop-blur-md">
+            {/* Draggable header with close */}
+            <div className="flex cursor-move items-center justify-between border-b border-zinc-800/60 px-3 py-2">
+              <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">
+                live · ioc surface
+              </span>
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-zinc-600 transition-colors hover:text-zinc-300"
+                  aria-label="Close IOC surface"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-2 border-b border-zinc-800/80 px-3 py-2">
               <ShieldAlert className="h-3 w-3 text-rose-400" />
               <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">

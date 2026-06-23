@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { checkAssistantGate } from "@/lib/assistant-gate"
 
 /**
  * inference.sh proxy — TEMPORARILY STUBBED (build unblock).
@@ -13,6 +14,10 @@ import { NextResponse } from "next/server"
  *        export { GET, POST, PUT } from '@inferencesh/sdk/proxy/nextjs'
  *
  * Until then these return 501 so the build stays green.
+ *
+ * NOTE: the POST handler runs the assistant logic gate FIRST
+ * (belt-and-suspenders) so common identity questions get an instant pre-built
+ * answer even on a direct API hit — no proxy, no tokens.
  */
 function notImplemented() {
   return NextResponse.json(
@@ -21,6 +26,21 @@ function notImplemented() {
   )
 }
 
+export async function POST(req: Request) {
+  // Fast logic gate before any (future) inference call.
+  try {
+    const body = (await req.clone().json()) as { message?: unknown }
+    const message = typeof body?.message === "string" ? body.message : ""
+    const gated = checkAssistantGate(message)
+    if (gated) {
+      return NextResponse.json({ content: gated, gated: true })
+    }
+  } catch {
+    // Non-JSON or empty body — fall through to the stub response below.
+  }
+
+  return notImplemented()
+}
+
 export const GET = notImplemented
-export const POST = notImplemented
 export const PUT = notImplemented

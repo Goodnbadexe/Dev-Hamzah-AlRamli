@@ -54,7 +54,7 @@ export function MobileNav({ showTerminal, onToggleTerminal }: MobileNavProps) {
                 { href: "#experience", label: "Experience" },
                 { href: "#portfolio", label: "Portfolio" },
                 { href: "#contact", label: "Contact" },
-                { href: "/news", label: "News" },
+                { href: "/signal", label: "Signal" },
                 { href: "/security", label: "Security Atlas" },
                 { href: "/cybersecurity-ai", label: "Cybersecurity AI" },
               ].map((item) => (

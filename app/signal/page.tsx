@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Radio, Shield } from "lucide-react"
 import { OSPageShell } from "@/components/os/OSPageShell"
 import { OSWindow } from "@/components/os"
-import { SignalFeedSection } from "@/components/signal/SignalFeedSection"
+import { SignalPageLayout } from "@/components/signal/SignalPageLayout"
 import { aggregateSignalFeed } from "@/lib/signal-feed/aggregate"
 
 // Revalidate every 5 minutes (ISR) — individual fetches cache at their own rates
@@ -22,7 +22,7 @@ export default async function SignalPage() {
 
   return (
     <OSPageShell osName="signal.feed" label="Cyber Threat Intelligence">
-      <div className="container mx-auto max-w-5xl px-4 py-8 md:py-12">
+      <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12">
 
         {/* Header */}
         <section className="mb-4">
@@ -88,15 +88,13 @@ export default async function SignalPage() {
           </OSWindow>
         </section>
 
-        {/* Live feed */}
+        {/* Live feed + IOC surface — 50/50 split on lg+, stacked on mobile */}
         <section>
-          <OSWindow label="threat.signals" title={`${items.length} signals active`} status={items.length > 0 ? "active" : "idle"} className="os-panel-in">
-            <SignalFeedSection
-              initialItems={items}
-              fetchedAt={fetchedAt}
-              sourceErrors={sourceErrors}
-            />
-          </OSWindow>
+          <SignalPageLayout
+            initialItems={items}
+            fetchedAt={fetchedAt}
+            sourceErrors={sourceErrors}
+          />
         </section>
 
       </div>

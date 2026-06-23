@@ -154,7 +154,7 @@ function LayerPanel({ activeLayers, onToggle }: LayerPanelProps) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="flex flex-col items-end">
+    <div className="flex flex-col items-start">
       {/* Collapsed pill */}
       {!expanded && (
         <button
@@ -301,7 +301,10 @@ function LiveAttacksStrip({ iocs }: { iocs: ThreatIoc[] }) {
         </span>
         <span className="h-3 w-px shrink-0 bg-zinc-800" />
         <div className="relative flex-1 overflow-hidden">
-          <div className="flex w-max gap-8 whitespace-nowrap animate-[ticker_38s_linear_infinite] motion-reduce:animate-none">
+          <div
+            className="flex w-max gap-8 whitespace-nowrap animate-[ticker_38s_linear_infinite] motion-reduce:animate-none"
+            style={{ willChange: "transform" }}
+          >
             {[...track, ...track].map((ioc, i) => (
               <span key={`${ioc.id}-${i}`} className="inline-flex items-center gap-2 font-mono text-[11px]">
                 <span
@@ -489,6 +492,12 @@ export default function HomePage() {
       {/* ------------------------------------------------------------------ */}
       <OSTaskbar />
 
+      {/* World Layers — pinned LEFT always, independent of inspect mode.
+          Desktop only (mobile skips the WebGL globe entirely). */}
+      <div className="fixed left-4 top-20 z-20 hidden lg:block">
+        <LayerPanel activeLayers={activeLayers} onToggle={handleLayerToggle} />
+      </div>
+
       {/* Top-right control cluster — "inspect" grouped right beside the world
           layers so the eye reads one tidy panel instead of scattered controls. */}
       {!globeInspect && (
@@ -499,12 +508,8 @@ export default function HomePage() {
             className="flex items-center gap-2 rounded border border-emerald-900 bg-zinc-950/70 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-emerald-400 backdrop-blur-md transition-all hover:border-emerald-700 hover:bg-emerald-950/40"
           >
             <Maximize2 className="h-3.5 w-3.5" />
-            inspect cyberattacks
+            Inspect Globe
           </button>
-          {/* World layers — desktop only (mobile skips the WebGL globe entirely) */}
-          <div className="hidden lg:block">
-            <LayerPanel activeLayers={activeLayers} onToggle={handleLayerToggle} />
-          </div>
           {/* On-globe legend + live indicator counter (color key · count · feeds) */}
           <div className="hidden lg:block">
             <GlobeLegend variant="card" />
@@ -647,7 +652,7 @@ export default function HomePage() {
                 {/* Live IOC surface — docked here beside the signal feed
                     (was a floating right-edge rail). Click a row to inspect. */}
                 <div className="mt-4 border-t border-zinc-900 pt-3.5">
-                  <IocInspector placement="inline" recent={recentIocs} hovered={hoveredIoc} pinned={pinnedIoc} onPin={setPinnedIoc} />
+                  <IocInspector placement="inline" recent={recentIocs} hovered={hoveredIoc} pinned={pinnedIoc} onPin={setPinnedIoc} onClose={() => setGlobeInspect(false)} />
                 </div>
 
                 <div className="mt-4 border-t border-zinc-900 pt-3.5">
