@@ -3,9 +3,14 @@
 /**
  * IocInspector
  * ------------
- * The "side → center" IOC detail interaction. A slim rail of live indicators
- * sits at the edge; hovering a globe dot or clicking a rail row pins it, and a
- * detailed card slides from the side into the center of the screen.
+ * The IOC detail interaction. A list of live indicators is shown; hovering a
+ * globe dot or clicking a list row pins it, and a detailed card slides into the
+ * center of the screen.
+ *
+ * placement:
+ *   "rail"   — fixed slim rail pinned to the right edge (legacy / standalone use)
+ *   "inline" — renders the list in normal flow, to be embedded beside the
+ *              signal feed in the homepage left column
  *
  * Controlled inputs:
  *   recent   — live stream of IOCs (newest first)
@@ -15,7 +20,7 @@
  */
 
 import { useEffect, useState } from "react"
-import { X, ShieldAlert, Crosshair } from "lucide-react"
+import { X, ShieldAlert, Crosshair, ExternalLink } from "lucide-react"
 import type { ThreatIoc } from "@/app/api/threats/route"
 import { IOC_COLOR } from "@/components/signal/ThreatGlobe"
 
@@ -28,15 +33,104 @@ const SEV_BADGE: Record<ThreatIoc["severity"], string> = {
 
 const typeLabel = (t: ThreatIoc["type"]) => t.replace("_", " ").toUpperCase()
 
+// Plain-English explainer per indicator type — so a non-specialist understands
+// what they're looking at, not just a colored dot.
+const IOC_EXPLAINER: Record<ThreatIoc["type"], string> = {
+  c2_server:
+    "A command-and-control (C2) server is the attacker's remote control panel — infected machines quietly “call home” to it to receive orders and ship out stolen data.",
+  malware_host:
+    "A malware host is a server handing out malicious files. Victims get infected by downloading from it, often through a booby-trapped link or a drive-by page.",
+  phishing:
+    "A phishing host serves fake login or payment pages that impersonate a trusted brand to trick people into typing in their credentials.",
+  malicious_url:
+    "A malicious URL is a web address flagged for hosting malware, scams, or phishing — simply visiting it can compromise your device.",
+  ransomware:
+    "A ransomware indicator marks a confirmed victim of a ransomware crew: files are encrypted and held hostage until a ransom is paid.",
+}
+
+// Best-effort "view source report" link. AbuseIPDB resolves to a per-IP report;
+// the others land on the feed's own browse/listing page (honest — no fabricated
+// deep links). Returns null when no sensible target exists.
+function sourceReportUrl(ioc: ThreatIoc): string | null {
+  const ref = ioc.ref ?? ""
+  switch (ioc.source) {
+    case "AbuseIPDB":      return ref ? `https://www.abuseipdb.com/check/${encodeURIComponent(ref)}` : "https://www.abuseipdb.com"
+    case "URLhaus":        return `https://urlhaus.abuse.ch/browse.php?search=${encodeURIComponent(ref)}`
+    case "Feodo Tracker":  return "https://feodotracker.abuse.ch/browse/"
+    case "C2IntelFeeds":   return "https://github.com/drb-ra/C2IntelFeeds"
+    case "Ransomware.live": return "https://www.ransomware.live/recentvictims"
+    case "AlienVault OTX": return "https://otx.alienvault.com"
+    default:               return null
+  }
+}
+
 interface Props {
   recent: ThreatIoc[]
   hovered: ThreatIoc | null
-  /** Hide the side rail (e.g. when another overlay owns the screen). */
+  /** "rail" = fixed right rail; "inline" = in-flow block (e.g. beside the feed). */
+  placement?: "rail" | "inline"
+  /** Hide the rail entirely (only relevant for placement="rail"). */
   railHidden?: boolean
+  /** Controlled pinned IOC (e.g. set by clicking a globe dot). Omit for uncontrolled. */
+  pinned?: ThreatIoc | null
+  /** Called when the pinned IOC changes (row click, dot click, close). */
+  onPin?: (ioc: ThreatIoc | null) => void
+  /** Called when the surface itself is dismissed (e.g. the rail close button). */
+  onClose?: () => void
 }
 
-export function IocInspector({ recent, hovered, railHidden = false }: Props) {
-  const [pinned, setPinned] = useState<ThreatIoc | null>(null)
+// ── Live indicator list (shared by both placements) ─────────────────────────
+function IocList({
+  recent,
+  onPick,
+  max = 6,
+}: {
+  recent: ThreatIoc[]
+  onPick: (ioc: ThreatIoc) => void
+  max?: number
+}) {
+  return (
+    <ul className="space-y-0.5">
+      {recent.length === 0 && (
+        <li className="px-2 py-3 font-mono text-[10px] leading-relaxed text-zinc-600">
+          Awaiting indicators… each entry is real malicious infrastructure, no fake arcs.
+        </li>
+      )}
+      {recent.slice(0, max).map((ioc, i) => (
+        <li key={`${ioc.id}-${i}`}>
+          <button
+            type="button"
+            onClick={() => onPick(ioc)}
+            className="group flex w-full items-center gap-2.5 rounded px-2 py-1.5 text-left transition-colors hover:bg-zinc-900/70"
+          >
+            <span
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: IOC_COLOR[ioc.type], boxShadow: `0 0 6px ${IOC_COLOR[ioc.type]}` }}
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-mono text-[11px] text-zinc-300 group-hover:text-zinc-100">
+                {typeLabel(ioc.type)}
+              </span>
+              <span className="block truncate font-mono text-[9px] text-zinc-600">
+                {ioc.source} · {ioc.country}
+              </span>
+            </span>
+            <span className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider ${SEV_BADGE[ioc.severity]}`}>
+              {ioc.severity}
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export function IocInspector({ recent, hovered, placement = "rail", railHidden = false, pinned: pinnedProp, onPin, onClose }: Props) {
+  // Controlled when `pinned`/`onPin` are supplied (e.g. globe dot clicks lift it
+  // to the page); otherwise falls back to internal state for standalone use.
+  const [internalPinned, setInternalPinned] = useState<ThreatIoc | null>(null)
+  const pinned = pinnedProp !== undefined ? pinnedProp : internalPinned
+  const setPinned = (ioc: ThreatIoc | null) => { onPin ? onPin(ioc) : setInternalPinned(ioc) }
   const detail = pinned ?? hovered
   const open = Boolean(detail)
 
@@ -50,10 +144,43 @@ export function IocInspector({ recent, hovered, railHidden = false }: Props) {
 
   return (
     <>
-      {/* ── Side rail — live IOC stream ─────────────────────────────── */}
-      {!railHidden && (
+      {/* ── Inline surface — embedded in the content column beside the feed ── */}
+      {placement === "inline" && (
+        <div>
+          <div className="mb-1.5 flex items-center gap-2">
+            <ShieldAlert className="h-3 w-3 text-rose-400" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+              live IOC surface
+            </span>
+            <span className="ml-auto flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-zinc-700">
+              click to inspect
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_theme(colors.rose.500)] animate-pulse motion-reduce:animate-none" />
+            </span>
+          </div>
+          <IocList recent={recent} onPick={setPinned} />
+        </div>
+      )}
+
+      {/* ── Fixed right rail (legacy / standalone) ──────────────────────────── */}
+      {placement === "rail" && !railHidden && (
         <aside className="fixed right-4 top-1/2 z-30 hidden w-[244px] -translate-y-1/2 lg:block">
           <div className="rounded-md border border-zinc-800 bg-zinc-950/70 backdrop-blur-md">
+            {/* Draggable header with close */}
+            <div className="flex cursor-move items-center justify-between border-b border-zinc-800/60 px-3 py-2">
+              <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">
+                live · ioc surface
+              </span>
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-zinc-600 transition-colors hover:text-zinc-300"
+                  aria-label="Close IOC surface"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-2 border-b border-zinc-800/80 px-3 py-2">
               <ShieldAlert className="h-3 w-3 text-rose-400" />
               <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">
@@ -61,39 +188,9 @@ export function IocInspector({ recent, hovered, railHidden = false }: Props) {
               </span>
               <span className="ml-auto h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_theme(colors.rose.500)] animate-pulse" />
             </div>
-            <ul className="max-h-[46vh] overflow-hidden p-1.5">
-              {recent.length === 0 && (
-                <li className="px-2 py-3 font-mono text-[10px] leading-relaxed text-zinc-600">
-                  Awaiting indicators… each entry is real malicious infrastructure, no fake arcs.
-                </li>
-              )}
-              {recent.slice(0, 7).map((ioc, i) => (
-                <li key={`${ioc.id}-${i}`}>
-                  <button
-                    type="button"
-                    onClick={() => setPinned(ioc)}
-                    className="group flex w-full items-center gap-2.5 rounded px-2 py-1.5 text-left transition-colors hover:bg-zinc-900/70"
-                    style={{ opacity: 1 - i * 0.08 }}
-                  >
-                    <span
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{ backgroundColor: IOC_COLOR[ioc.type], boxShadow: `0 0 6px ${IOC_COLOR[ioc.type]}` }}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-mono text-[11px] text-zinc-300 group-hover:text-zinc-100">
-                        {typeLabel(ioc.type)}
-                      </span>
-                      <span className="block truncate font-mono text-[9px] text-zinc-600">
-                        {ioc.source} · {ioc.country}
-                      </span>
-                    </span>
-                    <span className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider ${SEV_BADGE[ioc.severity]}`}>
-                      {ioc.severity}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="max-h-[46vh] overflow-hidden p-1.5">
+              <IocList recent={recent} onPick={setPinned} max={7} />
+            </div>
             <div className="border-t border-zinc-800/80 px-3 py-1.5 font-mono text-[8px] uppercase tracking-widest text-zinc-700">
               click an indicator → inspect
             </div>
@@ -101,7 +198,7 @@ export function IocInspector({ recent, hovered, railHidden = false }: Props) {
         </aside>
       )}
 
-      {/* ── Center detail card — slides in from the side ────────────── */}
+      {/* ── Center detail card — slides in from the side (global overlay) ───── */}
       <div
         className={`pointer-events-none fixed inset-0 z-40 flex items-center justify-center px-4 transition-opacity duration-300 ${
           open ? "opacity-100" : "opacity-0"
@@ -171,9 +268,29 @@ export function IocInspector({ recent, hovered, railHidden = false }: Props) {
                   </dd>
                 </dl>
 
-                <p className="mt-4 border-t border-zinc-800/80 pt-3 font-mono text-[9px] leading-relaxed text-zinc-600">
-                  Indicator of compromise — a located piece of malicious infrastructure.
-                  No fabricated attacker→target relationship.
+                {/* Plain-English explainer */}
+                <p className="mt-4 border-t border-zinc-800/80 pt-3 text-[12px] leading-relaxed text-zinc-400">
+                  {IOC_EXPLAINER[detail.type]}
+                </p>
+
+                {/* View source report */}
+                {(() => {
+                  const url = sourceReportUrl(detail)
+                  return url ? (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-900/60 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-emerald-400 transition-colors hover:border-emerald-700 hover:bg-emerald-950/40 hover:text-emerald-300"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      View source report
+                    </a>
+                  ) : null
+                })()}
+
+                <p className="mt-3 font-mono text-[9px] leading-relaxed text-zinc-700">
+                  Indicator of compromise — no fabricated attacker→target relationship.
                 </p>
               </div>
             </>

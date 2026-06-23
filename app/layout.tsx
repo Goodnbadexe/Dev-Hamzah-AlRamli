@@ -191,6 +191,11 @@ export default function RootLayout({
         />
       </head>
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${notoKufiArabic.variable} font-sans pb-24 md:pb-0`}>
+        {/* Fixed eDEX atmosphere layer — persistent grid + scanlines + vignette across all routes */}
+        <div
+          aria-hidden="true"
+          className="os-grid-bg os-scanlines os-vignette fixed inset-0 -z-10"
+        />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <LanguageProvider>
             {children}

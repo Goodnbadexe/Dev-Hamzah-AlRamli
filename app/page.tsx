@@ -3,14 +3,15 @@
 import { useCallback, useState, useEffect, type ElementType } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { ArrowRight, Terminal, Layers, Mail, User, ChevronRight, ChevronDown, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun, Lock } from "lucide-react"
+import { ArrowRight, Terminal, Layers, Radio, Mail, User, ChevronRight, ChevronDown, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun } from "lucide-react"
 import { OSDesktop, OSTaskbar, AmbientFeed } from "@/components/os"
 import { cn } from "@/lib/utils"
 import type { FeedEntry } from "@/components/os"
 import type { ThreatIoc } from "@/app/api/threats/route"
 import { IocInspector } from "@/components/signal/IocInspector"
 import { MobileSignalOverlay } from "@/components/signal/MobileSignalOverlay"
-import { useLanguage } from "@/components/language-provider"
+import { GlobeLegend } from "@/components/signal/GlobeLegend"
+import { IOC_COLOR } from "@/components/signal/ThreatGlobe"
 
 // Globe — deferred: only loads after initial paint (via requestIdleCallback)
 // and never SSR'd. This keeps the homepage TTI fast; the globe fades in
@@ -40,12 +41,20 @@ const STATIC_ENTRIES: FeedEntry[] = [
 // neutral and only lights emerald on hover. Color means something here:
 // emerald = you, red = threat. Nothing else competes.
 // ---------------------------------------------------------------------------
-const MODULE_ITEMS: { href: string; code: string; label: string; ar: string; sub: string; subAr: string; Icon: ElementType }[] = [
-  { href: "/subscribe",   code: "01", label: "TOOLKIT VAULT", ar: "خزينة الأدوات", sub: "Weekly security + AI tools · Subscribe", subAr: "أدوات الأمن والذكاء الاصطناعي أسبوعياً · اشترك", Icon: Lock },
-  { href: "/personnel",   code: "02", label: "PERSONNEL",   ar: "الملف الشخصي", sub: "Dossier · CV · Clearance",     subAr: "السيرة الذاتية · الملف · التصريح", Icon: User     },
-  { href: "/deployments", code: "03", label: "DEPLOYMENTS", ar: "المشاريع",     sub: "Mission files · Architecture", subAr: "ملفات المهام · البنية",            Icon: Layers   },
-  { href: "/contact",     code: "04", label: "CONTACT",     ar: "تواصل",        sub: "Encrypted channel",            subAr: "قناة مشفّرة",                      Icon: Mail     },
-  { href: "/terminal",    code: "05", label: "TERMINAL",    ar: "الطرفية",      sub: "Command interface",            subAr: "واجهة الأوامر",                    Icon: Terminal },
+const MODULE_ITEMS: { href: string; code: string; label: string; sub: string; Icon: ElementType }[] = [
+  { href: "/personnel",   code: "01", label: "PERSONNEL",   sub: "Dossier · CV · Clearance",     Icon: User     },
+  { href: "/deployments", code: "02", label: "DEPLOYMENTS", sub: "Mission files · Architecture", Icon: Layers   },
+  { href: "/signal",      code: "03", label: "SIGNAL",      sub: "Live activity · Feed",         Icon: Radio    },
+  { href: "/contact",     code: "04", label: "CONTACT",     sub: "Encrypted channel",            Icon: Mail     },
+  { href: "/terminal",    code: "05", label: "TERMINAL",    sub: "Command interface",            Icon: Terminal },
+]
+
+// Hero credential chips
+const HERO_META = [
+  "CEH (pursuing)",
+  "Security+ (pursuing)",
+  "Google Cybersecurity",
+  "BSc CS · Taylor's University",
 ]
 
 // All layer labels (used to seed the default active set)
@@ -145,7 +154,7 @@ function LayerPanel({ activeLayers, onToggle }: LayerPanelProps) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="fixed left-4 top-16 z-20 hidden lg:block">
+    <div className="flex flex-col items-start">
       {/* Collapsed pill */}
       {!expanded && (
         <button
@@ -273,13 +282,54 @@ function LayerPanel({ activeLayers, onToggle }: LayerPanelProps) {
 }
 
 // ---------------------------------------------------------------------------
+// LIVE ATTACKS ticker — a horizontal marquee of the live IOC stream, distinct
+// from the ambient signal feed. Self-hides until indicators arrive (so it never
+// shows on mobile, which skips the globe). pointer-events:none so it never
+// blocks the globe/content beneath.
+// ---------------------------------------------------------------------------
+function LiveAttacksStrip({ iocs }: { iocs: ThreatIoc[] }) {
+  if (iocs.length === 0) return null
+  const track = iocs.slice(0, 14)
+  const typeLabel = (t: ThreatIoc["type"]) => t.replace("_", " ").toUpperCase()
+
+  return (
+    <div className="fixed bottom-11 left-3 right-[5.5rem] z-30 hidden pointer-events-none md:block">
+      <div className="flex items-center gap-3 overflow-hidden rounded-md border border-zinc-800/70 bg-zinc-950/75 px-3 py-1.5 backdrop-blur-md">
+        <span className="flex shrink-0 items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_theme(colors.rose.500)] animate-pulse motion-reduce:animate-none" />
+          live attacks
+        </span>
+        <span className="h-3 w-px shrink-0 bg-zinc-800" />
+        <div className="relative flex-1 overflow-hidden">
+          <div
+            className="flex w-max gap-8 whitespace-nowrap animate-[ticker_38s_linear_infinite] motion-reduce:animate-none"
+            style={{ willChange: "transform" }}
+          >
+            {[...track, ...track].map((ioc, i) => (
+              <span key={`${ioc.id}-${i}`} className="inline-flex items-center gap-2 font-mono text-[11px]">
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: IOC_COLOR[ioc.type], boxShadow: `0 0 6px ${IOC_COLOR[ioc.type]}` }}
+                />
+                <span className="text-zinc-200">{typeLabel(ioc.type)}</span>
+                <span className="text-zinc-600">{ioc.country} · {ioc.source}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 export default function HomePage() {
-  const { t, dir } = useLanguage()
   const [liveEntries,  setLiveEntries]  = useState<FeedEntry[]>([])
   const [recentIocs,   setRecentIocs]   = useState<ThreatIoc[]>([])
   const [hoveredIoc,   setHoveredIoc]   = useState<ThreatIoc | null>(null)
+  const [pinnedIoc,    setPinnedIoc]    = useState<ThreatIoc | null>(null)
   const [globeInspect, setGlobeInspect] = useState(false)
   // Detect mobile on mount (no SSR mismatch — starts false)
   const [isMobile, setIsMobile] = useState(false)
@@ -371,7 +421,7 @@ export default function HomePage() {
       {/* left-anchored hero owns the page (per the homepage concept).        */}
       {/* Renders a lightweight gradient until idle, then fades in the globe. */}
       {/* ------------------------------------------------------------------ */}
-      <div className="fixed right-0 top-0 bottom-0 z-0 w-full lg:w-1/2 xl:w-[55%]">
+      <div className="fixed inset-0 z-0">
         {/* Mobile: skip WebGL entirely — show animated CSS background */}
         {isMobile ? (
           <div
@@ -399,12 +449,13 @@ export default function HomePage() {
               <div className="absolute inset-0 animate-[fadeIn_700ms_ease-out_forwards]" style={{ opacity: 0 }}>
                 <ThreatGlobe
                   interactive={globeInspect}
-                  align="center"
+                  align="right"
                   showWorldLayers
                   activeLayers={activeLayers}
-                  nightMode={activeLayers.has("Day / Night")}
+                  terminator={activeLayers.has("Day / Night")}
                   onIoc={handleIoc}
                   onIocSelect={setHoveredIoc}
+                  onIocClick={setPinnedIoc}
                   onGlobeClick={() => setGlobeInspect(true)}
                 />
               </div>
@@ -441,22 +492,30 @@ export default function HomePage() {
       {/* ------------------------------------------------------------------ */}
       <OSTaskbar />
 
-      <LayerPanel activeLayers={activeLayers} onToggle={handleLayerToggle} />
+      {/* World Layers — pinned LEFT always, independent of inspect mode.
+          Desktop only (mobile skips the WebGL globe entirely). */}
+      <div className="fixed left-4 top-20 z-20 hidden lg:block">
+        <LayerPanel activeLayers={activeLayers} onToggle={handleLayerToggle} />
+      </div>
 
-      {/* Live IOC surface — side rail + slide-to-center inspector */}
-      <IocInspector recent={recentIocs} hovered={hoveredIoc} railHidden={globeInspect || isMobile} />
-
-      <button
-        type="button"
-        onClick={() => setGlobeInspect(true)}
-        className={cn(
-          "fixed left-4 bottom-16 z-30 flex items-center gap-2 rounded border border-emerald-900 bg-zinc-950/70 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-emerald-400 backdrop-blur-md transition-all hover:border-emerald-700 hover:bg-emerald-950/40",
-          globeInspect && "opacity-0 pointer-events-none"
-        )}
-      >
-        <Maximize2 className="h-3.5 w-3.5" />
-        inspect cyberattacks
-      </button>
+      {/* Top-right control cluster — "inspect" grouped right beside the world
+          layers so the eye reads one tidy panel instead of scattered controls. */}
+      {!globeInspect && (
+        <div className="fixed right-4 top-16 z-30 flex flex-col items-end gap-2">
+          <button
+            type="button"
+            onClick={() => setGlobeInspect(true)}
+            className="flex items-center gap-2 rounded border border-emerald-900 bg-zinc-950/70 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-emerald-400 backdrop-blur-md transition-all hover:border-emerald-700 hover:bg-emerald-950/40"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+            Inspect Globe
+          </button>
+          {/* On-globe legend + live indicator counter (color key · count · feeds) */}
+          <div className="hidden lg:block">
+            <GlobeLegend variant="card" />
+          </div>
+        </div>
+      )}
 
       {globeInspect && (
         <button
@@ -469,6 +528,9 @@ export default function HomePage() {
         </button>
       )}
 
+      {/* LIVE ATTACKS ticker — streaming IOC marquee above the footer */}
+      {!globeInspect && <LiveAttacksStrip iocs={recentIocs} />}
+
       <main
         className={cn(
           "relative z-10 os-page-offset min-h-screen transition-all duration-700 ease-out",
@@ -480,11 +542,11 @@ export default function HomePage() {
 
         {/* ── HERO IDENTITY ─────────────────────────────────── */}
         <section className={wrap(globeInspect, globeInspect ? "pt-4 pb-3" : "pt-[9vh] pb-[7vh]")}>
-          <div className="w-full pointer-events-auto" dir={dir}>
+          <div className="w-full pointer-events-auto">
             {/* Kicker */}
             <span className="inline-flex items-center gap-2.5 mb-[30px] rounded-[5px] border border-zinc-800 bg-zinc-900/50 px-3.5 py-[7px] font-mono text-[11px] uppercase tracking-[0.26em] text-zinc-400 backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]" />
-              {t("الهوية موثّقة · الرياض، السعودية", "SUBJECT VERIFIED · RIYADH, SA")}
+              SUBJECT VERIFIED · RIYADH, SA
             </span>
 
             {/* Identity — display scale (sized to fit the left column), restrained
@@ -502,18 +564,13 @@ export default function HomePage() {
               className="mt-[26px] max-w-[48ch] leading-[1.5] text-zinc-300"
               style={{ fontSize: globeInspect ? "1rem" : "clamp(17px, 2vw, 21px)" }}
             >
-              {t("حمزة الرملي — ", "Hamzah Al-Ramli — ")}<span className="font-semibold text-zinc-100">{t("أخصائي أمن سيبراني وأتمتة.", "Cybersecurity & Automation Architect.")}</span>{" "}
-              {t("أبني أنظمة دفاعية وأدوات لرصد التهديدات والأتمتة التي تشغّلها.", "I build defensive systems, threat tooling, and the automation that runs them.")}
+              Hamzah Al-Ramli — <span className="font-semibold text-zinc-100">Cybersecurity &amp; Automation Architect.</span>{" "}
+              I build defensive systems, threat tooling, and the automation that runs them.
             </p>
 
-            {/* Credential chips — cert names stay English; surrounding labels translate */}
+            {/* Credential chips */}
             <div className="mt-[22px] flex flex-wrap gap-2.5 font-mono text-[11px] text-zinc-400">
-              {[
-                t("CEH (قيد الإنجاز)", "CEH (pursuing)"),
-                t("Security+ (قيد الإنجاز)", "Security+ (pursuing)"),
-                "Google Cybersecurity",
-                t("بكالوريوس علوم حاسب · جامعة تايلورز", "BSc CS · Taylor's University"),
-              ].map((m) => (
+              {HERO_META.map((m) => (
                 <span key={m} className="rounded border border-zinc-800 bg-zinc-950/40 px-3 py-2">
                   {m}
                 </span>
@@ -527,13 +584,13 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2.5 rounded-md bg-emerald-500 px-6 py-3.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
               >
                 <Mail className="h-4 w-4" />
-                {t("افتح قناة مشفّرة", "Open encrypted channel")}
+                Open encrypted channel
               </Link>
               <Link
                 href="/personnel"
                 className="inline-flex items-center gap-2.5 rounded-md border border-zinc-800 bg-zinc-950/40 px-6 py-3.5 font-mono text-[13px] font-medium uppercase tracking-[0.1em] text-zinc-300 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-100"
               >
-                {t("عرض الملف الكامل", "View full dossier")}
+                View full dossier
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -552,21 +609,20 @@ export default function HomePage() {
               <span className="h-px flex-1 bg-zinc-900" />
             </div>
             <div className={cn("grid gap-3", globeInspect ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5")}>
-              {MODULE_ITEMS.map((item, i) => (
+              {MODULE_ITEMS.map(({ href, code, label, sub, Icon }, i) => (
                 <Link
-                  key={item.href}
-                  href={item.href}
+                  key={href}
+                  href={href}
                   style={{ animationDelay: `${i * 60}ms` }}
                   className="group relative overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/55 px-5 py-5 backdrop-blur-md transition-all duration-200 os-panel-in hover:-translate-y-[3px] hover:border-emerald-800/80 hover:bg-zinc-900/90"
-                  dir={dir}
                 >
-                  <span className="font-mono text-[11px] tracking-wider text-zinc-500">{item.code}</span>
+                  <span className="font-mono text-[11px] tracking-wider text-zinc-500">{code}</span>
                   <ChevronRight className="absolute right-4 top-5 h-4 w-4 text-zinc-700 transition-all group-hover:translate-x-0.5 group-hover:text-emerald-400" />
                   <div className="mb-4 mt-4 grid h-10 w-10 place-items-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-400 transition-all group-hover:border-emerald-900 group-hover:text-emerald-400">
-                    <item.Icon className="h-[19px] w-[19px]" />
+                    <Icon className="h-[19px] w-[19px]" />
                   </div>
-                  <div className="font-mono text-sm font-semibold tracking-wide text-zinc-100">{t(item.ar, item.label)}</div>
-                  <div className="mt-1.5 font-mono text-[11px] leading-[1.5] text-zinc-500">{t(item.subAr, item.sub)}</div>
+                  <div className="font-mono text-sm font-semibold tracking-wide text-zinc-100">{label}</div>
+                  <div className="mt-1.5 font-mono text-[11px] leading-[1.5] text-zinc-500">{sub}</div>
                 </Link>
               ))}
             </div>
@@ -592,9 +648,16 @@ export default function HomePage() {
                   interval={8000}
                   maxLines={6}
                 />
+
+                {/* Live IOC surface — docked here beside the signal feed
+                    (was a floating right-edge rail). Click a row to inspect. */}
+                <div className="mt-4 border-t border-zinc-900 pt-3.5">
+                  <IocInspector placement="inline" recent={recentIocs} hovered={hoveredIoc} pinned={pinnedIoc} onPin={setPinnedIoc} onClose={() => setGlobeInspect(false)} />
+                </div>
+
                 <div className="mt-4 border-t border-zinc-900 pt-3.5">
                   <Link
-                    href="/news"
+                    href="/signal"
                     className="flex items-center gap-1.5 font-mono text-[12px] text-zinc-500 transition-colors hover:text-emerald-500"
                   >
                     <ArrowRight className="h-3 w-3" />

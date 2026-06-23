@@ -977,6 +977,15 @@ Complexity: O(1) styling
 
   /* OS motion */
   --os-transition: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* eDEX-UI RGB triplet theming — space-separated for Tailwind alpha syntax.
+     Defined AFTER the shadcn HSL :root so the cascade resolves --accent to the
+     eDEX RGB triplet. Tailwind maps `accent` → rgb(var(--accent)/<alpha>),
+     enabling text-accent/30, bg-accent/10, border-accent/50, etc. */
+  --accent: 170 207 209;        /* tron cyan-grey — institutional, not gamer neon */
+  --accent-alert: 235 9 84;     /* hot red for ACCESS DENIED / threats only */
+  --os-surface-rgb: 5 8 13;     /* near-black panel surface */
+  --os-grid-line: #262828;      /* grid cell color */
 }
 
 /* OS scanline overlay — apply to full-bleed containers */
@@ -1158,4 +1167,137 @@ Complexity: O(1) styling
 @media (prefers-reduced-motion: reduce) {
   .glitch-id::before,
   .glitch-id::after { animation: none !important; opacity: 0 !important; }
+}
+
+/* LIVE ATTACKS ticker — seamless horizontal marquee (track is duplicated ×2) */
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ═══ eDEX-UI ATMOSPHERE LAYER ═══
+   CRT atmosphere utilities + panel grammar. Built on the RGB triplet tokens
+   (--accent, --accent-alert, --os-surface-rgb, --os-grid-line) so opacity is
+   driven by rgb(var(--token) / <alpha>). Additive: does not replace the
+   existing .os-grid (SVG) or the earlier .os-scanlines background-image rule. */
+
+/* Gradient grid background — matches eDEX body background exactly */
+.os-grid-bg {
+  background:
+    linear-gradient(90deg, rgb(var(--os-surface-rgb)) 1.85vh, transparent 1%) center,
+    linear-gradient(rgb(var(--os-surface-rgb)) 1.85vh, transparent 1%) center,
+    var(--os-grid-line);
+  background-size: 2.04vh 2.04vh;
+}
+
+/* Scanlines overlay */
+.os-scanlines::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgb(var(--accent) / 0.03) 0px,
+    rgb(var(--accent) / 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: overlay;
+}
+
+/* Radial vignette */
+.os-vignette::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / 0.65) 100%);
+}
+
+/* Glitch text — RGB split (use data-text attribute for content) */
+.os-glitch {
+  position: relative;
+}
+.os-glitch::before,
+.os-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: rgb(var(--accent));
+  animation-play-state: paused;
+}
+.os-glitch::before {
+  clip-path: polygon(100% 0%, 100% 40%, 0% 40%, 0% 0%);
+  animation: os-glitch-top 50ms linear infinite alternate-reverse;
+}
+.os-glitch::after {
+  clip-path: polygon(100% 40%, 100% 100%, 0% 100%, 0% 40%);
+  animation: os-glitch-bottom 50ms linear infinite alternate-reverse;
+}
+.os-glitch.active::before,
+.os-glitch.active::after {
+  animation-play-state: running;
+}
+
+/* Alert blink */
+.os-alert-blink {
+  animation: os-alert-blink 0.1s infinite linear;
+}
+
+/* Panel bracket-tick header (eDEX section > h3.title pattern) */
+.os-panel-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgb(var(--accent) / 0.25);
+  padding-bottom: 0.25rem;
+  position: relative;
+}
+.os-panel-header::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  bottom: -0.35rem;
+  height: 0.35rem;
+  border-left: 1px solid rgb(var(--accent) / 0.35);
+}
+.os-panel-header::after {
+  content: '';
+  position: absolute;
+  right: -0.5rem;
+  bottom: -0.35rem;
+  height: 0.35rem;
+  border-right: 1px solid rgb(var(--accent) / 0.35);
+}
+
+/* eDEX atmosphere keyframes */
+@keyframes os-glitch-top {
+  from { transform: translateX(-1%); }
+  to   { transform: translateX(-5%); }
+}
+@keyframes os-glitch-bottom {
+  from { transform: translateX(1%); }
+  to   { transform: translateX(3%); }
+}
+@keyframes os-alert-blink {
+  0%   { background-color: rgb(var(--accent-alert) / 0); }
+  100% { background-color: rgb(var(--accent-alert) / 1); }
+}
+
+/* Respect reduced-motion: pause glitch/blink animations entirely */
+@media (prefers-reduced-motion: reduce) {
+  .os-glitch::before,
+  .os-glitch::after,
+  .os-glitch.active::before,
+  .os-glitch.active::after {
+    animation: none !important;
+  }
+  .os-alert-blink {
+    animation: none !important;
+  }
 }

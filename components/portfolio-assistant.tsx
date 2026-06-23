@@ -3,99 +3,125 @@
 /**
  * PortfolioAssistant
  *
- * Floating AI chat widget for goodnbad.info. Visitors ask about Hamzah's work,
- * services, certifications, availability, and the Toolkit Vault; answers come
- * from a scoped Claude FAQ bot at POST /api/assistant (see app/api/assistant).
- *
- * Bilingual: all UI strings flow through useLanguage().t() and the panel honors
- * dir. If the API has no key it returns a graceful fallback and we render the
- * static FAQ list so the widget stays useful. Requires ANTHROPIC_API_KEY in
- * Vercel env for live Claude answers.
+ * A small, safe, self-contained chat guide to Hamzah's work. It is NOT an LLM:
+ * it runs entirely client-side against a fixed knowledge base (lib/assistant/faq)
+ * with no network calls, so it can't be prompt-injected and can't leak the
+ * site's hidden content — it only ever hints that a game exists. See faq.ts for
+ * the security model.
  */
 
-import { useEffect, useRef, useState } from "react"
-import { MessageSquare, X, Send, Loader2 } from "lucide-react"
+import { useEffect, useRef, useState, useCallback, Fragment } from "react"
+import { MessageSquare, X, Send, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useLanguage } from "@/components/language-provider"
-import { faqItems, type FAQItem } from "@/lib/content/faq"
+import { answerFor, GREETING, type FaqReply } from "@/lib/assistant/faq"
+import { checkAssistantGate } from "@/lib/assistant-gate"
 
-type ChatRole = "user" | "assistant"
-type ChatMessage = { role: ChatRole; content: string }
+interface ChatMessage {
+  role: "user" | "assistant"
+  text: string
+  suggestions?: string[]
+}
 
-type AssistantSuccess = { reply: string }
-type AssistantFallback = { fallback: true; message: string; faq: FAQItem[] }
-type AssistantError = { error: string }
-type AssistantResponse = AssistantSuccess | AssistantFallback | AssistantError
+// Quick-reply chips shown after a gated (instant) identity answer.
+const DEFAULT_GATE_SUGGESTIONS = ["His certifications", "His projects", "How to contact him"]
 
-const SUGGESTION_KEYS = ["who-is-hamzah", "cybersecurity-services", "availability", "toolkit-vault-what"]
+// ---------------------------------------------------------------------------
+// Lightweight, safe linkifier — turns internal routes, emails, and known
+// profile domains into links. Everything else stays plain text (no raw HTML).
+// ---------------------------------------------------------------------------
+const LINK_RE = /(\/[a-z][a-z0-9-]*(?:\/[a-z0-9-]+)*|[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}|(?:linkedin\.com|github\.com)\/[^\s]+)/gi
+
+function Linkified({ text }: { text: string }) {
+  const parts = text.split(LINK_RE)
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (!part) return null
+        const isRoute = /^\/[a-z]/i.test(part)
+        const isEmail = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(part)
+        const isDomain = /^(?:linkedin\.com|github\.com)\//i.test(part)
+        if (isRoute || isEmail || isDomain) {
+          const href = isEmail ? `mailto:${part}` : isDomain ? `https://${part}` : part
+          const external = isEmail || isDomain
+          return (
+            <a
+              key={i}
+              href={href}
+              {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+              className="text-emerald-400 underline decoration-emerald-700/60 underline-offset-2 transition-colors hover:text-emerald-300"
+            >
+              {part}
+            </a>
+          )
+        }
+        return <Fragment key={i}>{part}</Fragment>
+      })}
+    </>
+  )
+}
 
 export function PortfolioAssistant() {
-  const { t, dir, lang } = useLanguage()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  // Populated when the API reports no key — we show the static FAQ instead of chat.
-  const [fallbackFaq, setFallbackFaq] = useState<FAQItem[] | null>(null)
+  const [typing, setTyping] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Seed the greeting the first time the panel opens.
+  useEffect(() => {
+    if (open && messages.length === 0) {
+      setMessages([{ role: "assistant", text: GREETING.text, suggestions: GREETING.suggestions }])
+    }
+    if (open) requestAnimationFrame(() => inputRef.current?.focus())
+  }, [open, messages.length])
 
   // Keep the latest message in view.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
-  }, [messages, loading, fallbackFaq])
+  }, [messages, typing])
 
-  const suggestions = SUGGESTION_KEYS
-    .map((key) => faqItems.find((item) => item.key === key))
-    .filter((item): item is FAQItem => Boolean(item))
+  useEffect(() => () => { if (typingTimer.current) clearTimeout(typingTimer.current) }, [])
 
-  async function send(text: string) {
-    const trimmed = text.trim()
-    if (!trimmed || loading) return
-
-    setError(null)
+  const send = useCallback((raw: string) => {
+    const text = raw.trim()
+    if (!text || typing) return
     setInput("")
-    const nextMessages: ChatMessage[] = [...messages, { role: "user", content: trimmed }]
-    setMessages(nextMessages)
-    setLoading(true)
+    setMessages((prev) => [...prev, { role: "user", text }])
 
-    try {
-      const res = await fetch("/api/assistant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages, lang }),
-      })
-      const data = (await res.json()) as AssistantResponse
-
-      if ("fallback" in data && data.fallback) {
-        // No key configured — surface the static FAQ list and a short note.
-        setFallbackFaq(data.faq?.length ? data.faq : faqItems)
-        setMessages((prev) => [...prev, { role: "assistant", content: data.message }])
-        return
-      }
-
-      if (res.ok && "reply" in data && typeof data.reply === "string") {
-        setMessages((prev) => [...prev, { role: "assistant", content: data.reply }])
-        return
-      }
-
-      const msg =
-        ("error" in data && data.error) ||
-        t("تعذّر الوصول إلى المساعد. حاول مرة أخرى.", "Couldn't reach the assistant. Please try again.")
-      setError(msg)
-    } catch {
-      setError(t("حدث خطأ في الشبكة. حاول مرة أخرى.", "A network error occurred. Please try again."))
-    } finally {
-      setLoading(false)
+    // Fast logic gate: common identity questions get an instant, pre-built
+    // answer — no matcher scan and no "thinking" delay.
+    const gated = checkAssistantGate(text)
+    if (gated) {
+      setMessages((prev) => [...prev, { role: "assistant", text: gated, suggestions: DEFAULT_GATE_SUGGESTIONS }])
+      return
     }
+
+    setTyping(true)
+
+    const reply: FaqReply = answerFor(text)
+    // Small, length-aware "thinking" delay so it feels considered, not instant.
+    const delay = Math.min(900, 320 + reply.text.length * 4)
+    typingTimer.current = setTimeout(() => {
+      setTyping(false)
+      setMessages((prev) => [...prev, { role: "assistant", text: reply.text, suggestions: reply.suggestions }])
+    }, delay)
+  }, [typing])
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    send(input)
   }
 
-  const isEmpty = messages.length === 0
+  // Chips from the most recent assistant message only.
+  const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant")
+  const chips = !typing ? lastAssistant?.suggestions ?? [] : []
 
   return (
     <>
-      {/* Floating trigger button */}
+      {/* Floating trigger */}
       <button
         onClick={() => setOpen((o) => !o)}
         className={cn(
@@ -104,132 +130,91 @@ export function PortfolioAssistant() {
             ? "border-zinc-700 bg-zinc-900 text-zinc-400"
             : "border-emerald-800 bg-emerald-950 text-emerald-400 hover:bg-emerald-900 shadow-[0_0_16px_theme(colors.emerald.900)]"
         )}
-        aria-label={open ? t("إغلاق المساعد", "Close assistant") : t("اسأل مساعد البورتفوليو", "Ask the portfolio assistant")}
+        aria-label={open ? "Close assistant" : "Ask the portfolio assistant"}
       >
         {open ? <X className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
       </button>
 
       {/* Chat panel */}
       {open && (
-        <div
-          dir={dir}
-          className="fixed bottom-20 right-6 z-50 flex max-h-[520px] w-[360px] flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl"
-        >
+        <div className="fixed bottom-20 right-4 sm:right-6 z-50 flex w-[min(400px,calc(100vw-2rem))] h-[min(560px,calc(100vh-7rem))] flex-col overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl">
           {/* Header */}
-          <div className="flex shrink-0 items-center gap-3 border-b border-zinc-800/60 px-4 py-3">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]" />
+          <div className="flex items-center gap-2.5 border-b border-zinc-800/60 px-4 py-3 shrink-0">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)] animate-pulse motion-reduce:animate-none" />
             <span className="font-mono text-xs font-semibold uppercase tracking-widest text-emerald-400">
-              {t("مساعد البورتفوليو", "Portfolio Assistant")}
+              Portfolio Assistant
             </span>
-            <span className="ms-auto font-mono text-[9px] uppercase tracking-widest text-zinc-600">
-              goodnbad.info
+            <span className="ml-auto flex items-center gap-1 font-mono text-[9px] text-zinc-600 uppercase tracking-widest">
+              <ShieldCheck className="h-3 w-3" />
+              safe mode
             </span>
           </div>
 
-          {/* Message list */}
+          {/* Messages */}
           <div ref={scrollRef} className="flex-1 min-h-0 space-y-3 overflow-y-auto px-4 py-4">
-            {isEmpty && !fallbackFaq && (
-              <div className="space-y-3">
-                <p className="font-mono text-[11px] leading-relaxed text-zinc-500">
-                  {t(
-                    "اسألني عن خدمات حمزة وشهاداته وتوفّره، أو عن «خزينة الأدوات».",
-                    "Ask me about Hamzah's services, certifications, availability, or the Toolkit Vault.",
-                  )}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {suggestions.map((item) => (
-                    <button
-                      key={item.key}
-                      onClick={() => send(t(item.q.ar, item.q.en))}
-                      className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-[11px] text-zinc-300 transition-colors hover:border-emerald-800 hover:text-emerald-400"
-                    >
-                      {t(item.q.ar, item.q.en)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "flex",
-                  msg.role === "user" ? "justify-end" : "justify-start",
-                )}
-              >
+            {messages.map((m, i) => (
+              <div key={i} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
                 <div
                   className={cn(
-                    "max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-[13px] leading-relaxed",
-                    msg.role === "user"
-                      ? "bg-emerald-900/40 text-emerald-50"
-                      : "bg-zinc-900 text-zinc-200",
+                    "max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
+                    m.role === "user"
+                      ? "rounded-br-sm bg-emerald-600/90 text-emerald-50"
+                      : "rounded-bl-sm border border-zinc-800 bg-zinc-900/70 text-zinc-200"
                   )}
                 >
-                  {msg.content}
+                  {m.role === "assistant" ? <Linkified text={m.text} /> : m.text}
                 </div>
               </div>
             ))}
 
-            {loading && (
+            {/* Typing indicator */}
+            {typing && (
               <div className="flex justify-start">
-                <div className="flex items-center gap-2 rounded-2xl bg-zinc-900 px-3 py-2 text-[13px] text-zinc-400">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  {t("يكتب…", "Typing…")}
+                <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm border border-zinc-800 bg-zinc-900/70 px-3.5 py-3">
+                  {[0, 1, 2].map((d) => (
+                    <span
+                      key={d}
+                      className="h-1.5 w-1.5 rounded-full bg-zinc-500 animate-bounce motion-reduce:animate-none"
+                      style={{ animationDelay: `${d * 0.15}s` }}
+                    />
+                  ))}
                 </div>
-              </div>
-            )}
-
-            {/* No-key fallback: static FAQ list */}
-            {fallbackFaq && (
-              <div className="space-y-2 border-t border-zinc-800/60 pt-3">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
-                  {t("الأسئلة الشائعة", "Frequently asked")}
-                </p>
-                {fallbackFaq.map((item) => (
-                  <details
-                    key={item.key}
-                    className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-zinc-300"
-                  >
-                    <summary className="cursor-pointer list-none text-[12px] font-medium text-emerald-400">
-                      {t(item.q.ar, item.q.en)}
-                    </summary>
-                    <p className="mt-1.5 text-[12px] leading-relaxed text-zinc-400">
-                      {t(item.a.ar, item.a.en)}
-                    </p>
-                  </details>
-                ))}
-              </div>
-            )}
-
-            {error && (
-              <div className="rounded-lg border border-red-900/60 bg-red-950/40 px-3 py-2 text-[12px] text-red-300">
-                {error}
               </div>
             )}
           </div>
 
+          {/* Suggestion chips */}
+          {chips.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 border-t border-zinc-900 px-3 pt-2.5 pb-1 shrink-0">
+              {chips.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => send(c)}
+                  className="rounded-full border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 font-mono text-[10px] text-zinc-400 transition-colors hover:border-emerald-800 hover:text-emerald-300"
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Input */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              send(input)
-            }}
-            className="flex shrink-0 items-center gap-2 border-t border-zinc-800/60 px-3 py-3"
-          >
+          <form onSubmit={onSubmit} className="flex items-center gap-2 border-t border-zinc-800/60 p-2.5 shrink-0">
             <input
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={t("اكتب سؤالك…", "Type your question…")}
-              disabled={loading}
-              className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-[13px] text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-800 focus:outline-none disabled:opacity-50"
-              aria-label={t("سؤالك للمساعد", "Your question for the assistant")}
+              placeholder="Ask about Hamzah's work…"
+              aria-label="Ask the portfolio assistant a question"
+              maxLength={300}
+              className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-[13px] text-zinc-200 placeholder:text-zinc-600 outline-none transition-colors focus:border-emerald-800"
             />
             <button
               type="submit"
-              disabled={loading || !input.trim()}
+              disabled={!input.trim() || typing}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-800 bg-emerald-950 text-emerald-400 transition-colors hover:bg-emerald-900 disabled:opacity-40"
-              aria-label={t("إرسال", "Send")}
+              aria-label="Send message"
             >
               <Send className="h-4 w-4" />
             </button>
