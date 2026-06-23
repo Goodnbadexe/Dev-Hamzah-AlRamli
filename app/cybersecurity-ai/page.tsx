@@ -23,7 +23,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Play,
-  Pause,
   Mail
 } from 'lucide-react';
 import { MatrixBackground } from '@/components/matrix-background';
@@ -35,7 +34,6 @@ export default function CybersecurityAIPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [threatsDetected, setThreatsDetected] = useState(0);
   const [scanProgress, setScanProgress] = useState(0);
-  const [activeDemo, setActiveDemo] = useState<string | null>(null);
 
   const startThreatScan = () => {
     setIsScanning(true);
@@ -164,7 +162,7 @@ export default function CybersecurityAIPage() {
             <GlitchText text="Goodnbad.exe" className="font-bold text-xl" />
           </Link>
           
-          <Button variant="outline" className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/20" asChild>
+          <Button variant="outline" className="border-purple-500 text-purple-400 hover:bg-purple-500/20" asChild>
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Portfolio
             </Link>
@@ -173,7 +171,7 @@ export default function CybersecurityAIPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto py-20 px-4 relative z-10">
+      <section className="container mx-auto py-24 lg:py-32 px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           <Badge className="mb-6 bg-purple-500/10 text-purple-400 border border-purple-500/30">
             <Brain className="w-4 h-4 mr-2" /> Cybersecurity AI
@@ -208,12 +206,18 @@ export default function CybersecurityAIPage() {
               )}
             </Button>
             
-            <Button size="lg" variant="outline" className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/20">
+            <Button size="lg" variant="outline" className="border-purple-500 text-purple-400 hover:bg-purple-500/20">
               <Brain className="mr-2 h-4 w-4" />
               Explore AI Models
             </Button>
           </div>
-          
+
+          {isScanning && (
+            <div className="mt-6 h-1 w-full max-w-md mx-auto bg-purple-950/60 rounded-full overflow-hidden">
+              <div style={{ width: `${scanProgress}%` }} className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-200" />
+            </div>
+          )}
+
           {threatsDetected > 0 && (
             <div className="mt-8 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
               <div className="flex items-center justify-center gap-2 text-red-400">
@@ -229,8 +233,9 @@ export default function CybersecurityAIPage() {
       </section>
 
       {/* AI Capabilities Section */}
-      <section className="container mx-auto py-20 px-4 relative z-10">
+      <section className="container mx-auto py-24 lg:py-32 px-4 relative z-10">
         <div className="max-w-6xl mx-auto">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-purple-500/40 to-transparent mb-12" />
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               <GlitchText text="AI Security Capabilities" />
@@ -271,8 +276,9 @@ export default function CybersecurityAIPage() {
       </section>
 
       {/* Interactive Demos Section */}
-      <section className="container mx-auto py-20 px-4 relative z-10 bg-zinc-900/30">
+      <section className="container mx-auto py-24 lg:py-32 px-4 relative z-10 bg-zinc-900/30">
         <div className="max-w-6xl mx-auto">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-purple-500/40 to-transparent mb-12" />
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               <GlitchText text="Interactive AI Demos" />
@@ -284,17 +290,13 @@ export default function CybersecurityAIPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {demoScenarios.map((demo, index) => (
-              <Card key={index} className="bg-zinc-800/50 border-zinc-700 hover:border-emerald-500/50 transition-all duration-300">
+              <Card key={index} className="bg-zinc-800/50 border-zinc-700 hover:border-purple-500/50 transition-all duration-300">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-emerald-500">
+                    <div className="text-purple-400">
                       {demo.icon}
                     </div>
-                    <Badge className={
-                      demo.status === 'Ready' ? 'bg-green-500/20 text-green-400' :
-                      demo.status === 'Active' ? 'bg-blue-500/20 text-blue-400' :
-                      'bg-yellow-500/20 text-yellow-400'
-                    }>
+                    <Badge className="bg-purple-500/15 text-purple-300 border border-purple-500/30">
                       {demo.status}
                     </Badge>
                   </div>
@@ -304,37 +306,16 @@ export default function CybersecurityAIPage() {
                   <CardDescription className="text-zinc-400 mb-4">
                     {demo.description}
                   </CardDescription>
-                  <Button 
-                    variant="outline" 
-                    className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/20 w-full"
-                    onClick={() => setActiveDemo(activeDemo === demo.id ? null : demo.id)}
+                  <Button
+                    variant="outline"
+                    className="border-purple-500 text-purple-400 hover:bg-purple-500/20 w-full"
+                    asChild
                   >
-                    {activeDemo === demo.id ? (
-                      <>
-                        <Pause className="mr-2 h-4 w-4" />
-                        Stop Demo
-                      </>
-                    ) : (
-                      <>
-                        <Play className="mr-2 h-4 w-4" />
-                        Start Demo
-                      </>
-                    )}
+                    <Link href="/lab">
+                      Run in Lab
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
                   </Button>
-                  
-                  {activeDemo === demo.id && (
-                    <div className="mt-4 p-4 bg-black/50 rounded-lg border border-emerald-500/30">
-                      <div className="flex items-center gap-2 text-emerald-400 mb-2">
-                        <div className="animate-pulse w-2 h-2 bg-emerald-500 rounded-full" />
-                        <span className="text-sm font-mono">AI Analysis Running...</span>
-                      </div>
-                      <div className="text-xs text-zinc-300 font-mono space-y-1">
-                        <div>• Scanning network traffic patterns...</div>
-                        <div>• Analyzing behavioral anomalies...</div>
-                        <div>• Cross-referencing threat databases...</div>
-                      </div>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             ))}
@@ -343,8 +324,9 @@ export default function CybersecurityAIPage() {
       </section>
 
       {/* Microsoft AI Skills Section */}
-      <section className="container mx-auto py-20 px-4 relative z-10">
+      <section className="container mx-auto py-24 lg:py-32 px-4 relative z-10">
         <div className="max-w-6xl mx-auto">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-purple-500/40 to-transparent mb-12" />
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               <GlitchText text="Microsoft AI Skills" />
@@ -392,8 +374,9 @@ export default function CybersecurityAIPage() {
       </section>
 
       {/* OSINT Capabilities Section */}
-      <section className="container mx-auto py-20 px-4 relative z-10">
+      <section className="container mx-auto py-24 lg:py-32 px-4 relative z-10">
         <div className="max-w-6xl mx-auto">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-purple-500/40 to-transparent mb-12" />
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               <GlitchText text="OSINT & Reconnaissance" />
@@ -407,8 +390,9 @@ export default function CybersecurityAIPage() {
       </section>
 
       {/* Agent Network Section */}
-      <section className="container mx-auto py-20 px-4 relative z-10 bg-zinc-900/30">
+      <section className="container mx-auto py-24 lg:py-32 px-4 relative z-10 bg-zinc-900/30">
         <div className="max-w-6xl mx-auto">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-purple-500/40 to-transparent mb-12" />
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               <GlitchText text="Deployed Agent Network" />
@@ -422,7 +406,7 @@ export default function CybersecurityAIPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto py-20 px-4 relative z-10 bg-gradient-to-r from-purple-900/30 to-emerald-900/30">
+      <section className="container mx-auto py-24 lg:py-32 px-4 relative z-10 bg-gradient-to-r from-purple-900/30 to-pink-900/30">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             <GlitchText text="Ready to Secure Your Future?" />
@@ -432,7 +416,7 @@ export default function CybersecurityAIPage() {
             and stay ahead of emerging threats.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 text-black" asChild>
+            <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white" asChild>
               <Link href="mailto:alramli.hamzah@gmail.com">
                 <Mail className="mr-2 h-4 w-4" />
                 Contact for Consultation

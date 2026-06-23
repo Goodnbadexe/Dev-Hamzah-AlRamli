@@ -35,7 +35,7 @@ const standardRoutes = [
 
 export default function TerminalPage() {
   return (
-    <OSPageShell osName="terminal.sh" label="Advanced Terminal">
+    <OSPageShell osName="terminal.sh" label="Advanced Terminal" accent="emerald">
       <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
         <div className="mb-4">
           <Link
@@ -47,7 +47,7 @@ export default function TerminalPage() {
           </Link>
         </div>
 
-        <section className="grid gap-4 lg:grid-cols-[1fr_0.85fr]">
+        <section className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
           <OSWindow label="advanced.mode" title="system terminal" status="idle" className="os-panel-in">
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-emerald-400">
@@ -66,7 +66,7 @@ export default function TerminalPage() {
           </OSWindow>
 
           <OSWindow label="normal.navigation" title="recommended paths" status="active" className="os-panel-in">
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center gap-2 text-emerald-400">
                 <CircleHelp className="h-5 w-5" />
                 <h2 className="text-xl font-semibold text-zinc-100">Need the normal pages?</h2>
@@ -74,12 +74,12 @@ export default function TerminalPage() {
               <p className="text-sm leading-6 text-zinc-400">
                 Use these if you are reviewing Hamzah professionally.
               </p>
-              <div className="space-y-2 border-t border-zinc-800 pt-4">
+              <div className="space-y-3 border-t border-zinc-800 pt-4">
                 {standardRoutes.map((route) => (
                   <Link
                     key={route.href}
                     href={route.href}
-                    className="flex items-start gap-3 rounded-md border border-zinc-800 bg-zinc-950/40 p-3 transition hover:border-emerald-900 hover:bg-zinc-950/70"
+                    className="flex items-start gap-3 rounded-md border border-zinc-800 bg-zinc-950/40 p-4 transition hover:border-emerald-900 hover:bg-zinc-950/70"
                   >
                     <span className="mt-1 text-emerald-500">{route.icon}</span>
                     <span>
@@ -92,6 +92,11 @@ export default function TerminalPage() {
             </div>
           </OSWindow>
         </section>
+
+        <div className="mt-6 flex items-center gap-2 font-mono text-xs text-zinc-500">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>System ready. Type &quot;help&quot; for commands.</span>
+        </div>
 
         <section className="mt-4">
           <OSWindow label="terminal.session" title="interactive command interface" status="active" className="os-panel-in">

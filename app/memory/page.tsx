@@ -32,27 +32,30 @@ export default function MemoryPage() {
         </div>
 
         {/* Memory Vault */}
-        <div className="mb-16">
+        <div className="mb-20">
           <div className="flex items-center gap-3 mb-6">
-            <span className="text-xs font-mono text-zinc-500 tracking-widest uppercase">Memory Vault</span>
-            <div className="flex-1 h-px bg-zinc-800" />
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+            <span className="text-xs font-mono text-emerald-600 tracking-widest uppercase">Memory Vault</span>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
           </div>
           <MemoryVault />
         </div>
 
         {/* Agent Council */}
-        <div className="mb-16">
+        <div className="mb-20">
           <div className="flex items-center gap-3 mb-6">
-            <span className="text-xs font-mono text-zinc-500 tracking-widest uppercase">Agent Council</span>
-            <div className="flex-1 h-px bg-zinc-800" />
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+            <span className="text-xs font-mono text-emerald-600 tracking-widest uppercase">Agent Council</span>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
           </div>
           <AgentConsole />
         </div>
 
         {/* Divider before existing plan content */}
         <div className="flex items-center gap-3 mb-10">
-          <span className="text-xs font-mono text-zinc-500 tracking-widest uppercase">Learning Plan</span>
-          <div className="flex-1 h-px bg-zinc-800" />
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+          <span className="text-xs font-mono text-emerald-600 tracking-widest uppercase">Learning Plan</span>
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

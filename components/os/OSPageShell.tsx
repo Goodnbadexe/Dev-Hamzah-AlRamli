@@ -12,11 +12,26 @@ const ThreatGlobe = dynamic(
   { ssr: false, loading: () => null }
 )
 
+/** Per-page accent — full literal classes (Tailwind JIT can't read interpolation). */
+const breadcrumbAccent = {
+  emerald: { name: "text-emerald-700", dot: "bg-emerald-600" },
+  cyan: { name: "text-cyan-600", dot: "bg-cyan-500" },
+  red: { name: "text-red-700", dot: "bg-red-600" },
+  purple: { name: "text-purple-600", dot: "bg-purple-500" },
+  amber: { name: "text-amber-600", dot: "bg-amber-500" },
+  rose: { name: "text-rose-600", dot: "bg-rose-500" },
+  blue: { name: "text-blue-600", dot: "bg-blue-500" },
+} as const
+
+export type OSPageAccent = keyof typeof breadcrumbAccent
+
 interface OSPageShellProps {
   /** The OS system name displayed in the window chrome, e.g. "personnel.exe" */
   osName: string
   /** Human-readable label for accessibility and non-technical visitors, e.g. "Career & Credentials" */
   label: string
+  /** Page accent hue — colors the breadcrumb identity so each route reads distinct. */
+  accent?: OSPageAccent
   children: ReactNode
   className?: string
 }
@@ -38,7 +53,8 @@ interface OSPageShellProps {
  *     )
  *   }
  */
-export function OSPageShell({ osName, label, children, className }: OSPageShellProps) {
+export function OSPageShell({ osName, label, accent = "emerald", children, className }: OSPageShellProps) {
+  const hue = breadcrumbAccent[accent]
   return (
     <OSDesktop skipBoot>
       {/* Globe — fixed full-viewport background layer */}
@@ -69,20 +85,20 @@ export function OSPageShell({ osName, label, children, className }: OSPageShellP
         )}
       >
         {/* Route identity header — monospace breadcrumb, always visible */}
-        <div className="border-b border-zinc-900/80 bg-zinc-950/30 px-4 py-2 flex items-center gap-3 backdrop-blur-sm">
-          <span className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest select-none">
+        <div className="border-b border-zinc-900/80 bg-zinc-950/30 px-5 py-3 flex items-center gap-3 backdrop-blur-sm">
+          <span className="font-mono text-[11px] text-zinc-700 uppercase tracking-widest select-none">
             goodnbad://
           </span>
-          <span className="font-mono text-[10px] text-emerald-700 tracking-wide select-none">
+          <span className={`font-mono text-[11px] tracking-wide select-none ${hue.name}`}>
             {osName}
           </span>
           <span className="h-3 w-px bg-zinc-800 shrink-0" />
-          <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest select-none">
+          <span className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest select-none">
             {label}
           </span>
           <span className="ml-auto flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
-            <span className="font-mono text-[9px] text-zinc-700 uppercase tracking-widest select-none hidden sm:block">active</span>
+            <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${hue.dot}`} />
+            <span className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest select-none hidden sm:block">active</span>
           </span>
         </div>
 

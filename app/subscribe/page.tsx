@@ -11,7 +11,7 @@ import {
   BUILD_STEPS, PRODUCT, PROMO_WINDOW_MS, buildPromoCode, gumroadUrl, gumroadPrice,
 } from "@/lib/subscribe/config"
 import { personalize } from "@/lib/subscribe/personalize"
-import { trackById } from "@/lib/subscribe/tracks"
+import { TRACKS, TRACK_IDS, trackById } from "@/lib/subscribe/tracks"
 
 const ICONS: Record<string, LucideIcon> = {
   user: User, zap: Zap, wrench: Wrench, alert: AlertTriangle, layers: Layers, clock: Clock,
@@ -204,6 +204,11 @@ export default function SubscribePage() {
   const buyUrl = gumroadUrl(selectedTracks, person.osVariant)
   const price = gumroadPrice(selectedTracks)
   const vaultName = person.recommendedBundle === "single" ? `${tracksLabel} Vault` : "All-Access Vault"
+
+  // Upsell: all-access upgrade + other individual tracks not in the recommendation
+  const allAccessUrl = gumroadUrl(TRACK_IDS, person.osVariant)
+  const otherTracks = TRACKS.filter((t) => !selectedTracks.includes(t.id))
+  const showUpsell = selectedTracks.length > 0 && selectedTracks.length < TRACK_IDS.length
 
   return (
     <main className="relative min-h-screen bg-zinc-950 text-zinc-100 pb-24">
@@ -492,8 +497,6 @@ export default function SubscribePage() {
               </div>
             )}
 
-            <p className="text-center font-mono text-[11px] text-emerald-600/80" dir="rtl">{PRODUCT.socialProofAr}</p>
-
             {/* What you get */}
             <div className="space-y-2 rounded-xl border border-zinc-800/60 bg-zinc-900/30 px-4 py-4">
               <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-zinc-600">what you get · ما تحصل عليه</p>
@@ -511,6 +514,91 @@ export default function SubscribePage() {
             <p className="text-center font-mono text-[10px] text-zinc-700" dir="rtl">
               وصول فوري · دفع آمن عبر Gumroad · instant access
             </p>
+
+            {/* ── UPSELL: other vaults ───────────────────────────────────── */}
+            {showUpsell && (
+              <div className="space-y-3 border-t border-zinc-800/60 pt-5">
+                <p className="text-center font-mono text-[10px] uppercase tracking-widest text-zinc-600">
+                  expand your vault · وسّع خزينتك
+                </p>
+
+                {/* All-access upgrade — always show unless user already matched all tracks */}
+                {allAccessUrl && (
+                  <div className="rounded-xl border border-emerald-900/50 bg-emerald-950/10 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-600/70">
+                          best deal · أفضل صفقة
+                        </p>
+                        <p className="mt-0.5 text-sm font-semibold text-zinc-100">All-Access Vault</p>
+                        <p className="text-xs text-zinc-500" dir="rtl">
+                          كل الـ {TRACK_IDS.length} خزائن — سعر واحد
+                        </p>
+                        <p className="font-mono text-[10px] text-zinc-600">
+                          All {TRACK_IDS.length} vaults · one price
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="font-mono text-[11px] text-zinc-600 line-through">
+                          ${TRACK_IDS.length * 8}
+                        </p>
+                        <p className="font-mono text-xl font-bold text-emerald-300">
+                          $25<span className="text-xs font-normal text-zinc-500">/mo</span>
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={allAccessUrl}
+                      onClick={() => sendLead("gumroad-all", promo)}
+                      data-gumroad-overlay-checkout="true"
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-emerald-700 bg-emerald-950/30 px-4 py-2.5 font-mono text-xs font-semibold uppercase tracking-wide text-emerald-300 transition-all hover:bg-emerald-900/40 hover:text-emerald-200"
+                    >
+                      Upgrade to All-Access <ArrowRight className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                )}
+
+                {/* Individual tracks not in the recommendation — show up to 3 */}
+                {otherTracks.slice(0, 3).map((track) => {
+                  const trackUrl = gumroadUrl([track.id], person.osVariant)
+                  return (
+                    <div
+                      key={track.id}
+                      className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/20 px-4 py-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-zinc-300" dir="rtl">
+                          {track.ar}
+                        </p>
+                        <p className="font-mono text-[10px] text-zinc-600 truncate">
+                          {track.tagEn}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="font-mono text-xs font-bold text-zinc-400">$8<span className="text-[10px] font-normal text-zinc-600">/mo</span></p>
+                      </div>
+                      {trackUrl ? (
+                        <a
+                          href={trackUrl}
+                          onClick={() => sendLead(`gumroad-${track.id}`, promo)}
+                          data-gumroad-overlay-checkout="true"
+                          className="shrink-0 rounded border border-zinc-700 bg-zinc-800/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wide text-zinc-400 transition-all hover:border-zinc-500 hover:text-zinc-200"
+                        >
+                          Add
+                        </a>
+                      ) : (
+                        <span className="shrink-0 rounded border border-zinc-800 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wide text-zinc-700">
+                          Soon
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            <p className="text-center font-mono text-[11px] text-emerald-600/80" dir="rtl">{PRODUCT.socialProofAr}</p>
+
           </section>
         )}
 

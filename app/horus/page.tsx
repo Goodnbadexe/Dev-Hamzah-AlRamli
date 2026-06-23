@@ -201,9 +201,9 @@ export default function HorusPage() {
             </span>
             <span className="h-3 w-px bg-zinc-800" />
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)] animate-pulse" />
-            <span className="font-mono text-[9px] text-emerald-700 uppercase tracking-widest">LIVE</span>
+            <span className="font-mono text-[10px] text-emerald-700 uppercase tracking-widest">LIVE</span>
           </div>
-          <p className="font-mono text-[9px] text-zinc-700 uppercase tracking-widest">
+          <p className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest">
             goodnbad.exe / air-intelligence · opensky network
           </p>
         </div>
@@ -211,7 +211,7 @@ export default function HorusPage() {
         {/* ============================================================ */}
         {/* TOP-RIGHT — aircraft stats panel                              */}
         {/* ============================================================ */}
-        <div className="absolute right-4 top-16 z-10 w-52">
+        <div className="absolute right-4 top-16 z-10 w-64">
           <div className="rounded-md border border-zinc-800/70 bg-zinc-950/80 backdrop-blur-sm overflow-hidden">
 
             {/* Panel header */}
@@ -231,14 +231,14 @@ export default function HorusPage() {
             </button>
 
             {statsOpen && (
-              <div className="p-3 space-y-2.5">
+              <div className="p-4 space-y-3">
 
                 {/* Total tracked */}
                 <div>
-                  <p className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest mb-0.5">
+                  <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-0.5">
                     Tracked / Global
                   </p>
-                  <p className="font-mono text-2xl font-bold text-zinc-100 tabular-nums leading-none">
+                  <p className="font-mono text-3xl font-bold text-zinc-100 tabular-nums leading-none">
                     {loading ? "—" : aircraft.length.toLocaleString()}
                     <span className="text-zinc-700 text-sm font-normal ml-1">
                       / {totalGlobal.toLocaleString()}
@@ -257,7 +257,7 @@ export default function HorusPage() {
                       <div key={label} className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", color)} />
-                          <span className="font-mono text-[9px] text-zinc-600">{label}</span>
+                          <span className="font-mono text-[10px] text-zinc-600">{label}</span>
                         </div>
                         <span className="font-mono text-[10px] text-zinc-400 tabular-nums">{count.toLocaleString()}</span>
                       </div>
@@ -267,7 +267,7 @@ export default function HorusPage() {
 
                 {/* Refresh row */}
                 <div className="flex items-center justify-between pt-1 border-t border-zinc-900">
-                  <span className="font-mono text-[9px] text-zinc-700 truncate">
+                  <span className="font-mono text-[10px] text-zinc-700 truncate">
                     {fetchedAt
                       ? new Date(fetchedAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
                       : "—"}
@@ -275,7 +275,7 @@ export default function HorusPage() {
                   <button
                     onClick={() => fetchAircraft(true)}
                     disabled={refreshing}
-                    className="flex items-center gap-1 font-mono text-[9px] text-zinc-600 hover:text-emerald-500 transition-colors disabled:opacity-40"
+                    className="flex items-center gap-1 font-mono text-[10px] text-zinc-600 hover:text-emerald-500 transition-colors disabled:opacity-40"
                   >
                     <RefreshCw className={cn("h-2.5 w-2.5", refreshing && "animate-spin")} />
                     {refreshing ? "Sync…" : "Refresh"}
@@ -283,7 +283,7 @@ export default function HorusPage() {
                 </div>
 
                 {fetchError && (
-                  <p className="font-mono text-[9px] text-red-700 truncate">{fetchError}</p>
+                  <p className="font-mono text-[10px] text-red-700 truncate">{fetchError}</p>
                 )}
               </div>
             )}
@@ -293,7 +293,7 @@ export default function HorusPage() {
         {/* ============================================================ */}
         {/* BOTTOM-LEFT — layer controls                                  */}
         {/* ============================================================ */}
-        <div className="absolute bottom-8 left-4 z-10 w-52">
+        <div className="absolute bottom-8 left-4 z-10 w-64">
           <div className="rounded-md border border-zinc-800/70 bg-zinc-950/80 backdrop-blur-sm overflow-hidden">
 
             <button
@@ -312,7 +312,7 @@ export default function HorusPage() {
             </button>
 
             {layerPanelOpen && (
-              <div className="p-3 space-y-1.5">
+              <div className="p-4 space-y-1.5">
 
                 {/* Globe mode */}
                 <button
@@ -323,7 +323,7 @@ export default function HorusPage() {
                     {modeIcon(globeMode)}
                     <span>Globe: {GLOBE_MODE_LABELS[globeMode]}</span>
                   </div>
-                  <span className="text-zinc-700 text-[9px]">cycle</span>
+                  <span className="text-zinc-700 text-[10px]">cycle</span>
                 </button>
 
                 {/* Layer toggles */}
@@ -338,7 +338,7 @@ export default function HorusPage() {
                     className={cn(
                       "flex w-full items-center justify-between rounded border px-2.5 py-1.5 font-mono text-[10px] transition",
                       layers[key]
-                        ? "border-zinc-700 bg-zinc-900/70 text-zinc-300"
+                        ? "border-zinc-700 bg-zinc-900/70 text-zinc-300 ring-1 ring-emerald-500/20"
                         : "border-zinc-800/50 bg-zinc-950/30 text-zinc-600 hover:border-zinc-800 hover:text-zinc-500"
                     )}
                   >
@@ -346,7 +346,7 @@ export default function HorusPage() {
                       <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", layers[key] ? dot : "bg-zinc-700")} />
                       {label}
                     </div>
-                    <span className={layers[key] ? "text-emerald-600" : "text-zinc-700"}>
+                    <span className={layers[key] ? "text-emerald-400" : "text-zinc-700"}>
                       {layers[key] ? "ON" : "OFF"}
                     </span>
                   </button>
@@ -366,7 +366,7 @@ export default function HorusPage() {
                         <span className="h-1.5 w-1.5 rounded-full bg-zinc-800 shrink-0" />
                         {label}
                       </div>
-                      <span className="text-zinc-800 text-[9px]">{phase}</span>
+                      <span className="text-zinc-800 text-[10px]">{phase}</span>
                     </div>
                   ))}
                 </div>
@@ -380,14 +380,14 @@ export default function HorusPage() {
         {/* BOTTOM-RIGHT — selected aircraft dossier                      */}
         {/* ============================================================ */}
         {selected && (
-          <div className="absolute bottom-8 right-4 z-10 w-64">
+          <div className="absolute bottom-8 right-4 z-10 w-72">
             <div className="rounded-md border border-emerald-900/60 bg-zinc-950/85 backdrop-blur-sm overflow-hidden">
 
               {/* Dossier header */}
               <div className="flex items-center justify-between px-3 py-2 border-b border-emerald-900/40 bg-emerald-950/20">
                 <div className="flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_theme(colors.emerald.500)] animate-pulse" />
-                  <span className="font-mono text-[10px] text-emerald-500 uppercase tracking-widest font-semibold">
+                  <span className="font-mono text-xs text-emerald-500 uppercase tracking-widest font-semibold">
                     {selected.callsign || selected.icao24}
                   </span>
                 </div>
@@ -409,42 +409,42 @@ export default function HorusPage() {
                   { label: "Squawk",     value: selected.squawk || "—"               },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex items-center justify-between">
-                    <span className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest">{label}</span>
+                    <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">{label}</span>
                     <span className="font-mono text-[11px] text-zinc-300">{value}</span>
                   </div>
                 ))}
 
-                <div className="pt-2 border-t border-zinc-900 grid grid-cols-2 gap-2">
+                <div className="pt-2 border-t border-zinc-900 grid grid-cols-2 gap-3">
 
                   {/* Altitude */}
-                  <div className="rounded border border-zinc-800 bg-zinc-900/40 px-2.5 py-2">
-                    <p className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest mb-0.5 flex items-center gap-1">
+                  <div className="rounded border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
+                    <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-0.5 flex items-center gap-1">
                       <TrendingUp className="h-2.5 w-2.5" /> Alt
                     </p>
                     <p className="font-mono text-xs font-semibold text-zinc-200">
                       {Math.round(selected.altitude).toLocaleString()} m
                     </p>
-                    <p className="font-mono text-[9px] text-zinc-600">
+                    <p className="font-mono text-[10px] text-zinc-600">
                       {metresToFeet(selected.altitude)} ft
                     </p>
                   </div>
 
                   {/* Speed */}
-                  <div className="rounded border border-zinc-800 bg-zinc-900/40 px-2.5 py-2">
-                    <p className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest mb-0.5 flex items-center gap-1">
+                  <div className="rounded border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
+                    <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-0.5 flex items-center gap-1">
                       <Gauge className="h-2.5 w-2.5" /> Speed
                     </p>
                     <p className="font-mono text-xs font-semibold text-zinc-200">
                       {msToKmh(selected.velocity)} km/h
                     </p>
-                    <p className="font-mono text-[9px] text-zinc-600">
+                    <p className="font-mono text-[10px] text-zinc-600">
                       {msToKnots(selected.velocity)} kt
                     </p>
                   </div>
 
                   {/* Heading */}
-                  <div className="rounded border border-zinc-800 bg-zinc-900/40 px-2.5 py-2">
-                    <p className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest mb-0.5 flex items-center gap-1">
+                  <div className="rounded border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
+                    <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-0.5 flex items-center gap-1">
                       <Navigation className="h-2.5 w-2.5" /> Heading
                     </p>
                     <p className="font-mono text-xs font-semibold text-zinc-200">
@@ -453,8 +453,8 @@ export default function HorusPage() {
                   </div>
 
                   {/* Vertical rate */}
-                  <div className="rounded border border-zinc-800 bg-zinc-900/40 px-2.5 py-2">
-                    <p className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest mb-0.5 flex items-center gap-1">
+                  <div className="rounded border border-zinc-800 bg-zinc-900/40 px-3 py-2.5">
+                    <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-0.5 flex items-center gap-1">
                       <Wind className="h-2.5 w-2.5" /> V/S
                     </p>
                     {vr && (
@@ -469,7 +469,7 @@ export default function HorusPage() {
 
                 {/* Position */}
                 <div className="rounded border border-zinc-800 bg-zinc-900/40 px-2.5 py-1.5">
-                  <p className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest mb-0.5">Position</p>
+                  <p className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest mb-0.5">Position</p>
                   <p className="font-mono text-[10px] text-zinc-400 tabular-nums">
                     {selected.latitude.toFixed(4)}° N · {selected.longitude.toFixed(4)}° E
                   </p>
@@ -478,10 +478,10 @@ export default function HorusPage() {
                 {/* 15-min prediction */}
                 {layers.prediction && selected.velocity > 5 && (
                   <div className="rounded border border-emerald-900/50 bg-emerald-950/20 px-2.5 py-1.5">
-                    <p className="font-mono text-[9px] text-emerald-700 uppercase tracking-widest">
+                    <p className="font-mono text-[10px] text-emerald-700 uppercase tracking-widest">
                       15-min projection · dead reckoning
                     </p>
-                    <p className="font-mono text-[9px] text-zinc-600 mt-0.5">
+                    <p className="font-mono text-[10px] text-zinc-600 mt-0.5">
                       Assumes constant heading + speed
                     </p>
                   </div>
@@ -508,7 +508,7 @@ export default function HorusPage() {
         {/* BOTTOM-CENTER — attribution                                    */}
         {/* ============================================================ */}
         <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
-          <p className="font-mono text-[9px] text-zinc-800 uppercase tracking-widest">
+          <p className="font-mono text-[10px] text-zinc-800 uppercase tracking-widest">
             OpenSky Network · NASA GIBS · 30s refresh · click any aircraft to inspect
           </p>
         </div>

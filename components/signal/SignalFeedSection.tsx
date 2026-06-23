@@ -105,10 +105,10 @@ function FeedItem({ item, highlight = false }: { item: SignalFeedItem; highlight
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "group relative block overflow-hidden rounded-md border p-4 transition-all",
+        "group relative block overflow-hidden rounded-md border p-5 transition-all",
         highlight
           ? "border-emerald-700/60 bg-emerald-950/15 ring-1 ring-emerald-500/40 shadow-[0_0_28px_-6px_rgba(16,185,129,0.4)] hover:border-emerald-600/70"
-          : "border-zinc-800 bg-zinc-950/40 hover:border-zinc-700 hover:bg-zinc-950/70"
+          : "border-zinc-800 bg-zinc-950/40 hover:border-emerald-700/60 hover:bg-zinc-950/70 hover:shadow-[0_0_16px_rgba(16,185,129,0.12)]"
       )}
     >
       {/* Trending: moving shimmer line draws the eye even at slot 3 */}
@@ -122,10 +122,10 @@ function FeedItem({ item, highlight = false }: { item: SignalFeedItem; highlight
         <div className="min-w-0 flex-1">
 
           {/* Badge row */}
-          <div className="flex flex-wrap items-center gap-1.5 mb-2">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             {/* Trending badge — only on the featured signal */}
             {highlight && (
-              <span className="inline-flex items-center gap-1 rounded border border-emerald-700/70 bg-emerald-950/50 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-emerald-300">
+              <span className="inline-flex items-center gap-1 rounded border border-emerald-700/70 bg-emerald-950/50 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-emerald-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_theme(colors.emerald.400)] animate-pulse motion-reduce:animate-none" />
                 <TrendingUp className="h-2.5 w-2.5 shrink-0" />
                 Trending
@@ -133,7 +133,7 @@ function FeedItem({ item, highlight = false }: { item: SignalFeedItem; highlight
             )}
             {/* Category badge */}
             <span className={cn(
-              "inline-flex items-center gap-1 rounded border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest",
+              "inline-flex items-center gap-1 rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest",
               cat.className
             )}>
               <Icon className="h-2.5 w-2.5 shrink-0" />
@@ -142,7 +142,7 @@ function FeedItem({ item, highlight = false }: { item: SignalFeedItem; highlight
 
             {/* Source badge */}
             <span className={cn(
-              "inline-flex items-center rounded border px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest",
+              "inline-flex items-center rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest",
               srcClr
             )}>
               {item.source}
@@ -150,7 +150,7 @@ function FeedItem({ item, highlight = false }: { item: SignalFeedItem; highlight
 
             {/* CVE chip */}
             {item.cve && (
-              <span className="inline-flex items-center rounded border border-zinc-800 bg-zinc-900/40 px-2 py-0.5 font-mono text-[9px] text-zinc-500">
+              <span className="inline-flex items-center rounded border border-zinc-800 bg-zinc-900/40 px-2 py-0.5 font-mono text-[10px] text-zinc-500">
                 {item.cve}
               </span>
             )}
@@ -291,7 +291,7 @@ export function SignalFeedSection({ initialItems, fetchedAt, sourceErrors = [] }
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {ordered.map((item, i) => (
             <FeedItem
               key={`${item.url}-${i}`}
@@ -303,7 +303,7 @@ export function SignalFeedSection({ initialItems, fetchedAt, sourceErrors = [] }
       )}
 
       {/* Source attribution */}
-      <p className="font-mono text-[9px] text-zinc-800 uppercase tracking-widest text-center pt-2">
+      <p className="font-mono text-[10px] text-zinc-800 uppercase tracking-widest text-center pt-2">
         Sourced from trusted feeds and advisories · CISA · MSRC · ThreatFox · URLhaus · BleepingComputer
       </p>
     </div>

@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { Lock, ShieldCheck, Terminal } from "lucide-react"
 import { OSPageShell } from "@/components/os/OSPageShell"
 import { OSWindow } from "@/components/os"
-import { LoaderPreview } from "./LoaderPreview"
 import { hasLabAccess, unlockLab } from "./actions"
 
 export const metadata: Metadata = {
@@ -57,7 +56,7 @@ function LockedLab({ error }: { error?: string }) {
             type="password"
             required
             autoComplete="off"
-            className="w-full rounded-md border border-zinc-800 bg-black px-3 py-3 font-mono text-sm text-zinc-100 outline-none transition placeholder:text-zinc-700 focus:border-emerald-700"
+            className="w-full rounded-md border border-zinc-800 bg-black px-4 py-3 font-mono text-sm text-zinc-100 outline-none transition placeholder:text-zinc-700 focus:border-emerald-700"
             placeholder="Enter passphrase"
           />
           {error && (
@@ -99,14 +98,19 @@ function UnlockedLab() {
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="flex items-center gap-2 mb-6">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="font-mono text-[10px] text-emerald-500 uppercase tracking-widest">Lab access granted</span>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-3">
           {[
             ["Mode", "Private"],
             ["Indexing", "Disabled"],
             ["Public links", "None"],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-md border border-zinc-800 bg-zinc-950/45 p-3">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">{label}</p>
+            <div key={label} className="rounded-md border border-zinc-800 bg-zinc-950/45 p-5">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-zinc-600">{label}</p>
               <p className="mt-2 text-sm font-semibold text-zinc-100">{value}</p>
             </div>
           ))}
@@ -118,9 +122,6 @@ function UnlockedLab() {
             The gate is live. Future lab experiments can be added here without exposing them to normal visitors or public navigation.
           </p>
         </div>
-
-        {/* Loader preview — basic boot vs. the new globe loader */}
-        <LoaderPreview />
       </div>
     </OSWindow>
   )

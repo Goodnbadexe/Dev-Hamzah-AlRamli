@@ -165,7 +165,7 @@ export default function ThreatsPage() {
         {/* ---------------------------------------------------------------- */}
         {/* TOP-LEFT HUD — identity                                          */}
         {/* ---------------------------------------------------------------- */}
-        <div className="pointer-events-none absolute left-4 top-16 z-10 flex flex-col gap-1">
+        <div className="pointer-events-none absolute left-4 top-16 z-10 flex flex-col gap-2 rounded-md px-3 py-2 bg-zinc-950/60 border border-zinc-800/40 backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <Globe2 className="h-3.5 w-3.5 text-emerald-500" />
             <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-700">
@@ -186,18 +186,18 @@ export default function ThreatsPage() {
         <div className="pointer-events-none absolute right-4 top-16 z-10 flex flex-col items-end gap-2">
 
           {/* Attack counter */}
-          <div className="rounded border border-zinc-800/60 bg-zinc-950/70 px-3 py-2 backdrop-blur-sm">
-            <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-600">
+          <div className="rounded border border-zinc-800/60 bg-zinc-950/80 px-4 py-3 backdrop-blur-sm">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
               Events detected
             </p>
-            <p className="mt-0.5 font-mono text-2xl font-bold text-zinc-100 tabular-nums">
+            <p className="mt-0.5 font-mono text-3xl font-bold text-zinc-100 tabular-nums">
               {totalCount.toLocaleString()}
             </p>
           </div>
 
           {/* Top source */}
-          <div className="rounded border border-zinc-800/60 bg-zinc-950/70 px-3 py-2 backdrop-blur-sm">
-            <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-600">
+          <div className="rounded border border-zinc-800/60 bg-zinc-950/80 px-4 py-3 backdrop-blur-sm">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
               Top source
             </p>
             <p className="mt-0.5 font-mono text-sm font-semibold text-red-400">
@@ -218,14 +218,14 @@ export default function ThreatsPage() {
           {recentEvents.map((ev, i) => (
             <div
               key={`${ev.id}-${i}`}
-              className="flex items-center gap-2 rounded border border-zinc-800/50 bg-zinc-950/60 px-2.5 py-1.5 backdrop-blur-sm"
-              style={{ opacity: 1 - i * 0.13 }}
+              className="flex items-center gap-2 rounded border border-zinc-800/50 bg-zinc-950/60 px-3 py-2 backdrop-blur-sm"
+              style={{ opacity: 1 - i * 0.08 }}
             >
               <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${SEV[ev.severity]?.dot ?? "bg-zinc-600"}`} />
-              <span className={`font-mono text-[10px] font-semibold shrink-0 w-24 ${TYPE_COLOR[ev.type] ?? "text-zinc-400"}`}>
+              <span className={`font-mono text-xs font-semibold shrink-0 w-24 ${TYPE_COLOR[ev.type] ?? "text-zinc-400"}`}>
                 {typeLabel(ev.type)}
               </span>
-              <span className="font-mono text-[10px] text-zinc-500 truncate">
+              <span className="font-mono text-xs text-zinc-500 truncate">
                 {ev.country} · {ev.source}
               </span>
             </div>
@@ -240,7 +240,7 @@ export default function ThreatsPage() {
           {/* Mute button */}
           <button
             onClick={() => setMuted(m => !m)}
-            className="flex items-center gap-2 rounded-full border border-zinc-700/60 bg-zinc-950/70 px-3 py-2
+            className="flex items-center gap-2 rounded-full border border-zinc-700/60 bg-zinc-950/80 px-3 py-2
                        font-mono text-[10px] uppercase tracking-widest text-zinc-500
                        backdrop-blur-sm transition hover:border-zinc-600 hover:text-zinc-300"
             aria-label={muted ? "Unmute alerts" : "Mute alerts"}
@@ -255,7 +255,7 @@ export default function ThreatsPage() {
           >
             {lastEvent && (
               <div
-                className={`flex items-start gap-2.5 rounded-md border bg-zinc-950/80 px-3 py-2.5 backdrop-blur-md font-mono text-[11px] max-w-[220px]
+                className={`flex items-start gap-2.5 rounded-md border bg-zinc-950/80 px-3 py-2.5 backdrop-blur-md font-mono text-[11px] max-w-[280px] shadow-lg
                   ${lastEvent.severity === "critical"
                     ? "border-red-800/70 text-red-400"
                     : lastEvent.severity === "high"
@@ -275,7 +275,7 @@ export default function ThreatsPage() {
                     <span className="mx-1 text-zinc-700">·</span>
                     {lastEvent.source}
                   </div>
-                  <div className="mt-0.5 truncate text-[9px] text-zinc-700 max-w-[200px]">
+                  <div className="mt-0.5 truncate text-[9px] text-zinc-700 max-w-[260px]">
                     {lastEvent.ref ?? lastEvent.malware ?? "indicator of compromise"}
                   </div>
                 </div>
