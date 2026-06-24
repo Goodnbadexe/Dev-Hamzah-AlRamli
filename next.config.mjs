@@ -23,12 +23,10 @@ const nextConfig = {
         destination: '/deployments',
         permanent: true,
       },
-      // Signal + News merged into a single canonical threat page at /news.
-      {
-        source: '/signal',
-        destination: '/news',
-        permanent: true,
-      },
+      // NOTE: /signal is the canonical threat-intel page (app/signal/page.tsx).
+      // /news is retired and redirects to /signal (see app/news/page.tsx). Do NOT
+      // add a /signal -> /news redirect here: it pairs with that one to form an
+      // infinite redirect loop (ERR_TOO_MANY_REDIRECTS) that takes BOTH routes down.
     ]
   },
 }
