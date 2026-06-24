@@ -108,8 +108,13 @@ export class CommandProcessor {
           continue;
         }
 
-        // Check if it's a one-time Easter egg
-        if (egg.oneTime && context.behaviorTracker.discoveredSecrets.includes(egg.trigger)) {
+        // Check if it's a one-time Easter egg. Gate on the PERSISTED discovery
+        // list, not behaviorTracker.discoveredSecrets — the latter is rebuilt
+        // empty on every command (see hacker-terminal.tsx), so it could never
+        // suppress a replay and "oneTime" eggs (e.g. konami) fired every time.
+        const persistedEggs: string[] =
+          context.gameManager?.getGameState?.()?.discoveredEasterEggs ?? [];
+        if (egg.oneTime && persistedEggs.includes(egg.trigger)) {
           continue;
         }
 
