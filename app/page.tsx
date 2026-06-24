@@ -483,7 +483,7 @@ export default function HomePage() {
             ? "radial-gradient(120% 80% at 50% 34%, rgba(9,9,11,0.18) 0%, rgba(9,9,11,0.88) 80%)"
             : globeInspect
               ? "radial-gradient(ellipse 80% 75% at 38% 50%, rgba(9,9,11,0.08) 0%, rgba(9,9,11,0.5) 100%)"
-              : "radial-gradient(120% 90% at 76% 42%, rgba(9,9,11,0) 0%, rgba(9,9,11,0.35) 55%, rgba(9,9,11,0.86) 100%), linear-gradient(90deg, rgba(9,9,11,0.92) 0%, rgba(9,9,11,0.55) 38%, rgba(9,9,11,0) 70%)",
+              : "radial-gradient(120% 90% at 76% 42%, rgba(9,9,11,0) 0%, rgba(9,9,11,0.35) 55%, rgba(9,9,11,0.86) 100%), linear-gradient(90deg, rgba(9,9,11,0.92) 0%, rgba(9,9,11,0.55) 38%, rgba(9,9,11,0.12) 72%, rgba(9,9,11,0) 82%)",
         }}
       />
 
@@ -602,7 +602,7 @@ export default function HomePage() {
             a full-width left-anchored STRIP — one horizontal row of all five
             modules on desktop. It deliberately overlays the globe on the right
             (cards keep backdrop-blur so they stay legible). */}
-        <section className={globeInspect ? wrap(true, "pb-12") : "w-full mr-auto px-5 sm:px-8 lg:pl-20 lg:pr-8 pb-12"}>
+        <section className={globeInspect ? wrap(true, "pb-12") : "w-full px-5 sm:px-8 lg:pl-20 lg:pr-0 lg:max-w-[68vw] xl:max-w-[66vw] pb-12"}>
           <div className={cn(globeInspect && "w-full pointer-events-auto")}>
             <div className="mb-4 flex items-center gap-3.5 font-mono text-[12px] uppercase tracking-[0.22em] text-zinc-500">
               <span>os.modules</span>

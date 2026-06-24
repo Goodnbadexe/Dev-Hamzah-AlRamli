@@ -439,7 +439,7 @@ export function ThreatGlobe({
   return (
     <div
       aria-hidden={!interactive}
-      className={rightAligned ? "absolute top-1/2 left-1/2 lg:left-[72%]" : "absolute top-1/2 left-1/2"}
+      className={rightAligned ? "absolute top-1/2 left-1/2 md:left-[58%] lg:left-[68%]" : "absolute top-1/2 left-1/2"}
       style={{ width: w, height: h, transform: globeOffset }}
     >
       <Globe
