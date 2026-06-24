@@ -115,7 +115,10 @@ export function HackerTerminal() {
   const [isInitialized, setIsInitialized] = useState(false)
   const terminalRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  
+  // Always points at the latest handleCommand so the global Konami listener
+  // (registered once on mount) never calls a stale closure.
+  const handleCommandRef = useRef<((command: string) => void) | null>(null)
+
   // Command history for arrow key navigation
   const [commandHistory, setCommandHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
@@ -704,6 +707,9 @@ export function HackerTerminal() {
     setCurrentInput("");
   }
 
+  // Expose the freshest handleCommand to the mount-time Konami listener.
+  handleCommandRef.current = handleCommand
+
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && currentInput.trim()) {
       await handleCommand(currentInput.trim());
@@ -741,6 +747,35 @@ export function HackerTerminal() {
     if (inputRef.current) {
       inputRef.current.focus()
     }
+  }, [])
+
+  // Global Konami code (↑↑↓↓←→←→BA) listener. Previously the only way to fire
+  // the konami easter egg was to literally type the word "konami"; this wires
+  // up the real sequence anywhere on the page via a rolling keystroke buffer.
+  useEffect(() => {
+    const KONAMI_SEQUENCE = [
+      'arrowup', 'arrowup', 'arrowdown', 'arrowdown',
+      'arrowleft', 'arrowright', 'arrowleft', 'arrowright',
+      'b', 'a',
+    ]
+    let buffer: string[] = []
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      buffer.push(e.key.toLowerCase())
+      if (buffer.length > KONAMI_SEQUENCE.length) {
+        buffer = buffer.slice(-KONAMI_SEQUENCE.length)
+      }
+      if (
+        buffer.length === KONAMI_SEQUENCE.length &&
+        KONAMI_SEQUENCE.every((key, i) => key === buffer[i])
+      ) {
+        buffer = []
+        handleCommandRef.current?.('konami')
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
   // Initialize terminal systems and show welcome message

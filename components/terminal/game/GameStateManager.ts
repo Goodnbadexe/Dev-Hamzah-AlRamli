@@ -30,6 +30,8 @@ export class GameStateManager {
           const parsed = JSON.parse(saved);
           return {
             ...parsed,
+            // Backward-compat: older saved states predate this field.
+            discoveredEasterEggs: parsed.discoveredEasterEggs ?? [],
             startTime: new Date(parsed.startTime),
             lastActivity: new Date(parsed.lastActivity),
             achievements: parsed.achievements.map((a: any) => ({
@@ -54,6 +56,7 @@ export class GameStateManager {
       solvedChallenges: [],
       unlockedCommands: ['help', 'clear', 'whoami', 'date', 'echo'],
       achievements: [],
+      discoveredEasterEggs: [],
       stats: {
         commandsExecuted: 0,
         challengesSolved: 0,
@@ -161,6 +164,22 @@ export class GameStateManager {
     this.gameState.lastActivity = new Date();
     this.checkAchievements();
     this.saveGameState();
+  }
+
+  /**
+   * Record an easter egg discovery, counting it toward the easterEggsFound
+   * stat exactly once per unique trigger. Repeatable eggs (e.g. "coffee") can
+   * fire many times in a session but must not inflate the count — otherwise the
+   * `easter_hunter` achievement (find 5 distinct eggs) would be trivially
+   * unlocked by spamming one egg.
+   */
+  public recordEasterEgg(trigger: string): void {
+    if (this.gameState.discoveredEasterEggs.includes(trigger)) {
+      return;
+    }
+    this.gameState.discoveredEasterEggs.push(trigger);
+    // incrementStat persists state and re-checks achievements for us.
+    this.incrementStat('easterEggsFound');
   }
 
   public unlockAchievement(achievementId: string): Achievement | null {

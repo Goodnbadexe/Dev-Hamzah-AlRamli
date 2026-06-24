@@ -118,6 +118,11 @@ export class CommandProcessor {
           context.behaviorTracker.discoveredSecrets.push(egg.trigger);
         }
 
+        // Count toward the persisted easterEggsFound stat (deduped per trigger
+        // inside the manager). behaviorTracker.discoveredSecrets is rebuilt on
+        // every command, so it cannot be the source of truth for the count.
+        context.gameManager?.recordEasterEgg?.(egg.trigger);
+
         return {
           output: egg.response,
           type: 'success',

@@ -110,6 +110,9 @@ export interface GameState {
   unlockedCommands: string[];
   currentChallenge?: string;
   flags?: string[];
+  // Triggers of easter eggs the player has discovered (persisted). Used to
+  // dedupe the easterEggsFound stat so repeatable eggs only count once.
+  discoveredEasterEggs: string[];
   achievements: Achievement[];
   stats: {
     commandsExecuted: number;
