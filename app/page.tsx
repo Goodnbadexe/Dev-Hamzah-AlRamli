@@ -8,6 +8,7 @@ import { OSDesktop, OSTaskbar, AmbientFeed } from "@/components/os"
 import { cn } from "@/lib/utils"
 import type { FeedEntry } from "@/components/os"
 import type { ThreatIoc } from "@/app/api/threats/route"
+import { useLanguage } from "@/components/language-provider"
 import { IocInspector } from "@/components/signal/IocInspector"
 import { MobileSignalOverlay } from "@/components/signal/MobileSignalOverlay"
 import { GlobeLegend } from "@/components/signal/GlobeLegend"
@@ -47,14 +48,6 @@ const MODULE_ITEMS: { href: string; code: string; label: string; sub: string; Ic
   { href: "/signal",      code: "03", label: "SIGNAL",      sub: "Live activity · Feed",         Icon: Radio    },
   { href: "/contact",     code: "04", label: "CONTACT",     sub: "Encrypted channel",            Icon: Mail     },
   { href: "/terminal",    code: "05", label: "TERMINAL",    sub: "Command interface",            Icon: Terminal },
-]
-
-// Hero credential chips
-const HERO_META = [
-  "CEH (pursuing)",
-  "Security+ (pursuing)",
-  "Google Cybersecurity",
-  "BSc CS · Taylor's University",
 ]
 
 // All layer labels (used to seed the default active set)
@@ -151,6 +144,7 @@ interface LayerPanelProps {
 }
 
 function LayerPanel({ activeLayers, onToggle }: LayerPanelProps) {
+  const { t } = useLanguage()
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -163,7 +157,7 @@ function LayerPanel({ activeLayers, onToggle }: LayerPanelProps) {
           className="flex items-center gap-2 rounded border border-zinc-800 bg-zinc-950/70 px-3 py-1.5 font-mono text-[9px] uppercase tracking-widest text-zinc-500 backdrop-blur-sm transition-all hover:border-zinc-700 hover:text-zinc-300"
         >
           <Layers className="h-3 w-3" />
-          LAYERS
+          {t("الطبقات", "LAYERS")}
           <span className="ml-1 text-[8px] text-zinc-600">
             {activeLayers.size}/{ALL_LAYER_LABELS.length}
           </span>
@@ -181,7 +175,7 @@ function LayerPanel({ activeLayers, onToggle }: LayerPanelProps) {
           <div className="flex items-center justify-between border-b border-zinc-800/80 px-3 py-2">
             <div className="flex items-center gap-2">
               <Layers className="h-3 w-3 text-zinc-500" />
-              <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">World Layers</span>
+              <span className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">{t("طبقات العالم", "World Layers")}</span>
             </div>
             <button
               type="button"
@@ -326,6 +320,27 @@ function LiveAttacksStrip({ iocs }: { iocs: ThreatIoc[] }) {
 // Page
 // ---------------------------------------------------------------------------
 export default function HomePage() {
+  const { t, dir } = useLanguage()
+
+  // Localized hero credential chips — cert names stay as proper nouns; only the
+  // human-readable qualifiers translate.
+  const heroMeta = [
+    t("CEH (قيد الدراسة)", "CEH (pursuing)"),
+    t("Security+ (قيد الدراسة)", "Security+ (pursuing)"),
+    "Google Cybersecurity",
+    t("بكالوريوس علوم حاسب · جامعة تايلورز", "BSc CS · Taylor's University"),
+  ]
+
+  // Localized module descriptions, keyed by route. The uppercase module labels
+  // (PERSONNEL, SIGNAL…) stay as terminal-style codes; only the sub-line is prose.
+  const moduleSub: Record<string, string> = {
+    "/personnel":   t("ملف · سيرة ذاتية · تصريح",   "Dossier · CV · Clearance"),
+    "/deployments": t("ملفات المهام · المعمارية",    "Mission files · Architecture"),
+    "/signal":      t("نشاط حيّ · موجز",             "Live activity · Feed"),
+    "/contact":     t("قناة مشفّرة",                 "Encrypted channel"),
+    "/terminal":    t("واجهة الأوامر",               "Command interface"),
+  }
+
   const [liveEntries,  setLiveEntries]  = useState<FeedEntry[]>([])
   const [recentIocs,   setRecentIocs]   = useState<ThreatIoc[]>([])
   const [hoveredIoc,   setHoveredIoc]   = useState<ThreatIoc | null>(null)
@@ -508,7 +523,7 @@ export default function HomePage() {
             className="flex items-center gap-2 rounded border border-emerald-900 bg-zinc-950/70 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-emerald-400 backdrop-blur-md transition-all hover:border-emerald-700 hover:bg-emerald-950/40"
           >
             <Maximize2 className="h-3.5 w-3.5" />
-            Inspect Globe
+            {t("فحص الكرة الأرضية", "Inspect Globe")}
           </button>
           {/* On-globe legend + live indicator counter (color key · count · feeds) */}
           <div className="hidden lg:block">
@@ -524,7 +539,7 @@ export default function HomePage() {
           className="fixed right-4 top-16 z-40 flex items-center gap-2 rounded border border-zinc-800 bg-zinc-950/75 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 backdrop-blur-md transition-colors hover:border-zinc-600 hover:text-zinc-200"
         >
           <X className="h-3.5 w-3.5" />
-          exit globe preview
+          {t("خروج من معاينة الكرة", "exit globe preview")}
         </button>
       )}
 
@@ -542,11 +557,11 @@ export default function HomePage() {
 
         {/* ── HERO IDENTITY ─────────────────────────────────── */}
         <section className={wrap(globeInspect, globeInspect ? "pt-4 pb-3" : "pt-[9vh] pb-[7vh]")}>
-          <div className="w-full pointer-events-auto">
+          <div className="w-full pointer-events-auto" dir={dir}>
             {/* Kicker */}
             <span className="inline-flex items-center gap-2.5 mb-[30px] rounded-[5px] border border-zinc-800 bg-zinc-900/50 px-3.5 py-[7px] font-mono text-[11px] uppercase tracking-[0.26em] text-zinc-400 backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]" />
-              SUBJECT VERIFIED · RIYADH, SA
+              {t("تم التحقق من الهوية · الرياض، السعودية", "SUBJECT VERIFIED · RIYADH, SA")}
             </span>
 
             {/* Identity — display scale (sized to fit the left column), restrained
@@ -564,13 +579,13 @@ export default function HomePage() {
               className="mt-[26px] max-w-[48ch] leading-[1.5] text-zinc-300"
               style={{ fontSize: globeInspect ? "1rem" : "clamp(17px, 2vw, 21px)" }}
             >
-              Hamzah Al-Ramli — <span className="font-semibold text-zinc-100">Cybersecurity &amp; Automation Architect.</span>{" "}
-              I build defensive systems, threat tooling, and the automation that runs them.
+              {t("حمزة الرملي — ", "Hamzah Al-Ramli — ")}<span className="font-semibold text-zinc-100">{t("مهندس أمن سيبراني وأتمتة.", "Cybersecurity & Automation Architect.")}</span>{" "}
+              {t("أبني الأنظمة الدفاعية وأدوات رصد التهديدات والأتمتة التي تُشغّلها.", "I build defensive systems, threat tooling, and the automation that runs them.")}
             </p>
 
             {/* Credential chips */}
             <div className="mt-[22px] flex flex-wrap gap-2.5 font-mono text-[11px] text-zinc-400">
-              {HERO_META.map((m) => (
+              {heroMeta.map((m) => (
                 <span key={m} className="rounded border border-zinc-800 bg-zinc-950/40 px-3 py-2">
                   {m}
                 </span>
@@ -584,13 +599,13 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2.5 rounded-md bg-emerald-500 px-6 py-3.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
               >
                 <Mail className="h-4 w-4" />
-                Open encrypted channel
+                {t("افتح قناة مشفّرة", "Open encrypted channel")}
               </Link>
               <Link
                 href="/personnel"
                 className="inline-flex items-center gap-2.5 rounded-md border border-zinc-800 bg-zinc-950/40 px-6 py-3.5 font-mono text-[13px] font-medium uppercase tracking-[0.1em] text-zinc-300 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-100"
               >
-                View full dossier
+                {t("عرض الملف الكامل", "View full dossier")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -622,7 +637,7 @@ export default function HomePage() {
                     <Icon className="h-[19px] w-[19px]" />
                   </div>
                   <div className="font-mono text-sm font-semibold tracking-wide text-zinc-100">{label}</div>
-                  <div className="mt-1.5 font-mono text-[11px] leading-[1.5] text-zinc-500">{sub}</div>
+                  <div className="mt-1.5 font-mono text-[11px] leading-[1.5] text-zinc-500" dir={dir}>{moduleSub[href] ?? sub}</div>
                 </Link>
               ))}
             </div>
@@ -642,17 +657,23 @@ export default function HomePage() {
                 <span className="ml-auto text-zinc-500">live · ambient</span>
               </div>
               <div className="px-4 py-4">
-                <AmbientFeed
-                  entries={STATIC_ENTRIES}
-                  liveEntries={liveEntries}
-                  interval={8000}
-                  maxLines={6}
-                />
+                {/* Feed + IOC surface sit SIDE BY SIDE (50/50) on md+; they stack
+                    on mobile. Left = live signal feed, right = live IOC surface. */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+                  <div className="min-w-0">
+                    <AmbientFeed
+                      entries={STATIC_ENTRIES}
+                      liveEntries={liveEntries}
+                      interval={8000}
+                      maxLines={6}
+                    />
+                  </div>
 
-                {/* Live IOC surface — docked here beside the signal feed
-                    (was a floating right-edge rail). Click a row to inspect. */}
-                <div className="mt-4 border-t border-zinc-900 pt-3.5">
-                  <IocInspector placement="inline" recent={recentIocs} hovered={hoveredIoc} pinned={pinnedIoc} onPin={setPinnedIoc} onClose={() => setGlobeInspect(false)} />
+                  {/* Live IOC surface — docked beside the signal feed (was a
+                      floating right-edge rail). Click a row to inspect. */}
+                  <div className="min-w-0 border-t border-zinc-900 pt-3.5 md:border-l md:border-t-0 md:pl-5 md:pt-0">
+                    <IocInspector placement="inline" recent={recentIocs} hovered={hoveredIoc} pinned={pinnedIoc} onPin={setPinnedIoc} onClose={() => setGlobeInspect(false)} />
+                  </div>
                 </div>
 
                 <div className="mt-4 border-t border-zinc-900 pt-3.5">
@@ -661,7 +682,7 @@ export default function HomePage() {
                     className="flex items-center gap-1.5 font-mono text-[12px] text-zinc-500 transition-colors hover:text-emerald-500"
                   >
                     <ArrowRight className="h-3 w-3" />
-                    open full signal feed
+                    {t("افتح موجز الإشارة الكامل", "open full signal feed")}
                   </Link>
                 </div>
               </div>
@@ -683,7 +704,7 @@ export default function HomePage() {
         <div className="px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <span className="font-mono text-[10px] text-zinc-700 uppercase tracking-widest">
-              GOODNBAD.EXE © {new Date().getFullYear()} — live cyberattack monitor
+              GOODNBAD.EXE © {new Date().getFullYear()} — {t("مراقب الهجمات السيبرانية الحيّة", "live cyberattack monitor")}
             </span>
             <div className="flex items-center gap-4">
               {[
