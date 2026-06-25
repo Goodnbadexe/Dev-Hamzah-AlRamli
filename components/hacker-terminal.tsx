@@ -158,9 +158,16 @@ export function HackerTerminal() {
   // Initialize managers on client side only
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const auth = new AuthManager();
+      const game = new GameStateManager();
+      // Wire auth into the game manager so command handlers can reach it via
+      // context.gameManager.authManager (login/logout/su all expect that path).
+      // Without this, every auth command silently fell through to the hardcoded
+      // fallback credentials instead of the real AuthManager.
+      ;(game as any).authManager = auth;
       setCommandProcessor(new CommandProcessor());
-      setAuthManager(new AuthManager());
-      setGameManager(new GameStateManager());
+      setAuthManager(auth);
+      setGameManager(game);
     }
   }, []);
 
