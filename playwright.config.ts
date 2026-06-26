@@ -9,10 +9,23 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never' }]],
 
   use: {
-    baseURL: 'https://www.goodnbad.info',
+    // Default to the local build (deterministic, no Vercel bot wall). Override
+    // with E2E_BASE to smoke-test a preview/prod deployment.
+    baseURL: process.env.E2E_BASE ?? 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+
+  // Auto-start a local server so the suite is self-contained. Skipped when
+  // E2E_BASE targets a real deployment.
+  webServer: process.env.E2E_BASE
+    ? undefined
+    : {
+        command: 'npm run dev',
+        url: 'http://localhost:3000',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
 
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
