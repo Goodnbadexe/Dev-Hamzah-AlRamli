@@ -77,6 +77,17 @@ export async function POST(req: Request) {
   }
 
   const { lang, messages } = parsed.data
+
+  // Graceful degradation: if the LLM isn't configured yet, don't error on the
+  // live page — steer the visitor to the booking action instead.
+  if (!process.env.OPENROUTER_API_KEY) {
+    const reply =
+      lang === "ar"
+        ? 'المساعد الذكي غير متاح مؤقتاً. للبدء، اضغط زر «احجز مراجعة مجانية» أعلاه — مراجعة 20 دقيقة لانكشافك السيبراني والذكاء الاصطناعي، بلا التزام.'
+        : 'The AI assistant is briefly offline. To get started, tap "Book free review" above — a no-obligation 20-min review of your Cyber & AI exposure.'
+    return NextResponse.json({ ok: true, reply })
+  }
+
   const systemPrompt = lang === "ar" ? SDR_SYSTEM_PROMPT_AR : SDR_SYSTEM_PROMPT_EN
 
   const payload: SdrMessage[] = [
