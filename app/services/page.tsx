@@ -354,7 +354,7 @@ export default function ServicesPage() {
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-zinc-900">
               {[
-                { value: t('6', '6'), label: t('أنواع الخدمات', 'Service types') },
+                { value: t('7', '7'), label: t('أنواع الخدمات', 'Service types') },
                 { value: t('السعودية + الخليج', 'KSA + GCC'), label: t('التغطية', 'Coverage') },
                 { value: t('عربي / إنجليزي', 'Arabic / EN'), label: t('اللغات', 'Languages') },
                 { value: t('24 ساعة', '24 h'), label: t('زمن الاستجابة', 'Response SLA') },
@@ -367,6 +367,46 @@ export default function ServicesPage() {
             </div>
           </div>
         </div>
+
+        {/* ── Flagship: SME Cyber & AI Readiness Sprint (sub-page) ──────── */}
+        <section dir={dir} className="container mx-auto px-4 pt-16 max-w-6xl">
+          <Link
+            href="/services/cyber-sprint"
+            className="group relative block rounded-md border border-emerald-500/40 bg-emerald-950/10 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/70 hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_0_1px_rgba(16,185,129,0.3)]"
+          >
+            <span className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-60 group-hover:opacity-100 transition-opacity" />
+            <div className="p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-5">
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className="font-mono text-[9px] border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 rounded px-2 py-0.5 uppercase tracking-widest">
+                    {t('حزمة 14 يوماً · الأبرز', '14-Day Package · Flagship')}
+                  </span>
+                  <span className="font-mono text-[9px] border border-zinc-700 text-zinc-400 rounded px-2 py-0.5 uppercase tracking-widest">
+                    {t('للشركات الصغيرة والمتوسطة', 'For SMEs')}
+                  </span>
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-zinc-100 mb-1.5 leading-snug">
+                  {t('جاهزية الأمن السيبراني والذكاء الاصطناعي للشركات', 'SME Cyber & AI Readiness Sprint')}
+                </h3>
+                <p className="text-zinc-500 text-xs md:text-sm leading-relaxed max-w-2xl">
+                  {t(
+                    'فحص Microsoft 365، جاهزية PDPL، سياسة استخدام الذكاء الاصطناعي، لقطة عن الثغرات، وجلسة توعية — تقرير تنفيذي خلال 14 يوماً.',
+                    'Microsoft 365 check, PDPL readiness, AI usage policy, vulnerability snapshot, and an awareness session — executive report in 14 days.',
+                  )}
+                </p>
+              </div>
+              <div className="flex items-center gap-4 md:flex-col md:items-end md:text-right shrink-0">
+                <div>
+                  <div className="font-mono text-[9px] text-zinc-600 uppercase tracking-widest">{t('يبدأ من', 'From')}</div>
+                  <div className="text-xl font-bold text-emerald-300">{t('4,500 ر.س', 'SAR 4,500')}</div>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded bg-emerald-500 group-hover:bg-emerald-400 text-black font-bold px-4 py-2.5 text-sm transition-all duration-200">
+                  {t('عرض الحزمة', 'View Package')} <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+                </span>
+              </div>
+            </div>
+          </Link>
+        </section>
 
         {/* ── Services Grid ─────────────────────────────────────────────── */}
         <section dir={dir} className="container mx-auto px-4 py-16 max-w-6xl">
@@ -586,6 +626,7 @@ export default function ServicesPage() {
                       required
                     >
                       <option value="">{t('اختر خدمة...', 'Select a service...')}</option>
+                      <option value="SME Cyber & AI Readiness Sprint (14-Day)">{t('سبرنت جاهزية الأمن والذكاء الاصطناعي (14 يوماً)', 'SME Cyber & AI Readiness Sprint (14-Day)')}</option>
                       <option value="Penetration Testing">{t('اختبار الاختراق', 'Penetration Testing')}</option>
                       <option value="Security Audit (NCA/SAMA/ISO)">{t('تدقيق أمني (NCA/SAMA/ISO)', 'Security Audit (NCA/SAMA/ISO)')}</option>
                       <option value="Microsoft Security Setup (Azure/M365)">{t('إعداد أمن Microsoft (Azure/M365)', 'Microsoft Security Setup (Azure/M365)')}</option>
