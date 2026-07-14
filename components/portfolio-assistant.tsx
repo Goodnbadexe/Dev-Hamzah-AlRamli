@@ -15,6 +15,7 @@ import { MessageSquare, X, Send, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { answerFor, GREETING, type FaqReply } from "@/lib/assistant/faq"
 import { checkAssistantGate } from "@/lib/assistant-gate"
+import posthog from "posthog-js"
 
 interface ChatMessage {
   role: "user" | "assistant"
@@ -89,6 +90,10 @@ export function PortfolioAssistant() {
     const text = raw.trim()
     if (!text || typing) return
     setInput("")
+    posthog.capture("assistant_message_sent", {
+      message_length: text.length,
+      conversation_length: messages.length,
+    })
     setMessages((prev) => [...prev, { role: "user", text }])
 
     // Fast logic gate: common identity questions get an instant, pre-built
@@ -123,7 +128,11 @@ export function PortfolioAssistant() {
     <>
       {/* Floating trigger */}
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          const opening = !open
+          if (opening) posthog.capture("assistant_opened")
+          setOpen(opening)
+        }}
         className={cn(
           "fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all duration-200",
           open

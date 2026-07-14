@@ -64,6 +64,8 @@
     "nodemailer": "^8.0.7",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
+    "posthog-js": "^1.400.1",
+    "posthog-node": "^5.42.0",
     "react": "^19",
     "react-day-picker": "9.8.0",
     "react-dom": "^19",

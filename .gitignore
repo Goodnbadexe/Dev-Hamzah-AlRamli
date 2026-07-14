@@ -29,3 +29,4 @@ next-env.d.ts
 
 # local Gumroad upload staging (regenerable)
 content/vault/_bundles/
+.env.local
