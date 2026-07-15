@@ -13,6 +13,7 @@ import { createMeetingEvent } from '@/lib/google/calendar'
 import { sendClientConfirmation, sendOwnerNotification } from '@/lib/google/gmail'
 import { rateLimit } from '@/lib/rate-limit'
 import { validateBookingInput } from '@/lib/booking/validate'
+import { getPostHogClient } from '@/lib/posthog-server'
 
 // Max 5 booking attempts per IP per 10 minutes. A real prospect books once;
 // anything beyond this is almost certainly abuse.
@@ -80,6 +81,24 @@ export async function POST(req: Request) {
         calendarLink: event.htmlLink,
       }),
     ])
+
+    // Track meeting_booked server-side. Use email as distinctId; no PII in properties.
+    try {
+      const ph = getPostHogClient()
+      ph.capture({
+        distinctId: email,
+        event: "meeting_booked",
+        properties: {
+          service,
+          duration_mins: durationMins,
+          has_company: !!company,
+          has_message: !!message,
+        },
+      })
+      await ph.flush()
+    } catch (e) {
+      console.error("[book-meeting] posthog capture failed:", e)
+    }
 
     return NextResponse.json({ ok: true, meetLink: event.meetLink, calendarLink: event.htmlLink })
   } catch (err: any) {

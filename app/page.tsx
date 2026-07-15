@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useState, useEffect, type ElementType } from "react"
+import posthog from "posthog-js"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { ArrowRight, Terminal, Layers, Radio, Mail, Lock, User, ChevronRight, ChevronDown, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun } from "lucide-react"
@@ -397,12 +398,14 @@ export default function HomePage() {
   const handleLayerToggle = useCallback((label: string) => {
     setActiveLayers((prev) => {
       const next = new Set(prev)
-      if (next.has(label)) {
-        next.delete(label)
-      } else {
+      const enabling = !next.has(label)
+      if (enabling) {
         next.add(label)
+      } else {
+        next.delete(label)
       }
       saveActiveLayers(next)
+      posthog.capture("globe_layer_toggled", { layer: label, enabled: enabling })
       return next
     })
   }, [])
@@ -519,7 +522,10 @@ export default function HomePage() {
         <div className="fixed right-4 top-16 z-30 flex flex-col items-end gap-2">
           <button
             type="button"
-            onClick={() => setGlobeInspect(true)}
+            onClick={() => {
+              posthog.capture("globe_inspect_opened")
+              setGlobeInspect(true)
+            }}
             className="flex items-center gap-2 rounded border border-emerald-900 bg-zinc-950/70 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-emerald-400 backdrop-blur-md transition-all hover:border-emerald-700 hover:bg-emerald-950/40"
           >
             <Maximize2 className="h-3.5 w-3.5" />

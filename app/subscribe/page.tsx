@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import posthog from "posthog-js"
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, BookOpen, Briefcase, Check, CheckCircle2,
   Clock, Compass, Eye, Gauge, History, Hourglass, Layers, Loader2, Lock, Mail, Monitor, Rocket,
@@ -115,6 +116,10 @@ export default function SubscribePage() {
         answers,
       }),
     }).catch(() => {})
+    posthog.capture("subscribe_waitlist_joined", {
+      bundle: person.recommendedBundle,
+      tracks: selectedTracks,
+    })
     setWaitlisted(true)
   }, [wlEmail, email, name, person, promo, selectedTracks, answers])
 
@@ -131,10 +136,17 @@ export default function SubscribePage() {
       exp = Date.now() + PROMO_WINDOW_MS
     }
     setExpiresAt(exp)
+    posthog.capture("subscribe_quiz_completed", {
+      recommended_bundle: person.recommendedBundle,
+      selected_tracks: selectedTracks,
+      read_factor: person.readFactor,
+      tool_variant: person.toolVariant,
+      os_variant: person.osVariant,
+    })
     sendLead(undefined, code)
     setPhase("loading")
     scrollTop()
-  }, [name, sendLead, scrollTop])
+  }, [name, sendLead, scrollTop, person, selectedTracks])
 
   const q = QUIZ[qIndex]
   const currentVal = single(q?.id ?? "")
@@ -250,7 +262,11 @@ export default function SubscribePage() {
             </div>
             <button
               type="button"
-              onClick={() => { setPhase("quiz"); scrollTop() }}
+              onClick={() => {
+                posthog.capture("subscribe_quiz_started")
+                setPhase("quiz")
+                scrollTop()
+              }}
               className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-3.5 font-mono text-sm font-semibold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
             >
               <span dir="rtl">ابدأ · Start</span>
@@ -453,7 +469,16 @@ export default function SubscribePage() {
             {buyUrl ? (
               <a
                 href={buyUrl}
-                onClick={() => sendLead("gumroad", promo)}
+                onClick={() => {
+                  posthog.capture("subscribe_vault_purchase_clicked", {
+                    bundle: person.recommendedBundle,
+                    tracks: selectedTracks,
+                    price: price.price,
+                    read_factor: person.readFactor,
+                    promo_code: promo,
+                  })
+                  sendLead("gumroad", promo)
+                }}
                 data-gumroad-overlay-checkout="true"
                 className="gumroad-button flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-4 font-mono text-sm font-bold uppercase tracking-wide text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
               >
@@ -549,7 +574,14 @@ export default function SubscribePage() {
                     </div>
                     <a
                       href={allAccessUrl}
-                      onClick={() => sendLead("gumroad-all", promo)}
+                      onClick={() => {
+                        posthog.capture("subscribe_all_access_upgrade_clicked", {
+                          from_bundle: person.recommendedBundle,
+                          from_tracks: selectedTracks,
+                          promo_code: promo,
+                        })
+                        sendLead("gumroad-all", promo)
+                      }}
                       data-gumroad-overlay-checkout="true"
                       className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-emerald-700 bg-emerald-950/30 px-4 py-2.5 font-mono text-xs font-semibold uppercase tracking-wide text-emerald-300 transition-all hover:bg-emerald-900/40 hover:text-emerald-200"
                     >

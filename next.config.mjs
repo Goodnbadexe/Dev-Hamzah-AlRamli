@@ -10,6 +10,23 @@ const nextConfig = {
     // resizing. Re-enabled Next.js image optimization. If any remote image hosts
     // are added later, list them under `remotePatterns` here.
   },
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/array/:path*",
+        destination: "https://us-assets.i.posthog.com/array/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+    ]
+  },
+  skipTrailingSlashRedirect: true,
   async redirects() {
     return [
       // Legacy routes → GOODNBAD OS architecture

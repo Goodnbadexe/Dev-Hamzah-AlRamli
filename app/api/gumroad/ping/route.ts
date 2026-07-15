@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/server"
 import { sendEmail, isEmailConfigured } from "@/lib/email/resend"
+import { getPostHogClient } from "@/lib/posthog-server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -66,6 +67,28 @@ export async function POST(req: Request) {
     }
   } catch (e) {
     console.error("[gumroad ping] failed:", e)
+  }
+
+  // Track sale server-side. Use email as distinctId; no PII in event properties.
+  try {
+    const ph = getPostHogClient()
+    ph.capture({
+      distinctId: email,
+      event: "gumroad_sale_received",
+      properties: {
+        product_name: sale.product_name,
+        product_permalink: sale.product_permalink,
+        price_cents: sale.price_cents,
+        currency: sale.currency,
+        recurrence: sale.recurrence,
+        is_recurring_charge: sale.is_recurring_charge,
+        refunded: sale.refunded,
+        has_offer_code: !!sale.offer_code,
+      },
+    })
+    await ph.flush()
+  } catch (e) {
+    console.error("[gumroad ping] posthog capture failed:", e)
   }
 
   // 4) Welcome the buyer on their FIRST charge (not renewals). Never throw.
