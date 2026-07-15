@@ -3,7 +3,7 @@
 import { useCallback, useState, useEffect, type ElementType } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { ArrowRight, Terminal, Layers, Radio, Mail, User, ChevronRight, ChevronDown, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun } from "lucide-react"
+import { ArrowRight, Terminal, Layers, Radio, Mail, Lock, User, ChevronRight, ChevronDown, Maximize2, X, Building2, Rocket, Cloud, Database, Cable, Zap, WifiOff, Calendar, Flame, AlertTriangle, Sun } from "lucide-react"
 import { OSDesktop, OSTaskbar, AmbientFeed } from "@/components/os"
 import { cn } from "@/lib/utils"
 import type { FeedEntry } from "@/components/os"
@@ -600,6 +600,13 @@ export default function HomePage() {
               >
                 <Mail className="h-4 w-4" />
                 {t("افتح قناة مشفّرة", "Open encrypted channel")}
+              </Link>
+              <Link
+                href="/subscribe"
+                className="inline-flex items-center gap-2.5 rounded-md border border-emerald-700/70 bg-emerald-950/30 px-6 py-3.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-emerald-300 backdrop-blur-sm transition-all hover:-translate-y-px hover:border-emerald-500 hover:bg-emerald-950/55 hover:text-emerald-200"
+              >
+                <Lock className="h-4 w-4" />
+                {t("خزينة الأدوات — اشترك", "Get the Toolkit Vault")}
               </Link>
               <Link
                 href="/personnel"

@@ -41,6 +41,12 @@ export type Certification = {
 
 export const certifications: Certification[] = [
   {
+    name: "Claude Platform 101",
+    issuer: "Anthropic",
+    date: "June 2026",
+    credentialId: "i4stnsvemn8p",
+  },
+  {
     name: "Dynamic Analyst",
     issuer: "LetsDefend",
     date: "November 2025",

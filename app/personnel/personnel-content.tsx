@@ -44,6 +44,7 @@ const ISSUER_COLOR: Record<string, string> = {
   "Google Digital Academy": "#eab308",
   "Taylor's University": "#f97316",
   CASUGOL: "#22d3ee",
+  Anthropic: "#d97706",
 }
 
 // Keyed by the stable English `key` carried on each capability group.
