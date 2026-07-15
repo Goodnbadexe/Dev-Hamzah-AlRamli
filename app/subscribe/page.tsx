@@ -475,7 +475,7 @@ export default function SubscribePage() {
                     tracks: selectedTracks,
                     price: price.price,
                     read_factor: person.readFactor,
-                    promo_code: promo,
+                    has_promo: !!promo,
                   })
                   sendLead("gumroad", promo)
                 }}
@@ -578,7 +578,7 @@ export default function SubscribePage() {
                         posthog.capture("subscribe_all_access_upgrade_clicked", {
                           from_bundle: person.recommendedBundle,
                           from_tracks: selectedTracks,
-                          promo_code: promo,
+                          has_promo: !!promo,
                         })
                         sendLead("gumroad-all", promo)
                       }}
