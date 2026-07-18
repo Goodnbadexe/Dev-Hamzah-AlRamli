@@ -1,7 +1,13 @@
-// vault-drip/route.ts — weekly cron that keeps the welcome-email promise:
+// vault-drip/route.ts — DAILY cron that keeps the welcome-email promise:
 // "Weeks 2–4 land in your inbox automatically." Week 1 is delivered at purchase by
 // Gumroad; this job emails the next issue's entitlement-gated download link to each
-// active subscriber, one issue at a time, spaced a week apart.
+// active subscriber, one issue at a time, ~a week apart PER BUYER.
+//
+// Why daily (not weekly): delivery is anchored to each buyer's purchase time
+// (weeksSince = elapsed/7d), and the weekly-spacing gate below caps them at one issue
+// per ~week. Running daily makes Week 2 arrive ~7 days after purchase regardless of
+// weekday; a weekly (Monday-only) cron makes a buyer who just missed Monday's run wait
+// up to ~14 days for Week 2. Daily + the spacing gate = purchase-relative, no bursts.
 //
 // SAFETY (hardened after security + correctness review):
 //  - DRY RUN BY DEFAULT. Sends only when VAULT_DRIP_DRY_RUN === "false".

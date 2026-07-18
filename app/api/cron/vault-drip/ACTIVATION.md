@@ -5,14 +5,16 @@ commit/push/deploy yourself). Closes the welcome-email promise "Weeks 2–4 land
 inbox automatically." Content already exists (all 6 track PDFs); this ships the delivery.
 
 ## What it does
-Weekly cron (`/api/cron/vault-drip`, Mondays 09:00 UTC) emails active, non-refunded
-subscribers the next issue's entitlement-gated download link — week 1 at purchase
-(Gumroad), then weeks 2→6 (developers, agents, automation, quant, creative), one per week.
+Daily cron (`/api/cron/vault-drip`, 09:00 UTC) emails active, non-refunded subscribers the
+next issue's entitlement-gated download link — week 1 at purchase (Gumroad), then weeks
+2→6 (developers, agents, automation, quant, creative). Delivery is anchored to each buyer's
+purchase time (~7 days apart per buyer); the daily schedule + a 6-day spacing gate make
+Week 2 arrive ~a week after purchase regardless of weekday, with no bursts.
 
 ## Files
 - `app/api/cron/vault-drip/route.ts` — the cron (dry-run by default)
 - `supabase/migrations/0003_drip_sends.sql` — idempotency ledger
-- `vercel.json` — added the weekly cron entry
+- `vercel.json` — added the daily cron entry
 - `.env.example` — documented CRON_SECRET / VAULT_DRIP_DRY_RUN / NEXT_PUBLIC_SITE_URL
 
 ## Activate (in order)
