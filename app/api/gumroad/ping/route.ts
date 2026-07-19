@@ -11,6 +11,7 @@ import { NextResponse } from "next/server"
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/server"
 import { sendEmail, isEmailConfigured } from "@/lib/email/resend"
 import { getPostHogClient } from "@/lib/posthog-server"
+import { logEvent } from "@/lib/events/log"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -57,11 +58,29 @@ export async function POST(req: Request) {
     raw,
   }
 
+  // Audit: every authenticated ping that carries an email (brain, not gate).
+  await logEvent({
+    type: "webhook_received",
+    email,
+    product: sale.product_name,
+    source: "gumroad_ping",
+    meta: { sale_id: sale.sale_id, is_recurring_charge: sale.is_recurring_charge, refunded: sale.refunded },
+  })
+
   // 3) persist (idempotent on sale_id). Never throw — Gumroad expects a 200.
   try {
     if (isSupabaseConfigured()) {
       const { error } = await supabaseAdmin().from("sales").upsert(sale, { onConflict: "sale_id" })
       if (error) console.error("[gumroad ping] upsert error:", error.message)
+      else {
+        await logEvent({
+          type: sale.refunded ? "sale_refunded" : "sale_stored",
+          email,
+          product: sale.product_name,
+          source: "gumroad_ping",
+          meta: { sale_id: sale.sale_id, price_cents: sale.price_cents, currency: sale.currency, is_recurring_charge: sale.is_recurring_charge },
+        })
+      }
     } else {
       console.log("[gumroad ping] (supabase not configured)\n" + JSON.stringify(sale))
     }

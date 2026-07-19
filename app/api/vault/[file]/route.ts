@@ -14,6 +14,7 @@ import { verifyToken } from "@/lib/vault/sign"
 import { hasConfirmedSale, resolveVariantOs } from "@/lib/vault/entitlement"
 import { deliverableById, resolveFile } from "@/lib/vault/manifest"
 import { stampCached } from "@/lib/vault/watermark"
+import { logEvent } from "@/lib/events/log"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -61,6 +62,10 @@ export async function GET(req: Request, ctx: { params: Promise<{ file: string }>
     email: claim.email,
     orderId: file,
   })
+
+  // Audit: the entitled buyer's PDF was served (funnel-end signal). "served/stamped",
+  // not necessarily fully received by the client.
+  await logEvent({ type: "pdf_downloaded", email: claim.email, product: file, source: "vault_download", meta: { os } })
 
   return new Response(new Uint8Array(stamped), {
     status: 200,
