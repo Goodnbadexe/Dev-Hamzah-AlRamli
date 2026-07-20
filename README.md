@@ -1,30 +1,53 @@
-# Cybersecurity portfolio
+# goodnbad.info
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+Cybersecurity + AI portfolio and revenue funnel for Hamzah Al-Ramli (**@Goodnbad.exe**).
+Live at **[https://www.goodnbad.info](https://www.goodnbad.info)**.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/goodnbadexes-projects/v0-cybersecurity-portfolio)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/LlsM63pGe5g)
+A hacker/terminal-aesthetic Next.js site that doubles as a portfolio and a monetization
+engine: a Toolkit Vault (Gumroad), a personalized `/subscribe` quiz funnel with a weekly
+email drip, an SME "Cyber Sprint" offer, an AI SDR chat, and live threat-intel surfaces
+(globe, IOC feeds).
 
-## Overview
+## Stack
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+- **Framework:** Next.js 16 (App Router) · React 19 · TypeScript (strict)
+- **UI:** Tailwind CSS · Radix UI · three.js / react-globe.gl
+- **Data / funnel:** Supabase · Gumroad · Resend (email) · OpenRouter (AI SDR) · PostHog (analytics + A/B)
+- **Hosting:** Vercel (auto-deploys on push to `main`)
+
+## Local development
+
+```bash
+npm install
+cp .env.example .env.local   # fill in the keys you need; see .env.example for the server-only vs NEXT_PUBLIC_ split
+npm run dev                  # http://localhost:3000
+```
+
+Quality gates:
+
+```bash
+npm run lint
+npm test            # Vitest unit suite
+npx playwright test # e2e (see playwright.config.ts)
+npx tsc --noEmit    # type-check
+```
+
+## Structure
+
+```
+app/                 # App Router routes (portfolio pages + app/api route handlers)
+  api/               # Gumroad ping, /subscribe/lead, /api/sdr, cron, threat proxies
+components/          # UI — os/ (dashboard shell), terminal/, signal/, horus/ …
+lib/                 # domain logic: subscribe/ vault/ sdr/ supabase/ email/ content/
+tests/               # Vitest units + tests/e2e Playwright specs
+```
+
+Revenue-critical seams live in `lib/` (funnel logic isolated from presentation): the vault
+download is HMAC-token + entitlement-checked, the Gumroad webhook is idempotent, and the SDR
+route degrades gracefully when its API key is absent.
 
 ## Deployment
 
-Your project is live at:
-
-**[https://vercel.com/goodnbadexes-projects/v0-cybersecurity-portfolio](https://vercel.com/goodnbadexes-projects/v0-cybersecurity-portfolio)**
-
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.dev/chat/projects/LlsM63pGe5g](https://v0.dev/chat/projects/LlsM63pGe5g)**
-
-## How It Works
-
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+Pushing to `main` auto-deploys to Vercel. **Always `git pull` before changing anything** —
+the repo can also receive automated syncs. Env vars are managed in the Vercel dashboard;
+never commit secrets (`.env.local` is gitignored).
