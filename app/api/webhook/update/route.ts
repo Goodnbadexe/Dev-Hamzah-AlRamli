@@ -8,10 +8,28 @@
 // Complexity: O(P) with P = platforms
 // === END METADATA ===
 import { NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import { addUpdate } from '@/lib/updates'
 import { broadcastAll } from '@/lib/social/broadcaster'
 
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET
+
+/** Constant-time string comparison to prevent timing-based secret enumeration. */
+function timingSafeStringEqual(a: string, b: string): boolean {
+  try {
+    const ab = Buffer.from(a, 'utf8')
+    const bb = Buffer.from(b, 'utf8')
+    // timingSafeEqual requires same-length buffers; pad with zeros so length
+    // mismatch doesn't short-circuit, but still return false for len diff.
+    if (ab.length !== bb.length) {
+      timingSafeEqual(ab, ab) // consume constant time
+      return false
+    }
+    return timingSafeEqual(ab, bb)
+  } catch {
+    return false
+  }
+}
 
 export async function POST(request: Request) {
   // ── Auth: shared-secret header validation ────────────────────────────────
@@ -19,8 +37,8 @@ export async function POST(request: Request) {
   // If not configured (local dev without the var), the endpoint is open only
   // when NODE_ENV !== 'production' — prevents accidental open exposure in prod.
   if (WEBHOOK_SECRET) {
-    const provided = request.headers.get('x-webhook-secret')
-    if (provided !== WEBHOOK_SECRET) {
+    const provided = request.headers.get('x-webhook-secret') ?? ''
+    if (!timingSafeStringEqual(provided, WEBHOOK_SECRET)) {
       return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
     }
   } else if (process.env.NODE_ENV === 'production') {
