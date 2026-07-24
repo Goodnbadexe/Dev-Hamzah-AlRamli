@@ -10,6 +10,10 @@ const PRODUCTION_BLOCKED_PREFIXES: string[] = [
   '/memory',
   '/flags',
   '/lab',
+  // Learning Lab dark-ship (docs/learning-lab/PRD.md §9): /learn is unblocked at
+  // launch; /learn/admin stays on its own separate launch decision. Note the /admin
+  // prefix does NOT cover /learn/admin — prefix matching anchors at path start.
+  '/learn',
 ]
 
 // ─── Routes blocked in ALL environments ──────────────────────────────────────
@@ -52,5 +56,6 @@ export const config = {
     '/memory/:path*',
     '/flags/:path*',
     '/lab/:path*',
+    '/learn/:path*',
   ],
 }

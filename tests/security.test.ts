@@ -58,7 +58,7 @@ function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   )
 }
 
-const PRODUCTION_BLOCKED = ['/admin', '/debug', '/memory', '/flags', '/lab']
+const PRODUCTION_BLOCKED = ['/admin', '/debug', '/memory', '/flags', '/lab', '/learn']
 const ALWAYS_BLOCKED = ['/test-ctf']
 
 describe('matchesPrefix helper', () => {
@@ -94,6 +94,11 @@ describe('matchesPrefix helper', () => {
 
   it('blocks /lab', () => {
     expect(matchesPrefix('/lab', PRODUCTION_BLOCKED)).toBe(true)
+  })
+
+  it('blocks /learn and /learn/admin during the Learning Lab dark-ship', () => {
+    expect(matchesPrefix('/learn', PRODUCTION_BLOCKED)).toBe(true)
+    expect(matchesPrefix('/learn/admin', PRODUCTION_BLOCKED)).toBe(true)
   })
 
   it('does not partially match — /admins should not be blocked', () => {

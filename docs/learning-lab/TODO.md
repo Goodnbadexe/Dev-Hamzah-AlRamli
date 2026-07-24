@@ -11,14 +11,22 @@
       [NOTIFICATIONS.md](./NOTIFICATIONS.md), [POLICIES.md](./POLICIES.md)
       (raw review: phase1-review-findings.txt)
 
-## Remaining Phase 1 items (docs, before Phase 2/3)
-- [ ] **ASSESSMENT.md** — per-track self-check questions + scoring, level-estimation table,
-      gap templates EN+AR, duration formula, rendered examples (PRD §12.2)
-- [ ] Teaching-style sample mini-module (EN+AR, owner-authored/signed) — PRD §7
-- [ ] AR policy + consent copy, owner-signed — POLICIES preamble
+## Remaining Phase 1 items
+- [x] **ASSESSMENT.md** — questions, scoring, gaps EN+AR, duration formula, examples (2026-07-24)
+- [x] Teaching-style sample drafted EN+AR → [TEACHING-SAMPLE.md](./TEACHING-SAMPLE.md) — **owner sign-off pending**
+- [ ] AR policy + consent copy, owner-signed — POLICIES preamble (drafts exist on /learn + POLICIES)
 - [ ] Owner review of the v2 spec set (esp. SLAs, lapse clause, pricing-band commitment)
 
-## Then Phase 2 (UX prototype) → Phase 3 (build per PRD §12) → Phase 4 (verify)
+## Phase 2 — UX prototype (DONE 2026-07-24)
+- [x] `/learn` built in the OS shell: hero, protocol, locked-path visual, tracks, interactive
+      teaching sample, package cards + helper, integrity, FAQ, terms, 6-step intake wizard
+      with live assessment preview. Client-side only (no data transmitted; prototype banners).
+- [x] Dark-shipped: middleware blocks `/learn` in production; `learningLab` flag added as
+      kill switch. No OS_APPS/taskbar entry until launch (PRD §7).
+- [x] Verified: tsc 0 errors · 87/87 tests (11 new) · production build passes · visual pass
+      desktop/mobile + full Arabic RTL.
+
+## Then Phase 3 (build per PRD §12) → Phase 4 (verify)
 
 ## Hard rules for anyone working in this repo
 - NEVER `git add .` or blanket `git add docs/` — stage by explicit path (the subscribe/vault
