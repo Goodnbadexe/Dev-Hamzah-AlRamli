@@ -8,6 +8,7 @@ import { FullscreenButton } from "@/components/fullscreen"
 import { PortfolioAssistant } from "@/components/portfolio-assistant"
 import { AntiInspect } from "@/components/anti-inspect"
 import { LanguageProvider } from "@/components/language-provider"
+import { BreachProvider } from "@/components/breach/BreachProvider"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata } from "next"
@@ -191,6 +192,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} ${notoKufiArabic.variable} font-sans pb-24 md:pb-0`}>
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         {/* Fixed eDEX atmosphere layer — persistent grid + scanlines + vignette across all routes */}
         <div
           aria-hidden="true"
@@ -198,6 +202,7 @@ export default function RootLayout({
         />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <LanguageProvider>
+            <BreachProvider />
             {children}
             <FullscreenButton />
             <PortfolioAssistant />

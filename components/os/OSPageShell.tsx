@@ -57,6 +57,7 @@ export function OSPageShell({ osName, label, children, className }: OSPageShellP
 
       <OSTaskbar />
       <main
+        id="main-content"
         aria-label={label}
         className={cn(
           // Offset for fixed taskbar (h-11 = 44px)

@@ -6,27 +6,35 @@ import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import { OS_APPS } from "./types"
 import { LanguageToggle } from "@/components/language-toggle"
+import { MobileNavSheet } from "./MobileNavSheet"
+import { getDetectedTimeZone, getUtcOffsetLabel } from "@/lib/breach/time"
 
 // Home entry + all registered OS apps
 const NAV_ITEMS = [
-  { href: "/", label: "HOME", code: "~", shortLabel: "HOME" },
-  ...OS_APPS.map(app => ({ 
-    href: app.route, 
-    label: app.id.toUpperCase(), 
+  { href: "/", label: "HOME", code: "~" },
+  ...OS_APPS.map(app => ({
+    href: app.route,
+    label: app.id.toUpperCase(),
     code: app.code,
-    shortLabel: app.id.substring(0, 4).toUpperCase()
   })),
 ]
 
 function Clock() {
   const [time, setTime] = useState("")
+  const [shortTime, setShortTime] = useState("")
+  const [zone, setZone] = useState("")
+  const [offset, setOffset] = useState("")
 
   useEffect(() => {
+    const tz = getDetectedTimeZone()
     const tick = () => {
       const now = new Date()
       setTime(
         now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
       )
+      setShortTime(now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }))
+      setOffset(getUtcOffsetLabel(now, tz))
+      setZone(`${tz} · ${getUtcOffsetLabel(now, tz)}`)
     }
     tick()
     const id = setInterval(tick, 1000)
@@ -34,8 +42,30 @@ function Clock() {
   }, [])
 
   return (
-    <span className="font-mono text-[11px] text-zinc-500 tabular-nums select-none">
-      {time}
+    <span className="flex items-baseline gap-2 select-none">
+      <span
+        className="hidden lg:block font-mono text-[9px] uppercase tracking-widest text-zinc-700"
+        aria-label="Detected timezone"
+      >
+        {zone}
+      </span>
+      {/* Mobile: compact HH:MM + UTC offset chip. Desktop: full HH:MM:SS. */}
+      <span className="md:hidden flex items-baseline gap-1.5">
+        <span className="font-mono text-[11px] text-zinc-500 tabular-nums" aria-label="Local time">
+          {shortTime}
+        </span>
+        {offset && (
+          <span
+            className="rounded border border-zinc-800 bg-zinc-900/60 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-zinc-600"
+            aria-label="UTC offset"
+          >
+            {offset}
+          </span>
+        )}
+      </span>
+      <span className="hidden md:block font-mono text-[11px] text-zinc-500 tabular-nums" aria-label="Local time">
+        {time}
+      </span>
     </span>
   )
 }
@@ -105,40 +135,19 @@ export function OSTaskbar({ className }: OSTaskbarProps) {
         })}
       </nav>
 
-      <nav
-        aria-label="Primary navigation"
-        className="flex md:hidden min-w-0 flex-1 items-stretch gap-1 overflow-x-auto"
-      >
-        {NAV_ITEMS.map(({ href, label, code, shortLabel }) => {
-          const active = pathname === href || (href !== "/" && pathname.startsWith(href))
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "shrink-0 rounded px-3 font-mono text-[10px] uppercase tracking-widest transition-colors flex items-center",
-                active
-                  ? "bg-emerald-950/40 text-emerald-400"
-                  : "text-zinc-500 hover:bg-zinc-900/60 hover:text-zinc-300"
-              )}
-              aria-label={label}
-            >
-              {shortLabel}
-            </Link>
-          )
-        })}
-      </nav>
-
       {/* System status — right side */}
-      <div className="ml-auto flex items-center gap-3">
-        <LanguageToggle />
-        <span className="hidden sm:flex items-center gap-1.5">
+      <div className="ml-auto flex items-center gap-2 md:gap-3">
+        {/* Language toggle lives in the mobile sheet below md */}
+        <LanguageToggle className="hidden md:inline-flex" />
+        <span className="hidden md:flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_theme(colors.emerald.500)] animate-pulse" />
           <span className="font-mono text-[10px] text-zinc-600 uppercase tracking-widest select-none">
             LIVE
           </span>
         </span>
         <Clock />
+        {/* Mobile menu button — opens the full-height nav sheet */}
+        <MobileNavSheet className="md:hidden -mr-2" />
       </div>
 
     </header>

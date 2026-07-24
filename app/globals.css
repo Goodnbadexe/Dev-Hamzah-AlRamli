@@ -1067,6 +1067,104 @@ Complexity: O(1) styling
   color: #10b981;
 }
 
+/* ==========================================================
+   BREACH MODE — [data-theme="breach"] red token variant
+   Cosmetic, site-scoped. All new components consume tokens,
+   so this attribute flip re-themes them in one move.
+   ========================================================== */
+[data-theme="breach"] {
+  --os-bg:         #0c0607;
+  --os-surface:    #1c0b0d;
+  --os-surface-hi: #2b1113;
+  --os-border:     #3f1216;
+  --os-border-dim: #2a0e11;
+
+  --os-signal:     #ef4444;   /* red-500 replaces emerald signal */
+  --os-signal-dim: #450a0a;   /* red-950 */
+
+  --os-text-1:     #fef2f2;   /* red-50 — 17.0:1 on --os-bg */
+  --os-text-2:     #fca5a5;   /* red-300 */
+  --os-text-3:     #9f4a4a;
+  --os-text-4:     #5b2a2a;
+
+  --accent:        239 68 68;   /* red-500 triplet */
+  --accent-alert:  239 68 68;
+  --os-breach-text:#fca5a5;
+}
+
+/* Legacy components still use hardcoded emerald Tailwind utilities.
+   Until they migrate to --os-* tokens, remap the common emerald classes
+   to the red signal so the breach re-skin is consistent site-wide. */
+[data-theme="breach"] .bg-emerald-500 { background-color: #ef4444 !important; }
+[data-theme="breach"] .bg-emerald-600 { background-color: #dc2626 !important; }
+[data-theme="breach"] .bg-emerald-500\/10,
+[data-theme="breach"] .bg-emerald-500\/20 { background-color: rgba(239, 68, 68, 0.12) !important; }
+[data-theme="breach"] .text-emerald-300,
+[data-theme="breach"] .text-emerald-400,
+[data-theme="breach"] .text-emerald-500 { color: #f87171 !important; }
+[data-theme="breach"] .text-emerald-950 { color: #450a0a !important; }
+[data-theme="breach"] .border-emerald-500,
+[data-theme="breach"] .border-emerald-500\/30,
+[data-theme="breach"] .border-emerald-500\/40,
+[data-theme="breach"] .border-emerald-800 { border-color: rgba(239, 68, 68, 0.5) !important; }
+[data-theme="breach"] .hover\:bg-emerald-400:hover { background-color: #f87171 !important; }
+
+[data-theme="breach"] ::selection {
+  background-color: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
+/* Breach overlay — red tint + scanlines + faint noise, CSS only */
+.breach-overlay {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(239, 68, 68, 0.028) 3px,
+      rgba(239, 68, 68, 0.028) 4px
+    ),
+    radial-gradient(120% 100% at 50% 50%, rgba(239, 68, 68, 0.05) 0%, rgba(127, 29, 29, 0.14) 100%);
+  animation: breach-flicker 4s ease-in-out infinite;
+}
+
+@keyframes breach-flicker {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.82; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breach-overlay {
+    animation: none;
+  }
+}
+
+/* ==========================================================
+   Skip-to-content link — visually hidden until focused
+   ========================================================== */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--os-signal);
+  background: var(--os-bg);
+  color: var(--os-text-1);
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: top 150ms ease-out;
+}
+
+.skip-link:focus-visible {
+  top: 3.25rem; /* below the h-11 taskbar */
+  outline: 2px solid var(--os-signal);
+  outline-offset: 2px;
+}
+
 /* Simple fade-in for deferred content (globe, embeds) */
 @keyframes fadeIn {
   from { opacity: 0; }

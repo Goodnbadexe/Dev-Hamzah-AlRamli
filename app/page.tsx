@@ -500,8 +500,22 @@ export default function HomePage() {
 
       {/* Top-right control cluster — "inspect" grouped right beside the world
           layers so the eye reads one tidy panel instead of scattered controls. */}
+      {/* MOBILE (<768): the layer panel / legend / ticker are hidden, so the
+          whole threat-surface control cluster collapses into ONE compact
+          "◉ THREAT MAP" button that opens the fullscreen signal overlay. */}
       {!globeInspect && (
-        <div className="fixed right-4 top-16 z-30 flex flex-col items-end gap-2">
+        <button
+          type="button"
+          onClick={() => setGlobeInspect(true)}
+          className="fixed right-3 top-14 z-30 flex min-h-[44px] items-center gap-2 rounded-full border border-emerald-900/80 bg-zinc-950/80 px-4 font-mono text-[10px] uppercase tracking-widest text-emerald-400 backdrop-blur-md transition-colors active:bg-emerald-950/40 md:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+        >
+          <span aria-hidden className="text-emerald-500">◉</span>
+          Threat Map
+        </button>
+      )}
+
+      {!globeInspect && (
+        <div className="fixed right-4 top-16 z-30 hidden md:flex flex-col items-end gap-2">
           <button
             type="button"
             onClick={() => setGlobeInspect(true)}
@@ -521,7 +535,7 @@ export default function HomePage() {
         <button
           type="button"
           onClick={() => setGlobeInspect(false)}
-          className="fixed right-4 top-16 z-40 flex items-center gap-2 rounded border border-zinc-800 bg-zinc-950/75 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 backdrop-blur-md transition-colors hover:border-zinc-600 hover:text-zinc-200"
+          className="fixed right-4 top-16 z-40 hidden md:flex items-center gap-2 rounded border border-zinc-800 bg-zinc-950/75 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 backdrop-blur-md transition-colors hover:border-zinc-600 hover:text-zinc-200"
         >
           <X className="h-3.5 w-3.5" />
           exit globe preview
@@ -532,6 +546,7 @@ export default function HomePage() {
       {!globeInspect && <LiveAttacksStrip iocs={recentIocs} />}
 
       <main
+        id="main-content"
         className={cn(
           "relative z-10 os-page-offset min-h-screen transition-all duration-700 ease-out",
           globeInspect
@@ -546,7 +561,7 @@ export default function HomePage() {
             {/* Kicker */}
             <span className="inline-flex items-center gap-2.5 mb-[30px] rounded-[5px] border border-zinc-800 bg-zinc-900/50 px-3.5 py-[7px] font-mono text-[11px] uppercase tracking-[0.26em] text-zinc-400 backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]" />
-              SUBJECT VERIFIED · RIYADH, SA
+              SUBJECT VERIFIED · RIYADH, SAUDI ARABIA
             </span>
 
             {/* Identity — display scale (sized to fit the left column), restrained
@@ -555,17 +570,20 @@ export default function HomePage() {
               className="text-balance font-bold leading-[0.92] tracking-[-0.035em] text-zinc-100"
               style={{ fontSize: globeInspect ? "1.75rem" : "clamp(48px, 8.4vw, 104px)" }}
             >
+              <span className="block font-mono text-[0.28em] font-medium uppercase tracking-[0.3em] text-zinc-400">
+                Hamzah Al-Ramli
+              </span>
               <span className="glitch-id" data-t="Goodnbad">Goodnbad</span>
               <span className="text-zinc-600">.exe</span>
             </h1>
 
-            {/* Role line */}
+            {/* Role line — plain-language, recruiter-first */}
             <p
-              className="mt-[26px] max-w-[48ch] leading-[1.5] text-zinc-300"
+              className="mt-[26px] max-w-[52ch] leading-[1.5] text-zinc-300"
               style={{ fontSize: globeInspect ? "1rem" : "clamp(17px, 2vw, 21px)" }}
             >
-              Hamzah Al-Ramli — <span className="font-semibold text-zinc-100">Cybersecurity &amp; Automation Architect.</span>{" "}
-              I build defensive systems, threat tooling, and the automation that runs them.
+              <span className="font-semibold text-zinc-100">Cybersecurity engineer and systems builder</span>{" "}
+              working across defensive security, DFIR, automation and digital products.
             </p>
 
             {/* Credential chips */}
@@ -577,22 +595,38 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* One primary action; everything else recedes */}
-            <div className="mt-[38px] flex flex-wrap gap-3">
-              <Link
-                href="/contact"
-                className="inline-flex items-center gap-2.5 rounded-md bg-emerald-500 px-6 py-3.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400"
-              >
-                <Mail className="h-4 w-4" />
-                Open encrypted channel
-              </Link>
+            {/* Primary + secondary actions — recruiter-clear */}
+            <div className="mt-[38px] flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 href="/personnel"
-                className="inline-flex items-center gap-2.5 rounded-md border border-zinc-800 bg-zinc-950/40 px-6 py-3.5 font-mono text-[13px] font-medium uppercase tracking-[0.1em] text-zinc-300 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-100"
+                className="inline-flex w-full justify-center sm:w-auto items-center gap-2.5 rounded-md bg-emerald-500 px-6 py-3.5 font-mono text-[13px] font-semibold uppercase tracking-[0.1em] text-emerald-950 transition-all hover:-translate-y-px hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
               >
-                View full dossier
-                <ArrowRight className="h-4 w-4" />
+                <User className="h-4 w-4" />
+                View profile
               </Link>
+              <a
+                href="/files/hamzah-al-ramli-resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full justify-center sm:w-auto items-center gap-2.5 rounded-md border border-zinc-800 bg-zinc-950/40 px-6 py-3.5 font-mono text-[13px] font-medium uppercase tracking-[0.1em] text-zinc-300 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+              >
+                Download résumé ↗
+              </a>
+              <Link
+                href="/contact"
+                className="inline-flex w-full justify-center sm:w-auto items-center gap-2.5 rounded-md border border-zinc-800 bg-zinc-950/40 px-6 py-3.5 font-mono text-[13px] font-medium uppercase tracking-[0.1em] text-zinc-300 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+              >
+                <Mail className="h-4 w-4" />
+                Contact
+              </Link>
+              <a
+                href="https://github.com/Goodnbadexe"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full justify-center sm:w-auto items-center gap-2.5 rounded-md border border-zinc-800 bg-zinc-950/40 px-6 py-3.5 font-mono text-[13px] font-medium uppercase tracking-[0.1em] text-zinc-300 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+              >
+                GitHub ↗
+              </a>
             </div>
           </div>
         </section>
