@@ -7,6 +7,7 @@ import {
   Code2,
   Download,
   ExternalLink,
+  Fingerprint,
   Github,
   LineChart,
   Linkedin,
@@ -69,6 +70,15 @@ const STAT_LABELS: Bilingual[] = [
   { ar: "القدرات", en: "Capabilities" },
 ]
 
+// Section register — every section is filed as a numbered form reference.
+const SECTIONS: { idx: string; code: string; title: Bilingual }[] = [
+  { idx: "01", code: "capability.matrix", title: { ar: "مصفوفة القدرات", en: "Capability Matrix" } },
+  { idx: "02", code: "credentials.ledger", title: { ar: "سجلّ الاعتمادات", en: "Credential Register" } },
+  { idx: "03", code: "service.record", title: { ar: "سجلّ الخدمة", en: "Service Record" } },
+  { idx: "04", code: "active.builds", title: { ar: "العمليات الجارية", en: "Active Operations" } },
+  { idx: "05", code: "direct.channels", title: { ar: "قنوات الاتصال", en: "Establish Contact" } },
+]
+
 export function PersonnelContent() {
   const { t, dir } = useLanguage()
   const { name, alias, title, tagline, location, contact } = personnelIdentity
@@ -88,68 +98,58 @@ export function PersonnelContent() {
     return m
   }, {})
   const issuerOrder = Object.keys(issuerCounts).sort((a, b) => issuerCounts[b] - issuerCounts[a])
+  const initials = name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()
 
   return (
     <>
       <div className="mx-auto max-w-[1240px] px-5 py-8 sm:px-8 md:py-10" dir={dir}>
         <div className="flex flex-col gap-[18px]">
 
-          {/* ── HERO IDENTITY ──────────────────────────────────────────── */}
-          <Win label="personnel.exe" status="dossier · authorized access" flush className="os-panel-in">
-            <div className="grid lg:grid-cols-[1.55fr_0.9fr]">
-              {/* Left — identity */}
-              <div className="border-b border-zinc-800/70 p-[30px] lg:border-b-0 lg:border-r rtl:lg:border-r-0 rtl:lg:border-l">
-                <div className="flex items-center gap-2.5 rounded-md border border-emerald-900/70 bg-emerald-950/15 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-500">
-                  <span className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)]" />
-                    {t("الموضوع موثّق", "subject verified")}
-                  </span>
-                  <span className="ml-auto tracking-[0.16em] text-zinc-600">file&nbsp;#GNB-01</span>
-                </div>
+          {/* ── COVER SHEET ─────────────────────────────────────────────── */}
+          <Win label="personnel.exe" status="dossier · authorized access" flush className="os-panel-in dossier-grain">
+            {/* classification banner — semantic emerald = cleared */}
+            <ClassificationBanner />
 
-                <div className="mt-[22px]">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-zinc-700">{t("الموضوع / الموظف", "Subject / Personnel")}</p>
-                  <h1 className="mt-2 text-balance text-[clamp(40px,6vw,68px)] font-bold leading-[0.94] tracking-[-0.035em] text-zinc-100">
-                    {name}
-                    <span className="mt-3.5 block font-mono text-[clamp(13px,1.5vw,16px)] font-medium tracking-[0.04em] text-emerald-500">
-                      {t("اسم مستعار", "alias")} <span className="text-zinc-600">:</span> {alias}
-                    </span>
-                  </h1>
-                </div>
+            <div className="relative grid lg:grid-cols-[1.6fr_0.95fr]">
+              {/* Left — subject brief */}
+              <div className="border-b border-zinc-800/70 p-[30px] sm:p-[38px] lg:border-b-0 lg:border-r rtl:lg:border-r-0 rtl:lg:border-l">
+                <FieldLabel>{t("الموضوع / الملف", "Subject / Case File")}</FieldLabel>
+                <h1 className="mt-2 text-balance text-[clamp(42px,6.4vw,72px)] font-bold leading-[0.92] tracking-[-0.038em] text-zinc-100">
+                  {name}
+                </h1>
+                <p className="mt-3.5 font-mono text-[clamp(13px,1.5vw,16px)] font-medium tracking-[0.04em] text-emerald-500">
+                  {t("اسم مستعار", "alias")} <span className="text-zinc-700">/</span> {alias}
+                </p>
 
-                <p className="mt-[18px] text-[clamp(15px,1.7vw,18px)] font-medium text-zinc-400">{title}</p>
+                <p className="mt-[22px] text-[clamp(15px,1.7vw,18px)] font-medium text-zinc-400">{title}</p>
 
-                <p className="mt-[18px] max-w-[60ch] text-pretty text-[14.5px] leading-[1.72] text-zinc-500">
+                <p className="mt-[18px] max-w-[58ch] text-pretty text-[14.5px] leading-[1.72] text-zinc-500">
                   {t(
                     "خبير أمن سيبراني ومصمم وسائط متعددة مبدع — يجمع بين معرفة أمنية عميقة وعين للتصميم والسرد. من تحليل التهديدات والتحقيق في البرمجيات الخبيثة إلى هوية العلامة التجارية وبناء full-stack، يدور العمل دائماً حول صنع شيء ذي قيمة.",
                     "Cybersecurity expert and creative multimedia designer — combining deep security knowledge with an eye for design and storytelling. From threat analysis and malware investigation to brand identity and full-stack builds, the work is always about making something that matters.",
                   )}
                 </p>
 
-                <p className="mt-5 inline-flex items-center gap-2.5 font-mono text-[12px] tracking-[0.04em] text-emerald-400">
+                <p className="mt-6 inline-flex items-center gap-2.5 font-mono text-[12px] tracking-[0.04em] text-emerald-400">
                   <span className="font-bold text-emerald-500 rtl:rotate-180">›</span> {tagline}
                 </p>
               </div>
 
-              {/* Right — availability + facts */}
-              <div className="flex flex-col gap-4 bg-zinc-950/30 p-[30px]">
-                <div className="flex items-center gap-2.5 rounded-[7px] border border-emerald-900/70 bg-emerald-950/25 px-3 py-2.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)] animate-pulse" />
-                  <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-400">{t("متاح", "Available")}</span>
-                  <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-700">{t("الحالة: نشط", "status: active")}</span>
-                </div>
+              {/* Right — identity card (raised surface for depth) */}
+              <div className="bg-zinc-950/55 p-[26px] sm:p-[30px]">
+                <IdentityCard
+                  initials={initials}
+                  location={location}
+                  focus={t("أمن + تصميم + أتمتة", "Security + design + automation")}
+                  clearance={t("مفتوح · جاهز لجهات التوظيف", "Open · recruiter-ready")}
+                />
+              </div>
 
-                <p className="font-mono text-[11px] leading-[1.7] text-zinc-600">
-                  {t(
-                    "متاح لفرص الأمن السيبراني واستخبارات التهديدات وتصميم الوسائط المتعددة وتطوير full-stack — عن بُعد وفي الموقع في دول الخليج.",
-                    "Open to cybersecurity, threat intelligence, multimedia design, and full-stack development — remote & on-site across the GCC.",
-                  )}
-                </p>
-
-                <div className="flex flex-col gap-2">
-                  <Fact Icon={MapPin} k={t("الموقع", "Location")} v={location} />
-                  <Fact Icon={ShieldCheck} k={t("التركيز", "Focus")} v={t("أمن + تصميم + أتمتة", "Security + design + automation")} />
-                  <Fact Icon={UserRound} k={t("التصريح", "Clearance")} v={t("مفتوح · جاهز لجهات التوظيف", "Open · recruiter-ready")} />
+              {/* Verdict stamp — overlaps the column seam for depth */}
+              <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 -rotate-[9deg] lg:block">
+                <div className="dossier-stamp px-4 py-2 text-center">
+                  <div className="text-[15px] font-bold uppercase tracking-[0.18em] leading-none">{t("تم التحقق", "Verified")}</div>
+                  <div className="mt-1 text-[8px] uppercase tracking-[0.28em] text-emerald-500/70">subject · GNB-01</div>
                 </div>
               </div>
             </div>
@@ -159,7 +159,7 @@ export function PersonnelContent() {
 
           {/* ── 01 · CAPABILITY MATRIX ─────────────────────────────────── */}
           <section className="os-panel-in [animation-delay:80ms]">
-            <SecLabel idx="01">capability.matrix</SecLabel>
+            <SecLabel section={SECTIONS[0]} />
             <div className="grid gap-3.5 md:grid-cols-2">
               {technicalCapabilities.map((group) => (
                 <DomainCard key={group.key} groupKey={group.key} label={t(group.label.ar, group.label.en)} items={group.items.map((it) => t(it.ar, it.en))} />
@@ -167,9 +167,9 @@ export function PersonnelContent() {
             </div>
           </section>
 
-          {/* ── 02 · CREDENTIAL LEDGER ─────────────────────────────────── */}
+          {/* ── 02 · CREDENTIAL REGISTER ───────────────────────────────── */}
           <section className="os-panel-in [animation-delay:120ms]">
-            <SecLabel idx="02">credentials.ledger</SecLabel>
+            <SecLabel section={SECTIONS[1]} />
             <Win label="credentials.ledger" status={t("موثّق", "verified")} statusDot={false}>
               {/* summary + issuer distribution */}
               <div className="mb-[18px] flex flex-wrap items-center gap-[18px]">
@@ -213,7 +213,7 @@ export function PersonnelContent() {
 
           {/* ── 03 · SERVICE RECORD ────────────────────────────────────── */}
           <section className="os-panel-in [animation-delay:160ms]">
-            <SecLabel idx="03">service.record</SecLabel>
+            <SecLabel section={SECTIONS[2]} />
             <div className="grid gap-3.5 lg:grid-cols-2">
               <Win label="experience.timeline" status={t("سجلّ العمل", "work history")}>
                 <Timeline items={experienceTimeline} />
@@ -224,9 +224,9 @@ export function PersonnelContent() {
             </div>
           </section>
 
-          {/* ── 04 · ACTIVE BUILDS (roadmap) ───────────────────────────── */}
+          {/* ── 04 · ACTIVE OPERATIONS (roadmap) ───────────────────────── */}
           <section className="os-panel-in [animation-delay:200ms]">
-            <SecLabel idx="04" trailing={t("— ما نبنيه", "— what we're building")}>active.builds</SecLabel>
+            <SecLabel section={SECTIONS[3]} trailing={t("— ما نبنيه", "— what we're building")} />
             <Win label="active.builds" status={t("المسار", "trajectory")} statusDot={false}>
               <p className="mb-4 max-w-[70ch] font-mono text-[11.5px] leading-[1.7] text-zinc-600">
                 {t(
@@ -244,7 +244,7 @@ export function PersonnelContent() {
 
           {/* ── 05 · DIRECT CHANNELS ───────────────────────────────────── */}
           <section className="os-panel-in [animation-delay:240ms]">
-            <SecLabel idx="05">direct.channels</SecLabel>
+            <SecLabel section={SECTIONS[4]} />
             <Win label="direct.channels" status={t("مفتوح", "open")} statusDot={false}>
               <div className="grid items-center gap-[30px] lg:grid-cols-[1fr_auto]">
                 <div className="grid gap-2.5 sm:grid-cols-2">
@@ -262,7 +262,7 @@ export function PersonnelContent() {
                   <Link
                     href={resumeHref}
                     target="_blank"
-                    className="inline-flex items-center justify-center gap-2.5 rounded-[7px] border border-emerald-500 bg-emerald-500 px-[22px] py-[13px] font-mono text-[12px] font-semibold uppercase tracking-[0.08em] text-emerald-950 transition-all duration-200 hover:-translate-y-px hover:bg-emerald-400 hover:shadow-[0_0_22px_rgba(16,185,129,0.22)]"
+                    className="inline-flex items-center justify-center gap-2.5 rounded-[7px] border border-emerald-500 bg-emerald-500 px-[22px] py-[13px] font-mono text-[12px] font-semibold uppercase tracking-[0.08em] text-emerald-950 transition-all duration-200 hover:-translate-y-px hover:bg-emerald-400 hover:shadow-[0_0_22px_rgba(16,185,129,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
                   >
                     <Download className="h-[15px] w-[15px]" />
                     {t("تحميل السيرة الذاتية", "Download resume")}
@@ -289,6 +289,76 @@ export function PersonnelContent() {
         </div>
       </footer>
     </>
+  )
+}
+
+// ── Classification banner — edge-to-edge cleared strip ──────────────────────
+function ClassificationBanner() {
+  const { t } = useLanguage()
+  return (
+    <div className="flex items-center gap-3 border-b border-emerald-900/60 bg-emerald-950/20 px-4 py-2 font-mono text-[9.5px] uppercase tracking-[0.22em] text-emerald-500/90 sm:px-[38px]">
+      <span className="flex items-center gap-2">
+        <span className="os-signal-dot" aria-hidden />
+        {t("سري · مُصرّح للإفراج", "Confidential · Cleared for Release")}
+      </span>
+      <span aria-hidden className="hidden flex-1 truncate text-emerald-900/70 sm:block">
+        {"// ".repeat(18)}
+      </span>
+      <span className="ml-auto shrink-0 tracking-[0.18em] text-zinc-600">file&nbsp;#GNB-01</span>
+    </div>
+  )
+}
+
+// ── Identity card — raised passport-style panel with barcode (depth) ────────
+function IdentityCard({
+  initials,
+  location,
+  focus,
+  clearance,
+}: {
+  initials: string
+  location: string
+  focus: string
+  clearance: string
+}) {
+  const { t } = useLanguage()
+  return (
+    <div className="flex flex-col gap-4 rounded-[10px] border border-zinc-800 bg-zinc-900/55 p-[18px] shadow-[0_24px_60px_-26px_rgba(0,0,0,0.85)]">
+      {/* card header */}
+      <div className="flex items-center gap-2 border-b border-zinc-800/70 pb-2.5">
+        <Fingerprint className="h-3.5 w-3.5 text-emerald-500" />
+        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-500">{t("بطاقة الهوية", "Identity Card")}</span>
+        <span className="ml-auto flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_theme(colors.emerald.500)] animate-pulse" />
+          <span className="font-mono text-[8.5px] uppercase tracking-[0.16em] text-emerald-400">{t("متاح", "Available")}</span>
+        </span>
+      </div>
+
+      {/* monogram + barcode */}
+      <div className="flex items-stretch gap-3">
+        <div className="grid h-[60px] w-[60px] shrink-0 place-items-center rounded-[8px] border border-emerald-900/70 bg-emerald-950/20 font-mono text-[22px] font-bold tracking-[0.04em] text-emerald-400">
+          {initials}
+        </div>
+        <div className="flex flex-1 flex-col justify-between py-0.5">
+          <div className="dossier-barcode h-[26px] w-full rounded-[3px]" aria-hidden />
+          <span className="font-mono text-[8.5px] uppercase tracking-[0.16em] text-zinc-700" dir="ltr">SUBJECT&nbsp;ID&nbsp;·&nbsp;GNB-01-HA</span>
+        </div>
+      </div>
+
+      {/* field rows */}
+      <div className="flex flex-col gap-2">
+        <Fact Icon={MapPin} k={t("الموقع", "Location")} v={location} />
+        <Fact Icon={ShieldCheck} k={t("التركيز", "Focus")} v={focus} />
+        <Fact Icon={UserRound} k={t("التصريح", "Clearance")} v={clearance} />
+      </div>
+
+      <p className="font-mono text-[9.5px] leading-[1.7] text-zinc-600">
+        {t(
+          "متاح لفرص الأمن السيبراني واستخبارات التهديدات وتصميم الوسائط المتعددة وتطوير full-stack — عن بُعد وفي الموقع في دول الخليج.",
+          "Open to cybersecurity, threat intelligence, multimedia design & full-stack work — remote & on-site across the GCC.",
+        )}
+      </p>
+    </div>
   )
 }
 
@@ -336,17 +406,27 @@ function Win({
   )
 }
 
-function SecLabel({ idx, trailing, children }: { idx: string; trailing?: string; children: ReactNode }) {
+// ── Section header — filed as a numbered form reference (tab + code + title) ──
+function SecLabel({ section, trailing }: { section: { idx: string; code: string; title: Bilingual }; trailing?: string }) {
+  const { t } = useLanguage()
   return (
-    <div className="mb-3.5 flex items-center gap-3.5 font-mono text-[11px] uppercase tracking-[0.24em] text-zinc-600">
-      <span className="text-emerald-500">{idx}</span>
-      <span>
-        {children}
-        {trailing && <span className="ml-2 text-zinc-700">{trailing}</span>}
+    <div className="mb-3.5 flex items-center gap-3">
+      <span className="inline-flex items-center gap-2 rounded-[5px] border border-emerald-900/70 bg-emerald-950/15 px-2.5 py-[5px]">
+        <span className="font-mono text-[11px] font-semibold tracking-[0.1em] text-emerald-500">{section.idx}</span>
+        <span className="h-3 w-px bg-emerald-900/70" />
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">{section.code}</span>
+      </span>
+      <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-zinc-400">
+        {t(section.title.ar, section.title.en)}
+        {trailing && <span className="ml-2 normal-case tracking-normal text-zinc-700">{trailing}</span>}
       </span>
       <span className="h-px flex-1 bg-zinc-800/70" />
     </div>
   )
+}
+
+function FieldLabel({ children }: { children: ReactNode }) {
+  return <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-zinc-700">{children}</p>
 }
 
 function Fact({ Icon, k, v }: { Icon: ElementType; k: string; v: string }) {
@@ -404,7 +484,7 @@ function CertCard({ cert }: { cert: Certification }) {
     <>
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 w-0.5 opacity-0 transition-opacity duration-200 group-hover/cert:opacity-70 rtl:left-auto rtl:right-0"
+        className="pointer-events-none absolute inset-y-0 left-0 w-0.5 opacity-0 transition-opacity duration-200 group-hover/cert:opacity-70 group-focus-visible/cert:opacity-70 rtl:left-auto rtl:right-0"
         style={{ backgroundColor: color }}
       />
       <div className="flex items-start justify-between gap-2.5">
@@ -415,7 +495,7 @@ function CertCard({ cert }: { cert: Certification }) {
           {cert.issuer}
         </span>
         {cert.href && (
-          <ExternalLink className="h-[13px] w-[13px] shrink-0 text-zinc-700 transition-colors group-hover/cert:text-emerald-500" />
+          <ExternalLink className="h-[13px] w-[13px] shrink-0 text-zinc-700 transition-colors group-hover/cert:text-emerald-500 group-focus-visible/cert:text-emerald-500" />
         )}
       </div>
       <h4 className="mt-3 flex-1 text-[13.5px] font-semibold leading-[1.35] text-zinc-100">{cert.name}</h4>
@@ -433,7 +513,7 @@ function CertCard({ cert }: { cert: Certification }) {
   )
 
   const cardClass =
-    "group/cert relative flex flex-col overflow-hidden rounded-[9px] border border-zinc-800 bg-zinc-950/40 p-[15px] transition-all duration-200 hover:-translate-y-0.5 hover:bg-zinc-800/40"
+    "group/cert relative flex flex-col overflow-hidden rounded-[9px] border border-zinc-800 bg-zinc-950/40 p-[15px] transition-all duration-200 hover:-translate-y-0.5 hover:bg-zinc-800/40 focus-visible:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
 
   return cert.href ? (
     <Link href={cert.href} target="_blank" rel="noopener noreferrer" className={cardClass}>
@@ -516,7 +596,7 @@ function Channel({ Icon, k, v, href, external }: { Icon: ElementType; k: string;
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
-      className="flex items-center gap-2.5 rounded-lg border border-zinc-800 bg-zinc-950/40 px-3.5 py-3 transition-all duration-200 hover:-translate-y-px hover:border-emerald-900/70 hover:bg-emerald-950/15"
+      className="flex items-center gap-2.5 rounded-lg border border-zinc-800 bg-zinc-950/40 px-3.5 py-3 transition-all duration-200 hover:-translate-y-px hover:border-emerald-900/70 hover:bg-emerald-950/15 focus-visible:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
     >
       <Icon className="h-4 w-4 shrink-0 text-emerald-500" />
       <span className="min-w-0">
