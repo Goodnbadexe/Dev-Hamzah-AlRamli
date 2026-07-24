@@ -43,6 +43,32 @@ export async function hasConfirmedSale(email: string): Promise<boolean> {
 }
 
 /**
+ * Product-scoped gate for the standalone Workflow Tools pack. True ONLY when a
+ * confirmed, non-refunded sale exists for this email whose `product_permalink`
+ * matches WORKFLOW_TOOLS_PERMALINK. Fails CLOSED when the permalink is unset,
+ * Supabase is unconfigured, or on any query error — a sale of a DIFFERENT product
+ * never unlocks this one (unlike the catalog-wide hasConfirmedSale).
+ */
+export async function hasWorkflowToolsAccess(email: string): Promise<boolean> {
+  const permalink = (process.env.WORKFLOW_TOOLS_PERMALINK ?? "").trim()
+  if (!permalink) return false
+  if (!isSupabaseConfigured()) return false
+  try {
+    const { data, error } = await supabaseAdmin()
+      .from("sales")
+      .select("id")
+      .eq("email", email)
+      .eq("refunded", false)
+      .eq("product_permalink", permalink)
+      .limit(1)
+      .maybeSingle()
+    return !error && Boolean(data)
+  } catch {
+    return false
+  }
+}
+
+/**
  * Most recent lead row for an email, normalized — used ONLY for variant
  * resolution (which OS-tuned PDF), never for access. null when none / unconfigured.
  */
