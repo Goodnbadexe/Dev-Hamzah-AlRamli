@@ -15,6 +15,9 @@ import type { TrackId, OsId } from "@/lib/subscribe/tracks"
 
 export interface Deliverable {
   id: string
+  /** Drip ordering: which week of the buyer's sequence this vault is emailed
+   *  (consumed by /api/cron/vault-drip). One vault per week, 1..6. */
+  week: 1 | 2 | 3 | 4 | 5 | 6
   outcomeEn: string
   outcomeAr: string
   /** file stem → content/vault/<track>/<fileStem>.pdf (+ <fileStem>-teaser.pdf) */
@@ -25,6 +28,7 @@ export const VAULT: Record<TrackId, Deliverable[]> = {
   security: [
     {
       id: "security-vault",
+      week: 1,
       outcomeEn: "Security — 5 underground tools + paste-ready prompts",
       outcomeAr: "الأمن — ٥ أدوات سرية مع برومبتات جاهزة",
       fileStem: "security-vault",
@@ -33,6 +37,7 @@ export const VAULT: Record<TrackId, Deliverable[]> = {
   developers: [
     {
       id: "developers-vault",
+      week: 2,
       outcomeEn: "Developers — 5 tools that ship you faster",
       outcomeAr: "المطوّرين — ٥ أدوات تنجزك أسرع",
       fileStem: "developers-vault",
@@ -41,6 +46,7 @@ export const VAULT: Record<TrackId, Deliverable[]> = {
   agents: [
     {
       id: "agents-vault",
+      week: 3,
       outcomeEn: "Agents — 5 tools to build real AI agents",
       outcomeAr: "الوكلاء — ٥ أدوات تبني بها وكلاء فعليين",
       fileStem: "agents-vault",
@@ -49,6 +55,7 @@ export const VAULT: Record<TrackId, Deliverable[]> = {
   automation: [
     {
       id: "automation-vault",
+      week: 4,
       outcomeEn: "Automation — 5 tools that run your stack",
       outcomeAr: "الأتمتة — ٥ أدوات تشغّل أدواتك عنك",
       fileStem: "automation-vault",
@@ -57,6 +64,7 @@ export const VAULT: Record<TrackId, Deliverable[]> = {
   quant: [
     {
       id: "quant-vault",
+      week: 5,
       outcomeEn: "Quant & Trading — 5 open-source engines funds run",
       outcomeAr: "التداول الكمّي — ٥ محركات مفتوحة تستخدمها الصناديق",
       fileStem: "quant-vault",
@@ -65,6 +73,7 @@ export const VAULT: Record<TrackId, Deliverable[]> = {
   creative: [
     {
       id: "creative-vault",
+      week: 6,
       outcomeEn: "Build in the Browser — 5 no-install 3D & creative tools",
       outcomeAr: "ابنِ في المتصفح — ٥ أدوات إبداعية و3D بدون تثبيت",
       fileStem: "creative-vault",
