@@ -1,0 +1,12 @@
+أغلب أطر الـ agents تخلّي النموذج يطلّع JSON لكل خطوة. smolagents يخلّي الـ agent يكتب بايثون حقيقي بدالها — والمحرك كله بحدود ألف سطر، ويشتغل على أي نموذج تبيه، محلي أو سحابي.
+
+Most agent frameworks make the model spit JSON for every step. smolagents lets the agent write actual Python instead — the whole engine fits in about a thousand lines, and it runs any model you want.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «وكلاء الذكاء» من The Toolkit Vault.
+🧰 One of 5 in this week's AGENTS drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #AIagents #LLM #autonomousagents

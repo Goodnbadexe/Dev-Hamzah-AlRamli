@@ -1,0 +1,12 @@
+لمّا الـ agent يسوّي شي غبي، 'قرّر كذا' مش تقرير أخطاء. Laminar يسجّل كل خطوة وكل استدعاء أداة وكل قرار — ويخليك تشغّل SQL على سلوك الـ agent عشان تلقى بالضبط وين غلط.
+
+When an agent does something dumb, 'it just decided to' isn't a debug log. Laminar traces every step, tool call, and decision — and lets you run SQL over your agent's behavior to find exactly where it went wrong.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «وكلاء الذكاء» من The Toolkit Vault.
+🧰 One of 5 in this week's AGENTS drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #AIagents #LLM #autonomousagents

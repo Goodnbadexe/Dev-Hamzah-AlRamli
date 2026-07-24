@@ -1,0 +1,12 @@
+محرك ألعاب ثلاثي الأبعاد كامل يشتغل في المتصفح — WebGL و WebGPU و WebXR — مع محرّر ويب تعاوني ونشر بضغطة واحدة لرابط دائم تشاركه.
+
+A full 3D game engine that runs in the browser — WebGL, WebGPU and WebXR — with a collaborative web editor and one-click publish to a permanent share link.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الإبداع في المتصفّح» من The Toolkit Vault.
+🧰 One of 5 in this week's CREATIVE drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #creativecoding #webdev #design

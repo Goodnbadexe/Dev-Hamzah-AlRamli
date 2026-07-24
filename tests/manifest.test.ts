@@ -7,7 +7,7 @@ import { describe, it, expect } from "vitest"
 import { existsSync } from "node:fs"
 import { resolve } from "node:path"
 import { VAULT, resolveFile, teaserFile, deliverableById, allDeliverables } from "@/lib/vault/manifest"
-import { OS_IDS, type TrackId } from "@/lib/subscribe/tracks"
+import { OS_IDS, TRACK_IDS, type TrackId } from "@/lib/subscribe/tracks"
 
 describe("manifest · resolution", () => {
   it("composes content/vault/<track>/<stem>-<os>.pdf", () => {
@@ -22,8 +22,10 @@ describe("manifest · resolution", () => {
     expect(deliverableById("nope")).toBeNull()
   })
 
-  it("has one issue per track, weeks 1–6", () => {
-    expect(allDeliverables().map((x) => x.deliverable.week).sort()).toEqual([1, 2, 3, 4, 5, 6])
+  it("has exactly one deliverable per track", () => {
+    const all = allDeliverables()
+    expect(all).toHaveLength(TRACK_IDS.length)
+    expect(all.map((x) => x.track).sort()).toEqual([...TRACK_IDS].sort())
   })
 })
 

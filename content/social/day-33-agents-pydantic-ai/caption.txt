@@ -1,0 +1,12 @@
+وكيلك يرجع JSON "صالح في الغالب" حتى المرة اللي ما يسوي فيها — Pydantic AI يضمن سلامة نوع المخرجات أو ما يشحن.
+
+Your agent returns "mostly valid" JSON until the one time it doesn't — Pydantic AI makes the output type-safe or it doesn't ship.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «وكلاء الذكاء» من The Toolkit Vault.
+🧰 One of 5 in this week's AGENTS drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #AIagents #LLM #autonomousagents

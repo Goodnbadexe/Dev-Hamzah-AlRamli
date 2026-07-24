@@ -16,7 +16,7 @@ import {
   DEFAULT_OS,
   isToolId,
   isOsId,
-  orderTracksByWeek,
+  orderTracksByDisplay,
   isTrackId,
 } from "./tracks"
 
@@ -107,7 +107,7 @@ export function computeReadFactor(answers: Answers, selectedTracks: TrackId[]): 
 }
 
 export function personalize(answers: Answers): Personalization {
-  const selectedTracks = orderTracksByWeek(list(answers, "tracks").filter(isTrackId))
+  const selectedTracks = orderTracksByDisplay(list(answers, "tracks").filter(isTrackId))
 
   const toolRaw = first(answers, "ai_tool")
   const toolVariant: ToolId = toolRaw && isToolId(toolRaw) ? toolRaw : DEFAULT_TOOL

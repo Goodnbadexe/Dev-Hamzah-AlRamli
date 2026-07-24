@@ -1,0 +1,12 @@
+هذا الذكاء الاصطناعي وجد ثغرة فاتت على مطوّر خبير — وهو مفتوح المصدر ومجاني. Vulnhuntr يقرأ كودك مثل مهاجم، ويتتبّع المدخلات غير الموثوقة حتى ثغرة قابلة للاستغلال عن بُعد.
+
+This AI just found a bug a senior dev missed. Vulnhuntr is an open-source LLM scanner that reads your Python like an attacker — it traces untrusted input all the way to a remote exploit (RCE, SQLi, SSRF, XSS, LFI, IDOR).
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt. Save this.
+
+🧰 وحدة من ٥ أدوات في إصدار «الأمن السيبراني» من The Toolkit Vault.
+🧰 One of 5 in this week's SECURITY drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #infosec #cybersecurity #appsec

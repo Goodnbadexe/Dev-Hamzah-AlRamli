@@ -1,0 +1,24 @@
+{
+  "day": 32,
+  "track": "developers",
+  "tool": "difftastic",
+  "repo": "Wilfred/difftastic",
+  "format": "R",
+  "template": "v2",
+  "templateVersion": "v2",
+  "brandVersion": "1",
+  "copyHash": "sha256:091e237a636d4166fc79f093c087e6a7",
+  "slides": [
+    "slide-1.png",
+    "slide-2.png",
+    "slide-3.png",
+    "slide-4.png",
+    "slide-5.png"
+  ],
+  "caption": "caption.txt",
+  "status": "READY",
+  "reasons": [],
+  "reviewed_by": null,
+  "approved_at": null,
+  "published": false
+}

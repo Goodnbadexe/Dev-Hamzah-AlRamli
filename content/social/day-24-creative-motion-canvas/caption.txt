@@ -1,0 +1,12 @@
+اصنع فيديوهات متحركة دقيقة بكتابة TypeScript، مع محرّر متصفح يعرض كل تعديل لحظيًا. أنظف طريقة تخلي الـ AI يكتب لك موشن جرافيكس.
+
+Make precise animated videos by writing TypeScript, with a live browser editor that previews every change instantly. The cleanest way to let an AI script your motion graphics.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الإبداع في المتصفّح» من The Toolkit Vault.
+🧰 One of 5 in this week's CREATIVE drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #creativecoding #webdev #design

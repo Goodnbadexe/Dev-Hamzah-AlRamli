@@ -229,7 +229,7 @@ export default function SubscribePage() {
             {PRODUCT.brandAr}
           </h1>
           <p className="font-mono text-sm leading-snug text-zinc-500">
-            Curated AI tools & underground repos — a weekly toolkit, built around you.
+            Curated AI tools & underground repos — six guided 4-week paths, built around you.
           </p>
         </div>
 
@@ -510,6 +510,48 @@ export default function SubscribePage() {
                 </div>
               ))}
             </div>
+
+            {/* Your guided 4-week path — each selected track is its own curriculum
+                with week-to-week dependencies (start here → needs wk N). */}
+            {selectedTracks.length > 0 && (
+              <div className="space-y-4 rounded-xl border border-zinc-800/60 bg-zinc-900/30 px-4 py-4">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">
+                  your 4-week path · مسارك — ٤ أسابيع لكل حقيبة
+                </p>
+                {selectedTracks.map((tid) => {
+                  const tr = trackById(tid)
+                  return (
+                    <div key={tid} className="space-y-2">
+                      <div className="flex items-baseline justify-between gap-2 border-b border-zinc-800/50 pb-1.5">
+                        <p className="text-xs font-semibold text-zinc-200">{tr.en}</p>
+                        <p className="font-mono text-[10px] text-zinc-500" dir="rtl">{tr.ar}</p>
+                      </div>
+                      <ol className="space-y-1.5">
+                        {tr.weeks.map((w) => (
+                          <li key={w.n} className="flex items-start gap-2.5">
+                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border border-emerald-800/70 bg-emerald-950/30 font-mono text-[10px] font-bold tabular-nums text-emerald-400">
+                              {w.n}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-baseline justify-between gap-2">
+                                <p className="text-xs text-zinc-300" dir="rtl">{w.ar}</p>
+                                <p className="shrink-0 font-mono text-[9px] text-zinc-600">{w.effort}</p>
+                              </div>
+                              <div className="flex items-baseline justify-between gap-2">
+                                <p className="font-mono text-[10px] text-zinc-600">{w.en}</p>
+                                <p className="shrink-0 font-mono text-[9px] text-emerald-700/80">
+                                  {w.dependsOn.length === 0 ? "start here" : `needs wk ${w.dependsOn.join(", ")}`}
+                                </p>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
 
             <p className="text-center font-mono text-[10px] text-zinc-700" dir="rtl">
               وصول فوري · دفع آمن عبر Gumroad · instant access

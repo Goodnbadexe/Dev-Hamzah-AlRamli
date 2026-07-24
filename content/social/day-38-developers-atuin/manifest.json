@@ -1,0 +1,24 @@
+{
+  "day": 38,
+  "track": "developers",
+  "tool": "atuin",
+  "repo": "atuinsh/atuin",
+  "format": "R",
+  "template": "v2",
+  "templateVersion": "v2",
+  "brandVersion": "1",
+  "copyHash": "sha256:7a14e380408d481afcc76524470d5a6c",
+  "slides": [
+    "slide-1.png",
+    "slide-2.png",
+    "slide-3.png",
+    "slide-4.png",
+    "slide-5.png"
+  ],
+  "caption": "caption.txt",
+  "status": "READY",
+  "reasons": [],
+  "reviewed_by": null,
+  "approved_at": null,
+  "published": false
+}

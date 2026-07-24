@@ -1,0 +1,12 @@
+ذكاء اصطناعي بدون GPU — مايكروسوفت تطلق نماذج تشتغل على أي جهاز. شغّل نماذج لغوية محليًا على المعالج فقط، بدون كرت شاشة وبدون سحابة، وخصوصيتك محفوظة.
+
+Run real LLMs on any CPU — no GPU, no cloud. Microsoft's 1-bit models are light enough to run interactively on a plain laptop, and your AI never leaves your machine.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الأمن السيبراني» من The Toolkit Vault.
+🧰 One of 5 in this week's SECURITY drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #infosec #cybersecurity #appsec

@@ -1,0 +1,24 @@
+{
+  "day": 34,
+  "track": "automation",
+  "tool": "Kestra",
+  "repo": "kestra-io/kestra",
+  "format": "C",
+  "template": "v2",
+  "templateVersion": "v2",
+  "brandVersion": "1",
+  "copyHash": "sha256:548fde7a478c71c3bf290bf9d133935d",
+  "slides": [
+    "slide-1.png",
+    "slide-2.png",
+    "slide-3.png",
+    "slide-4.png",
+    "slide-5.png"
+  ],
+  "caption": "caption.txt",
+  "status": "READY",
+  "reasons": [],
+  "reviewed_by": null,
+  "approved_at": null,
+  "published": false
+}

@@ -1,0 +1,12 @@
+السبّورة المرسومة باليد اللي الكل يستخدمها — بس الجزء المخفي هو المكوّن مفتوح المصدر اللي تضمّنه بنفسك، فيقدر الـ AI يولّد مخططات كاملة كبيانات تلصقها مباشرة.
+
+The hand-drawn whiteboard everyone uses — but the under-surfaced part is the open-source component you embed, so an AI can generate whole diagrams as data you paste in.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الإبداع في المتصفّح» من The Toolkit Vault.
+🧰 One of 5 in this week's CREATIVE drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #creativecoding #webdev #design

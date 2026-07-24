@@ -40,7 +40,7 @@ try {
     await page.pdf({ path: join(dir, `${issue.track}-vault-teaser.pdf`), format: "A4", printBackground: true, margin: { top: "0", bottom: "0", left: "0", right: "0" } })
     n++
 
-    console.log(`  ✓ week ${issue.week} · ${issue.track} → 3 OS builds + teaser`)
+    console.log(`  ✓ ${issue.track} → 3 OS builds + teaser`)
   }
 } finally {
   await browser.close()

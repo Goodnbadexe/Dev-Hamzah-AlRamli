@@ -114,6 +114,19 @@ function esc(s) {
 const nb = (s) => esc(s).replace(/ /g, "&nbsp;")
 const pad2 = (n) => String(n).padStart(2, "0")
 
+// Each track is its OWN vault (its 4-week path lives in lib/subscribe/tracks.ts),
+// NOT "week N of a 6-week series". Covers are branded by track, never by week number.
+const TRACK_LABEL = {
+  security: "SECURITY",
+  developers: "DEVELOPERS",
+  agents: "AGENTS",
+  automation: "AUTOMATION",
+  quant: "QUANT",
+  creative: "CREATIVE",
+  all: "ALL-ACCESS",
+}
+const trackLabel = (t) => TRACK_LABEL[t] || String(t ?? "VAULT").toUpperCase()
+
 function coverPage(d, os) {
   const picks = d.picks
     .map((p) => `<b>&gt;</b> <span class="paywall-hidden">${esc(p.name)}</span>`)
@@ -122,9 +135,9 @@ function coverPage(d, os) {
   return `<section class="page"><div class="grid"></div><div class="glow"></div>
     <div class="z cov">
       <div>
-        <div class="rh"><span>// ${nb("THE TOOLKIT VAULT")}</span><span class="g">ISSUE ${pad2(d.week)}</span></div>
+        <div class="rh"><span>// ${nb("THE TOOLKIT VAULT")}</span><span class="g">${nb(trackLabel(d.track))}</span></div>
         <div class="kick">${esc(d.kicker)}</div>
-        <h1>WEEK&nbsp;${pad2(d.week)}<br><span class="v">VAULT</span></h1>
+        <h1>${nb(trackLabel(d.track))}<br><span class="v">VAULT</span></h1>
         <div class="sub">${esc(d.subtitle)}</div>
         ${badge}
         <div class="meta">${esc(d.meta)}</div>
@@ -150,7 +163,7 @@ function introPage(d, os) {
     : ""
   return `<section class="page"><div class="grid"></div>
     <div class="z">
-      <div class="rh"><span>// ${nb("HOW THIS WORKS")}</span><span class="g">ISSUE ${pad2(d.week)} · 02</span></div>
+      <div class="rh"><span>// ${nb("HOW THIS WORKS")}</span><span class="g">${nb(trackLabel(d.track))} · 02</span></div>
       <h2>${esc(d.introTitle || "Welcome to the Vault.")}</h2>
       <p class="lead">${esc(d.introLead)}</p>
       <div class="how">
@@ -164,7 +177,7 @@ function introPage(d, os) {
       </div>
       ${ostune}
       <p class="ar">${esc(d.introAr)}</p>
-      <h3 style="font-family:Consolas,monospace;font-size:13px;letter-spacing:2px;color:#74879f;margin:26px 0 10px">THIS WEEK</h3>
+      <h3 style="font-family:Consolas,monospace;font-size:13px;letter-spacing:2px;color:#74879f;margin:26px 0 10px">IN THIS VAULT</h3>
       <ul class="toc">${toc}</ul>
       <div class="unlock"><span class="lk">&#128274;</span> Tool names, GitHub links &amp; paste-ready prompts are unlocked for subscribers &#8594; <b>goodnbad.info/subscribe</b></div>
     </div>
@@ -198,7 +211,7 @@ function outroPage(d, os) {
   const osFoot = os ? ` &nbsp;·&nbsp; ${esc(os.label)} build` : ""
   return `<section class="page"><div class="grid"></div><div class="glow"></div>
     <div class="z">
-      <div class="rh"><span>// ${nb("THAT'S WEEK " + pad2(d.week))}</span><span class="g">ISSUE ${pad2(d.week)} · END</span></div>
+      <div class="rh"><span>// ${nb("THE " + trackLabel(d.track) + " VAULT")}</span><span class="g">${nb(trackLabel(d.track))} · END</span></div>
       <h2>${esc(d.outroTitle || "That's the Vault for this week.")}</h2>
       <p class="lead">${esc(d.outroLead)}</p>
       <div class="cta">

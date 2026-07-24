@@ -1,0 +1,12 @@
+أي MCP server تركّبه على Claude أو Cursor ممكن يكون مفخّخ — يقرأ مفاتيحك بصمت والـ agent يرجّعلك إجابة عادية. mcp-scan يكشف هجمات Tool Poisoning قبل ما تثق بأي سيرفر، ومكتشفوه أثبتوا الهجوم على سيرفرات WhatsApp و GitHub نفسها.
+
+That MCP server you just installed can read your SSH keys — and your agent will never tell you. mcp-scan catches "Tool Poisoning": hidden instructions inside tool descriptions the model silently obeys.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الأمن السيبراني» من The Toolkit Vault.
+🧰 One of 5 in this week's SECURITY drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #infosec #cybersecurity #appsec

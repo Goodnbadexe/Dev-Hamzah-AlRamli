@@ -158,88 +158,50 @@ export const PLANS: Plan[] = [
 ]
 
 // ── Gumroad storefront (stopgap until a live card processor is connected) ──────
-// Each track + the all-access bundle is a Gumroad product. The quiz recommends
-// which one to buy; the CTA opens its Gumroad overlay checkout. Set the product
-// URLs as NEXT_PUBLIC_GUMROAD_* env (inlined at build — redeploy after changing).
-// Each product exists per OS (Windows/Linux/macOS) so a buyer gets a build tuned
-// to their machine. `any` is an OS-agnostic fallback link. NOTE: Next inlines
-// NEXT_PUBLIC_* only for STATIC references, so every slot is declared explicitly.
-type GumroadEntry = { windows?: string; linux?: string; macos?: string; any?: string }
+// Each track + the all-access bundle is a Gumroad product; the CTA opens its
+// Gumroad overlay checkout. Links resolve by CONVENTION from the product slug
+// (see gumroadSlug) instead of a per-link env map — so creating a new OS build
+// with its conventional slug wires it into the funnel with no env edit or redeploy.
+const GUMROAD_USER = "hamzahramli"
+// 50%-off launch code, pre-applied on single-vault checkout so the overlay
+// charges the exact $8 the paywall advertises. Empty it to end the promo.
+const LAUNCH_OFFER = "LAUNCH50"
 
-const GUMROAD: Record<TrackId | "all", GumroadEntry> = {
-  security: {
-    windows: process.env.NEXT_PUBLIC_GUMROAD_SECURITY_WINDOWS,
-    linux: process.env.NEXT_PUBLIC_GUMROAD_SECURITY_LINUX,
-    macos: process.env.NEXT_PUBLIC_GUMROAD_SECURITY_MACOS,
-    any: process.env.NEXT_PUBLIC_GUMROAD_SECURITY,
-  },
-  developers: {
-    windows: process.env.NEXT_PUBLIC_GUMROAD_DEVELOPERS_WINDOWS,
-    linux: process.env.NEXT_PUBLIC_GUMROAD_DEVELOPERS_LINUX,
-    macos: process.env.NEXT_PUBLIC_GUMROAD_DEVELOPERS_MACOS,
-    any: process.env.NEXT_PUBLIC_GUMROAD_DEVELOPERS,
-  },
-  agents: {
-    windows: process.env.NEXT_PUBLIC_GUMROAD_AGENTS_WINDOWS,
-    linux: process.env.NEXT_PUBLIC_GUMROAD_AGENTS_LINUX,
-    macos: process.env.NEXT_PUBLIC_GUMROAD_AGENTS_MACOS,
-    any: process.env.NEXT_PUBLIC_GUMROAD_AGENTS,
-  },
-  automation: {
-    windows: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION_WINDOWS,
-    linux: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION_LINUX,
-    macos: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION_MACOS,
-    any: process.env.NEXT_PUBLIC_GUMROAD_AUTOMATION,
-  },
-  quant: {
-    windows: process.env.NEXT_PUBLIC_GUMROAD_QUANT_WINDOWS,
-    linux: process.env.NEXT_PUBLIC_GUMROAD_QUANT_LINUX,
-    macos: process.env.NEXT_PUBLIC_GUMROAD_QUANT_MACOS,
-    any: process.env.NEXT_PUBLIC_GUMROAD_QUANT,
-  },
-  creative: {
-    windows: process.env.NEXT_PUBLIC_GUMROAD_CREATIVE_WINDOWS,
-    linux: process.env.NEXT_PUBLIC_GUMROAD_CREATIVE_LINUX,
-    macos: process.env.NEXT_PUBLIC_GUMROAD_CREATIVE_MACOS,
-    any: process.env.NEXT_PUBLIC_GUMROAD_CREATIVE,
-  },
-  all: {
-    windows: process.env.NEXT_PUBLIC_GUMROAD_ALL_WINDOWS,
-    linux: process.env.NEXT_PUBLIC_GUMROAD_ALL_LINUX,
-    macos: process.env.NEXT_PUBLIC_GUMROAD_ALL_MACOS,
-    any: process.env.NEXT_PUBLIC_GUMROAD_ALL,
-  },
+/** Gumroad product slug for a tier key + OS, by convention: tracks are
+ *  `<track>-vault-<os>`, the bundle is `all-access-<os>`. */
+function gumroadSlug(key: TrackId | "all", os: OsId): string {
+  return key === "all" ? `all-access-${os}` : `${key}-vault-${os}`
 }
-const GUMROAD_STORE = process.env.NEXT_PUBLIC_GUMROAD_STORE
 
-/** Best Gumroad product URL for the ticked tracks + the buyer's OS: 1 track → that
- *  vault, 2+ → all-access. Prefers the OS-specific link, then the track's generic
- *  link, then all-access, then the store. */
+/** Best Gumroad checkout URL for the ticked tracks + the buyer's OS: 1 track →
+ *  that vault with the launch discount pre-applied, 2+ → all-access at $25 list. */
 export function gumroadUrl(selectedTracks: TrackId[], os: OsId = "windows"): string {
   const tier = tierForTracks(selectedTracks)
   const key: TrackId | "all" = tier === "single" ? selectedTracks[0] : "all"
-  const e = GUMROAD[key]
-  const all = GUMROAD.all
-  return ((e && (e[os] || e.any)) || all[os] || all.any || GUMROAD_STORE || "").trim()
+  const url = `https://${GUMROAD_USER}.gumroad.com/l/${gumroadSlug(key, os)}`
+  // Launch discount applies to single vaults only; all-access stays at $25 list.
+  return key === "all" || !LAUNCH_OFFER ? url : `${url}/${LAUNCH_OFFER}`
 }
 
-// Base + per-tool pricing (USD, matches the Gumroad products). One issue = 5 tools
-// → $2 base + $1.20 × 5 = $8. All-access (3+ vaults) is a flat bundle price that
-// undercuts buying every issue separately.
-export const PRICING = { base: 2, perTool: 1.2, toolsPerIssue: 5, perIssue: 8, allAccess: 25 }
+// Base + per-tool pricing (USD). One issue = 5 tools → $2 base + $1.20 × 5 = $8 —
+// the net after the 50% launch code on the $16 `listPerIssue`. All-access (2+
+// vaults) is a flat $25 bundle that undercuts buying every issue separately.
+export const PRICING = { base: 2, perTool: 1.2, toolsPerIssue: 5, perIssue: 8, listPerIssue: 16, allAccess: 25 }
 
 export type GumroadPrice = { price: number; original: number; breakdown: string }
 
 /** USD price + honest strike-through + a base/per-tool breakdown line for the paywall. */
 export function gumroadPrice(selectedTracks: TrackId[]): GumroadPrice {
   const n = Math.max(1, selectedTracks.length)
-  if (n >= 3) {
-    const original = PRICING.perIssue * TRACK_IDS.length // value of buying all separately
+  // 1 vault = its own product; 2+ has no multi-pick product, so it routes to
+  // all-access (matching gumroadUrl) at the flat $25 bundle price.
+  if (n >= 2) {
+    const original = PRICING.listPerIssue * TRACK_IDS.length // list value of all vaults bought separately
     return { price: PRICING.allAccess, original, breakdown: `all ${TRACK_IDS.length} vaults · one price` }
   }
   const tools = PRICING.toolsPerIssue * n
   const price = Math.round(PRICING.base + PRICING.perTool * tools)
-  return { price, original: PRICING.perIssue * n, breakdown: `$${PRICING.base} base + $${PRICING.perTool}/tool × ${tools}` }
+  return { price, original: PRICING.listPerIssue * n, breakdown: `$${PRICING.base} base + $${PRICING.perTool}/tool × ${tools}` }
 }
 
 export const PRODUCT = {
@@ -249,7 +211,7 @@ export const PRODUCT = {
   headlineAr: "افتح إمكانياتك بخطة ذكاء اصطناعي مصمّمة لك",
   headlineEn: "Unlock your potential with a personalized AI plan",
   benefits: [
-    { ar: "حقيبة أدوات أسبوعية (PDF) جاهزة تنسخها في Claude أو ChatGPT أو Codex", en: "A weekly toolkit (PDF) you drop straight into Claude, ChatGPT or Codex" },
+    { ar: "كل حقيبة مسار ٤ أسابيع (PDF) جاهزة تنسخها في Claude أو ChatGPT أو Codex", en: "Each vault is a guided 4-week path (PDF) you drop straight into Claude, ChatGPT or Codex" },
     { ar: "مختارة حسب مجالك وأهدافك من إجاباتك", en: "Curated to your niche & goals from your answers" },
     { ar: "أدوات ومستودعات سرية ما يوصلها الكل", en: "Underground tools & repos most people never find" },
     { ar: "workflow أنظف ومساحات عمل مترابطة", en: "A cleaner workflow & connected workspaces" },

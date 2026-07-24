@@ -28,7 +28,7 @@ describe("personalize · variant selection", () => {
 })
 
 describe("personalize · tracks + bundle", () => {
-  it("orders selected tracks by week and dedupes", () => {
+  it("orders selected tracks by display order and dedupes", () => {
     const p = personalize({ tracks: ["automation", "security", "security", "agents"] })
     expect(p.selectedTracks).toEqual(["security", "agents", "automation"])
   })

@@ -1,0 +1,12 @@
+ما ترسل API بدون فحص أمني — غاراك هو nmap ل LLM، يرسل آلاف الاختبارات والاختراقات لها.
+
+You'd never ship an API without a security scan — Garak is nmap for your LLM, firing thousands of jailbreak and leak probes at it.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الأمن السيبراني» من The Toolkit Vault.
+🧰 One of 5 in this week's SECURITY drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #infosec #cybersecurity #appsec

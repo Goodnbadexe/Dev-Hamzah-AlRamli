@@ -1,0 +1,12 @@
+أكثر بوت تداول مفتوح المصدر مُجرّب فعليًا. اكتب استراتيجية بـ Python، اختبرها، شغّلها dry-run على أسعار حقيقية بفلوس وهمية، وتحكّم بكل شي من Telegram — بدون أي منصة مدفوعة.
+
+The most battle-tested open-source trading bot there is. Write a strategy in Python, backtest it, dry-run it on live prices with fake money, and control the whole thing from Telegram — all without touching a paid platform.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «التداول الكمّي» من The Toolkit Vault.
+🧰 One of 5 in this week's QUANT drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #quant #algotrading #fintech

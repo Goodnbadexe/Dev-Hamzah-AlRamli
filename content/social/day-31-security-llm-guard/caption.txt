@@ -1,0 +1,12 @@
+الدردشة الآلية ستسرب مفاتيح API أو تطيع طلبات مخفية بكل سعادة - llm-guard هو الجدار الناري الذي يجلس بينه وبين العالم.
+
+Your chatbot will happily leak an API key or obey a hidden prompt — llm-guard is the firewall that sits between it and the world.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الأمن السيبراني» من The Toolkit Vault.
+🧰 One of 5 in this week's SECURITY drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #infosec #cybersecurity #appsec

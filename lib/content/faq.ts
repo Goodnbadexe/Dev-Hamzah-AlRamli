@@ -29,7 +29,7 @@ export const portfolioContext: Bilingual = {
     "بين تحليل البرمجيات الخبيثة والاستخبارات التهديدية والكشف عن الحوادث من جهة، " +
     "والتصميم الجرافيكي وهوية العلامة التجارية وإنتاج الفيديو وتطوير الويب بـ Next.js و React " +
     "من جهة أخرى. حاصل على شهادة علوم الحاسوب من جامعة تايلورز (جائزة 2024). يدير أيضًا " +
-    "«خزينة الأدوات» (the Toolkit Vault): اشتراك شهري بـ 9 دولار يرسل حقيبة أدوات أمن وذكاء " +
+    "«خزينة الأدوات» (the Toolkit Vault): اشتراك شهري بـ 8 دولار يرسل حقيبة أدوات أمن وذكاء " +
     "اصطناعي أسبوعية بصيغة PDF عبر goodnbad.info/subscribe. هذا المساعد يجيب فقط عن " +
     "الأسئلة المتعلقة بحمزة وخدماته وأعماله وخزينة الأدوات.",
   en:
@@ -38,7 +38,7 @@ export const portfolioContext: Bilingual = {
     "He pairs malware analysis, threat intelligence, and incident detection with " +
     "graphic design, brand identity, video production, and full-stack web work in " +
     "Next.js and React. He holds a Computer Science degree from Taylor's University " +
-    "(Award recipient 2024). He also runs the Toolkit Vault: a $9/month membership " +
+    "(Award recipient 2024). He also runs the Toolkit Vault: an $8/month membership " +
     "that delivers a weekly security + AI tools PDF via goodnbad.info/subscribe. " +
     "This assistant answers only questions about Hamzah, his services, his work, " +
     "and the Toolkit Vault.",
@@ -275,10 +275,10 @@ export const faqItems: FAQItem[] = [
     },
     a: {
       ar:
-        "9 دولارات شهريًا، مع خيار اشتراك سنوي بسعر مخفّض. وصول فوري وإلغاء في أي وقت. اشترك عبر " +
+        "8 دولارات شهريًا، مع خيار اشتراك سنوي بسعر مخفّض. وصول فوري وإلغاء في أي وقت. اشترك عبر " +
         "goodnbad.info/subscribe.",
       en:
-        "$9 per month, with a discounted yearly option. Instant access and cancel anytime. " +
+        "$8 per month, with a discounted yearly option. Instant access and cancel anytime. " +
         "Subscribe at goodnbad.info/subscribe.",
     },
   },

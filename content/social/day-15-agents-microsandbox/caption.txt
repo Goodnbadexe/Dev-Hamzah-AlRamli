@@ -1,0 +1,12 @@
+الـ agent كتب كود وودّه يشغّله — على جهازك وبملفاتك. microsandbox يقلّع لك microVM حقيقي بأجزاء من الثانية، فالكود اللي ما تثق فيه يشتغل معزول تمامًا — بدون فاتورة سحابة، وبدون ما تسلّم جهازك.
+
+Your agent just wrote code and wants to run it. On your machine.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «وكلاء الذكاء» من The Toolkit Vault.
+🧰 One of 5 in this week's AGENTS drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #AIagents #LLM #autonomousagents

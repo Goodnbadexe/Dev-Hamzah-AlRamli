@@ -1,0 +1,12 @@
+كل محرك فوق يحتاج بيانات نظيفة — OpenBB هو الأنبوب مفتوح المصدر اللي يجيبها. واجهة Python وحدة لأكثر من ٣٥٠ مصدر بيانات: أسهم، فوركس، كريبتو، اقتصاد، وملفات SEC — بدون ما تطارد مفاتيح API متفرقة.
+
+Every engine above needs clean data — OpenBB is the open-source pipe that delivers it. One Python interface to 350+ financial datasets: equities, forex, crypto, economics, and SEC filings, no scattered API keys to juggle.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «التداول الكمّي» من The Toolkit Vault.
+🧰 One of 5 in this week's QUANT drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #quant #algotrading #fintech

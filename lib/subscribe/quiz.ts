@@ -289,12 +289,12 @@ export const QUIZ: QuizQuestion[] = [
     minSelect: 1,
     maxSelect: TRACK_IDS.length,
     options: [
-      { value: "security", ar: "الأمن — أسبوع ١", en: "Security — Week 1" },
-      { value: "developers", ar: "المطوّرين والأدوات — أسبوع ٢", en: "Developers & Tools — Week 2" },
-      { value: "agents", ar: "الوكلاء — أسبوع ٣", en: "Agents — Week 3" },
-      { value: "automation", ar: "الأتمتة — أسبوع ٤", en: "Automation — Week 4" },
-      { value: "quant", ar: "التداول الكمّي — أسبوع ٥", en: "Quant & Trading — Week 5" },
-      { value: "creative", ar: "ابنِ في المتصفح — أسبوع ٦", en: "Build in the Browser — Week 6" },
+      { value: "security", ar: "الأمن · مسار ٤ أسابيع", en: "Security · 4-week path" },
+      { value: "developers", ar: "المطوّرين والأدوات · مسار ٤ أسابيع", en: "Developers & Tools · 4-week path" },
+      { value: "agents", ar: "الوكلاء · مسار ٤ أسابيع", en: "Agents · 4-week path" },
+      { value: "automation", ar: "الأتمتة · مسار ٤ أسابيع", en: "Automation · 4-week path" },
+      { value: "quant", ar: "التداول الكمّي · مسار ٤ أسابيع", en: "Quant & Trading · 4-week path" },
+      { value: "creative", ar: "ابنِ في المتصفح · مسار ٤ أسابيع", en: "Build in the Browser · 4-week path" },
     ],
   },
 

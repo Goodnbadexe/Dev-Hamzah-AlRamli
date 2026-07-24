@@ -1,0 +1,12 @@
+سطر واحد عشان تبعث إشعار لـ Telegram، أو Discord، أو Slack، أو إيميل، أو SMS، أو ٩٠+ خدمة ثانية. Apprise هو الغراء الناقص اللي يخلّي كل سكربت و cron job يقولّك فعلاً وش صار.
+
+One line of code to push a notification to Telegram, Discord, Slack, email, SMS, or 90+ other services. Apprise is the missing glue that makes every script and cron job actually tell you what happened.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الأتمتة» من The Toolkit Vault.
+🧰 One of 5 in this week's AUTOMATION drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #automation #nocode #productivity

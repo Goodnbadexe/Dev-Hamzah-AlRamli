@@ -68,14 +68,14 @@ describe("pricing · honest derived math", () => {
 
 describe("pricing · gumroad base + per-tool", () => {
   it("one issue = $2 base + $1.20 × 5 tools = $8", () => {
-    expect(gumroadPrice(["security"] as TrackId[]).price).toBe(8)
-    expect(gumroadPrice(["security"] as TrackId[]).original).toBe(8)
+    expect(gumroadPrice(["security"] as TrackId[]).price).toBe(8) // net after LAUNCH50
+    expect(gumroadPrice(["security"] as TrackId[]).original).toBe(16) // $16 list-price strike
   })
 
-  it("two vaults add per-tool, with an honest strike-through", () => {
+  it("two vaults route to all-access (no multi-pick product)", () => {
     const q = gumroadPrice(["security", "developers"] as TrackId[])
-    expect(q.price).toBe(14) // 2 + 1.2*10
-    expect(q.original).toBe(16) // 2 × $8
+    expect(q.price).toBe(PRICING.allAccess) // 25 — matches the all-access bundle the CTA opens
+    expect(q.original).toBeGreaterThan(q.price)
   })
 
   it("3+ vaults = flat all-access price, undercutting buying separately", () => {

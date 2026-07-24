@@ -1,0 +1,12 @@
+حوّل أي سكربت إلى webhook، أو مهمة مجدولة، أو workflow، أو واجهة تتولد تلقائيًا — بدون ما تركّب ولا سيرفر واحد. Windmill هو العمود الفقري اللي يبنون عليه الأدوات الداخلية الجادة.
+
+Turn any script into a webhook, a scheduled job, a workflow, or an auto-generated UI — without standing up a single server. Windmill is the self-hosted backbone behind serious internal tooling.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الأتمتة» من The Toolkit Vault.
+🧰 One of 5 in this week's AUTOMATION drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #automation #nocode #productivity

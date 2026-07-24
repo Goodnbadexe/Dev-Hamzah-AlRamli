@@ -1,0 +1,24 @@
+{
+  "day": 37,
+  "track": "security",
+  "tool": "Garak",
+  "repo": "NVIDIA/garak",
+  "format": "R",
+  "template": "v2",
+  "templateVersion": "v2",
+  "brandVersion": "1",
+  "copyHash": "sha256:f5e3e9885cbc8f1224213a6924786f4d",
+  "slides": [
+    "slide-1.png",
+    "slide-2.png",
+    "slide-3.png",
+    "slide-4.png",
+    "slide-5.png"
+  ],
+  "caption": "caption.txt",
+  "status": "READY",
+  "reasons": [],
+  "reviewed_by": null,
+  "approved_at": null,
+  "published": false
+}

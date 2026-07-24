@@ -1,0 +1,24 @@
+{
+  "day": 33,
+  "track": "agents",
+  "tool": "Pydantic AI",
+  "repo": "pydantic/pydantic-ai",
+  "format": "C",
+  "template": "v2",
+  "templateVersion": "v2",
+  "brandVersion": "1",
+  "copyHash": "sha256:31423348289efc3a038690317469ad39",
+  "slides": [
+    "slide-1.png",
+    "slide-2.png",
+    "slide-3.png",
+    "slide-4.png",
+    "slide-5.png"
+  ],
+  "caption": "caption.txt",
+  "status": "READY",
+  "reasons": [],
+  "reviewed_by": null,
+  "approved_at": null,
+  "published": false
+}

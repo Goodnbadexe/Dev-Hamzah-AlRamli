@@ -1,0 +1,12 @@
+اكتب مهام خلفية طويلة كـ async TypeScript عادي — بدون timeouts، بدون إعداد queues، بدون بنية تحتية تراقبها. Trigger.dev هو طبقة الأتمتة المبنية على الكود لمن يفضّل يكتب دالة بدل ما يسحب صناديق.
+
+Write long-running background jobs as normal async TypeScript — no timeouts, no queue plumbing, no infra to babysit. Trigger.dev is the code-first automation layer for builders who'd rather write a function than drag boxes.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الأتمتة» من The Toolkit Vault.
+🧰 One of 5 in this week's AUTOMATION drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #automation #nocode #productivity

@@ -5,6 +5,7 @@ declare module "nodemailer" {
   interface MailOptions {
     from?: string
     to?: string
+    replyTo?: string
     subject?: string
     text?: string
     html?: string

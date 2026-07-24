@@ -4,6 +4,9 @@ const nextConfig = {
   // file-tracer can't see fs.readFile paths built at runtime, so include them here.
   outputFileTracingIncludes: {
     '/api/vault/[file]': ['./content/vault/**/*.pdf'],
+    // The funnel welcome email links /teasers/<track>, served by a route that
+    // fs.readFile's the committed teaser PDFs — force-include them or it 404s in prod.
+    '/teasers/[track]': ['./content/vault/**/*-teaser.pdf'],
   },
   images: {
     // NOTE: unoptimized was previously true, disabling all image compression and

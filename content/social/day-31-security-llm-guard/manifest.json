@@ -1,0 +1,26 @@
+{
+  "day": 31,
+  "track": "security",
+  "tool": "llm-guard",
+  "repo": "protectai/llm-guard",
+  "format": "C",
+  "templateVersion": "v2",
+  "brandVersion": "1",
+  "rendererVersion": "1",
+  "fontsVersion": "system-segoe-consolas",
+  "copyHash": "sha256:2ce0751d10df3aadfb3147a154f6638d",
+  "slides": [
+    "slide-1.png",
+    "slide-2.png",
+    "slide-3.png",
+    "slide-4.png",
+    "slide-5.png"
+  ],
+  "caption": "caption.txt",
+  "state": "READY",
+  "status": "READY",
+  "reasons": [],
+  "reviewed_by": null,
+  "approved_at": null,
+  "published": false
+}

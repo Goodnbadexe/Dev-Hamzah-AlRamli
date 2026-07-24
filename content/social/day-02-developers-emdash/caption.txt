@@ -1,0 +1,12 @@
+شغّل خمس agents يكتبون كود بنفس الوقت بدون ما تغرق بنوافذ ترمينال. emdash يعطي كل واحد git worktree خاص فيه، فتجرّب أكثر من حل بالتوازي وتدمج بس اللي نجح.
+
+Run five coding agents at once without drowning in terminals. emdash gives each one its own git worktree, so you try multiple fixes in parallel and merge only what works.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «المطوّرين» من The Toolkit Vault.
+🧰 One of 5 in this week's DEVELOPERS drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #devtools #coding #softwareengineering

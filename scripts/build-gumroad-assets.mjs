@@ -29,7 +29,18 @@ const ACCENT = {
   creative: "#5eead4",
 }
 const ALL_ACCENT = "#00ffa3"
-const pad2 = (n) => String(n).padStart(2, "0")
+
+// Each track is its OWN vault — branded by track, never by week number.
+const TRACK_LABEL = {
+  security: "SECURITY",
+  developers: "DEVELOPERS",
+  agents: "AGENTS",
+  automation: "AUTOMATION",
+  quant: "QUANT",
+  creative: "CREATIVE",
+  all: "ALL-ACCESS",
+}
+const trackLabel = (t) => TRACK_LABEL[t] || String(t ?? "VAULT").toUpperCase()
 
 // Display name per track (the Gumroad product Name).
 const NAMES = {
@@ -83,10 +94,10 @@ function coverHtml(issue, os) {
     .foot .s{color:#eef4fb}
   </style></head><body>
   <div class="c"><div class="grid"></div><div class="glow g1"></div>
-    <div class="rh"><span>// THE&nbsp;TOOLKIT&nbsp;VAULT</span><span class="a">ISSUE ${pad2(issue.week)}</span></div>
+    <div class="rh"><span>// THE&nbsp;TOOLKIT&nbsp;VAULT</span><span class="a">${trackLabel(issue.track)}</span></div>
     <div class="mid">
       <div class="kick">${issue.kicker}</div>
-      <h1>WEEK ${pad2(issue.week)} <span class="v">VAULT</span></h1>
+      <h1>${trackLabel(issue.track)} <span class="v">VAULT</span></h1>
       <div class="sub">${issue.subtitle}</div>
       <div class="badge">TUNED FOR ${os.label.toUpperCase()} · ${os.shell}</div>
     </div>
@@ -94,23 +105,19 @@ function coverHtml(issue, os) {
   </div></body></html>`
 }
 
-function thumbHtml(title, week, accent) {
+function thumbHtml(label, accent) {
   return `<!doctype html><html><head><meta charset="utf-8"><style>${baseCss(accent)}
     .t{position:relative;width:1024px;height:1024px;background:#070b12;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px}
     .g1{width:900px;height:900px;top:-180px;left:-180px}
     .z{position:relative;z-index:2}
-    .mark{font-size:64px;color:${accent};margin-bottom:18px}
-    .wk{font-family:Consolas,monospace;font-size:30px;letter-spacing:8px;color:#74879f;margin-bottom:6px}
-    .big{font-size:300px;line-height:.85;font-weight:800;color:${accent};text-shadow:0 0 70px ${accent}59;letter-spacing:-8px}
-    .name{margin-top:18px;font-size:54px;font-weight:800;color:#eef4fb;letter-spacing:-1px;line-height:1.05}
-    .kk{margin-top:22px;font-family:Consolas,monospace;font-size:20px;letter-spacing:5px;color:#74879f}
+    .mark{font-size:88px;color:${accent};margin-bottom:30px}
+    .name{font-size:132px;line-height:.9;font-weight:800;color:${accent};text-shadow:0 0 70px ${accent}59;letter-spacing:-6px;white-space:nowrap}
+    .kk{margin-top:34px;font-family:Consolas,monospace;font-size:24px;letter-spacing:6px;color:#74879f}
   </style></head><body>
   <div class="t"><div class="grid"></div><div class="glow g1"></div>
     <div class="z">
       <div class="mark">&#9635;</div>
-      <div class="wk">WEEK</div>
-      <div class="big">${pad2(week)}</div>
-      <div class="name">${title}</div>
+      <div class="name">${label}</div>
       <div class="kk">THE TOOLKIT VAULT</div>
     </div>
   </div></body></html>`
@@ -127,7 +134,7 @@ function listingMd(issue, os) {
   const setup = setupBlock({
     name: `${NAMES[issue.track] || issue.track} Vault — ${os.label}`,
     slug: `${issue.track}-vault-${os.id}`,
-    price: "$8 / month (membership)",
+    price: "$16 / month (membership)", // list price; LAUNCH50 brings it to net $8
     cover: "cover.png",
     thumb: "thumbnail.png",
     file: `${issue.track}-vault-${os.id}.pdf`,
@@ -151,7 +158,7 @@ Each pick includes: what it is, why it matters for *you*, the real GitHub link, 
 }
 
 function allAccessMd(os, weeks) {
-  const lines = weeks.map((w) => `- **Week ${pad2(w.week)} · ${w.kicker.replace(/\s+/g, " ").trim()}** — ${w.subtitle}`).join("\n")
+  const lines = weeks.map((w) => `- **${trackLabel(w.track)} · ${w.kicker.replace(/\s+/g, " ").trim()}** — ${w.subtitle}`).join("\n")
   const setup = setupBlock({
     name: `All-Access Vault — ${os.label}`,
     slug: `all-access-${os.id}`,
@@ -201,9 +208,8 @@ try {
       await page.setContent(coverHtml(issue, os), { waitUntil: "networkidle" })
       await page.screenshot({ path: join(dir, "cover.png") })
       // thumbnail 1024x1024
-      const title = (issue.kicker.split("+")[0] || issue.track).trim()
       await page.setViewportSize({ width: 1024, height: 1024 })
-      await page.setContent(thumbHtml(title, issue.week, ACCENT[issue.track] || ALL_ACCENT), { waitUntil: "networkidle" })
+      await page.setContent(thumbHtml(trackLabel(issue.track), ACCENT[issue.track] || ALL_ACCENT), { waitUntil: "networkidle" })
       await page.screenshot({ path: join(dir, "thumbnail.png") })
       // listing.md
       writeFileSync(join(dir, "listing.md"), listingMd(issue, os))
@@ -214,12 +220,12 @@ try {
     mkdirSync(aDir, { recursive: true })
     await page.setViewportSize({ width: 1280, height: 720 })
     await page.setContent(
-      coverHtml({ track: "all", week: 0, kicker: "ALL  ·  ACCESS", subtitle: "Every issue of the Toolkit Vault — one download." }, os),
+      coverHtml({ track: "all", kicker: "ALL  ·  ACCESS", subtitle: "Every issue of the Toolkit Vault — one download." }, os),
       { waitUntil: "networkidle" },
     )
     await page.screenshot({ path: join(aDir, "cover.png") })
     await page.setViewportSize({ width: 1024, height: 1024 })
-    await page.setContent(thumbHtml("All-Access", 0, ALL_ACCENT), { waitUntil: "networkidle" })
+    await page.setContent(thumbHtml("ALL-ACCESS", ALL_ACCENT), { waitUntil: "networkidle" })
     await page.screenshot({ path: join(aDir, "thumbnail.png") })
     writeFileSync(join(aDir, "listing.md"), allAccessMd(os, issues))
   }

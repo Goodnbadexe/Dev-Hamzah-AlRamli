@@ -1,0 +1,12 @@
+ابنِ عالم ثلاثي الأبعاد كامل في تبويب متصفح — أرض، أشجار، مسارات، حيوانات — وبعدها انشره برابط يدخله غيرك بشكل مباشر. بدون تنزيل محرك وبدون حساب.
+
+Build a full 3D voxel world in a browser tab — terrain, props, paths, animals — then publish a link others walk into live. No engine install, no account.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «الإبداع في المتصفّح» من The Toolkit Vault.
+🧰 One of 5 in this week's CREATIVE drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #creativecoding #webdev #design

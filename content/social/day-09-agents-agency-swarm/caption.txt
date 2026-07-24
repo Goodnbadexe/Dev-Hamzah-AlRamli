@@ -1,0 +1,12 @@
+agent واحد سهل. خمس agents يتكلمون مع بعض بدون ما يطيحون — هذا اللي صعب. Agency Swarm هو طبقة الموثوقية: أدوات مكتوبة بأنواع صارمة، تسليم نظيف بين الوكلاء، وسلوك متوقّع.
+
+One agent is easy. Five agents talking to each other without going off the rails is the hard part.
+
+اسحب للأمر + برومبت جاهز تنسخه مباشرة في Claude أو ChatGPT 👇
+Swipe for the command + a paste-ready prompt.
+
+🧰 وحدة من ٥ أدوات في إصدار «وكلاء الذكاء» من The Toolkit Vault.
+🧰 One of 5 in this week's AGENTS drop — the free issue is on the site.
+🔗 goodnbad.info (link in bio)
+
+#AItools #opensource #ClaudeAI #ChatGPT #الذكاء_الاصطناعي #أدوات_الذكاء_الاصطناعي #AIagents #LLM #autonomousagents
