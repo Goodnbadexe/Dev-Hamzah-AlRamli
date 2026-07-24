@@ -182,7 +182,12 @@ const loginCommand: Command = {
     }
     
     const [username, password] = args;
-    
+
+    // Count every genuine credential attempt (success or failure) toward the
+    // persisted loginAttempts stat — this is what unlocks the "persistent"
+    // achievement at 10 attempts. Usage errors (handled above) don't count.
+    context.gameManager?.incrementStat?.('loginAttempts');
+
     // Use AuthManager for proper authentication
      if (context.gameManager && context.gameManager.authManager) {
        const authResult = context.gameManager.authManager.login(username, password);

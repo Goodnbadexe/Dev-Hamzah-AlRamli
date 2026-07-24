@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { SdrAssistant } from "@/components/sdr/sdr-assistant"
 
 export const metadata: Metadata = {
   title: "Services | Hamzah Al-Ramli",
@@ -16,5 +17,10 @@ export const metadata: Metadata = {
 }
 
 export default function ServicesLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return (
+    <>
+      {children}
+      <SdrAssistant />
+    </>
+  )
 }

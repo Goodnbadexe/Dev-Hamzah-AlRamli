@@ -11,9 +11,10 @@ import { NextResponse } from "next/server"
 import { promises as fs } from "node:fs"
 import path from "node:path"
 import { verifyToken } from "@/lib/vault/sign"
-import { getEntitlement } from "@/lib/vault/entitlement"
+import { hasConfirmedSale, resolveVariantOs } from "@/lib/vault/entitlement"
 import { deliverableById, resolveFile } from "@/lib/vault/manifest"
 import { stampCached } from "@/lib/vault/watermark"
+import { logEvent } from "@/lib/events/log"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -32,14 +33,18 @@ export async function GET(req: Request, ctx: { params: Promise<{ file: string }>
   const hit = deliverableById(file)
   if (!hit) return NextResponse.json({ ok: false, error: "not found" }, { status: 404 })
 
-  // 3) authoritative entitlement re-check (a leaked URL dies when entitlement lapses)
-  const ent = await getEntitlement(claim.email)
-  if (!ent || !ent.tracks.includes(hit.track)) {
+  // 3) authoritative entitlement re-check: a confirmed, non-refunded sale. This is
+  //    re-checked here (not just at sign time) so a leaked URL dies the moment the
+  //    sale is refunded. Leads NEVER grant access — only payment does.
+  if (!(await hasConfirmedSale(claim.email))) {
     return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 })
   }
 
-  // 4) resolve the tuned file for the buyer's stack, strictly inside content/vault
-  const rel = resolveFile(hit.track, hit.deliverable, ent.os)
+  // 4) resolve the tuned file for the buyer's stack, strictly inside content/vault.
+  //    The OS variant comes from the (non-authoritative) lead row, defaulting when
+  //    absent — it only picks a file variant, it does not gate access.
+  const os = await resolveVariantOs(claim.email)
+  const rel = resolveFile(hit.track, hit.deliverable, os)
   const root = path.resolve(process.cwd(), "content", "vault")
   const abs = path.resolve(process.cwd(), rel)
   if (abs !== root && !abs.startsWith(root + path.sep)) {
@@ -57,6 +62,10 @@ export async function GET(req: Request, ctx: { params: Promise<{ file: string }>
     email: claim.email,
     orderId: file,
   })
+
+  // Audit: the entitled buyer's PDF was served (funnel-end signal). "served/stamped",
+  // not necessarily fully received by the client.
+  await logEvent({ type: "pdf_downloaded", email: claim.email, product: file, source: "vault_download", meta: { os } })
 
   return new Response(new Uint8Array(stamped), {
     status: 200,

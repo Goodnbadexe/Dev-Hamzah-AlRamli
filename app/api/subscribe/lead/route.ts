@@ -15,6 +15,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/server"
 import { isTrackId, orderTracksByDisplay, trackById, type TrackId } from "@/lib/subscribe/tracks"
+import { getPostHogClient } from "@/lib/posthog-server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -248,6 +249,32 @@ export async function POST(req: Request) {
   if (!tg && !mail && !stored) {
     // No delivery channel + no DB — log so the lead isn't silently lost.
     console.log("[subscribe lead] (no channel configured)\n" + text)
+  }
+
+  // Track lead capture server-side. Use email as distinctId so server and client
+  // events correlate; never put email in capture() properties.
+  try {
+    const ph = getPostHogClient()
+    const d = parsed.data
+    ph.capture({
+      distinctId: d.email,
+      event: "lead_captured",
+      properties: {
+        source: d.source,
+        bundle: d.bundle ?? null,
+        tracks: d.tracks ?? [],
+        tool: d.tool ?? null,
+        os: d.os ?? null,
+        read_factor: d.readFactor ?? null,
+        has_promo: !!d.promo,
+        stored_in_db: stored,
+        delivered_telegram: tg,
+        delivered_email: mail,
+      },
+    })
+    await ph.flush()
+  } catch (e) {
+    console.error("[subscribe lead] posthog capture failed:", e)
   }
 
   return NextResponse.json({ ok: true, delivered: { telegram: tg, email: mail, welcome, supabase: stored } })

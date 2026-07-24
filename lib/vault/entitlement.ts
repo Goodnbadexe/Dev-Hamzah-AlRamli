@@ -1,11 +1,13 @@
 // === METADATA ===
 // Purpose: Authoritative entitlement check for gated vault downloads, backed by
-//          Supabase. Resolves the buyer's stored stack ({tool,os}) so the gated
-//          route can hand back the right tuned PDF variant.
-// Note:    Until a payments-confirmed column/orders table exists, entitlement =
-//          "the buyer's most recent lead row selected this deliverable's track".
-//          A Moyasar webhook should later set a `paid` flag and this gate should
-//          tighten to require it. Fails CLOSED when Supabase is unconfigured.
+//          Supabase.
+// Security: Access is granted ONLY when a confirmed, non-refunded sale exists for
+//          the email in the `sales` table (written exclusively by the service-role
+//          Gumroad Ping webhook — never by the browser, RLS-locked). The `leads`
+//          table is self-submitted via a public form and is therefore FORGEABLE,
+//          so it MUST NOT grant access — it is used only to resolve which OS-tuned
+//          PDF variant to hand a buyer (worst case: wrong variant, never a bypass).
+//          Fails CLOSED when Supabase is unconfigured or on any query error.
 // === END METADATA ===
 import "server-only"
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/server"
@@ -19,7 +21,31 @@ export interface Entitlement {
   tracks: string[]
 }
 
-/** Most recent lead row for an email, normalized. null when none / unconfigured. */
+/**
+ * Authoritative payment gate. True only when at least one confirmed, non-refunded
+ * sale exists for this email. This is the single source of truth for vault access.
+ * Fails CLOSED: unconfigured Supabase, query error, or no matching row → false.
+ */
+export async function hasConfirmedSale(email: string): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false
+  try {
+    const { data, error } = await supabaseAdmin()
+      .from("sales")
+      .select("id")
+      .eq("email", email)
+      .eq("refunded", false)
+      .limit(1)
+      .maybeSingle()
+    return !error && Boolean(data)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Most recent lead row for an email, normalized — used ONLY for variant
+ * resolution (which OS-tuned PDF), never for access. null when none / unconfigured.
+ */
 export async function getEntitlement(email: string): Promise<Entitlement | null> {
   if (!isSupabaseConfigured()) return null
   try {
@@ -42,10 +68,22 @@ export async function getEntitlement(email: string): Promise<Entitlement | null>
   }
 }
 
-export async function hasEntitlement(email: string, deliverableId: string): Promise<boolean> {
-  const hit = deliverableById(deliverableId)
-  if (!hit) return false
+/**
+ * The OS-tuned variant to serve a buyer. Derived from the (forgeable) lead row,
+ * defaulting when absent. Safe to trust because it only picks a file variant —
+ * access itself is gated separately by hasConfirmedSale().
+ */
+export async function resolveVariantOs(email: string): Promise<OsId> {
   const ent = await getEntitlement(email)
-  if (!ent) return false
-  return ent.tracks.includes(hit.track)
+  return ent?.os ?? DEFAULT_OS
+}
+
+/**
+ * Is this email entitled to this deliverable? Payment is the gate: the deliverable
+ * must exist in the manifest AND the buyer must have a confirmed, non-refunded sale.
+ * A lead row alone NEVER grants access.
+ */
+export async function hasEntitlement(email: string, deliverableId: string): Promise<boolean> {
+  if (!deliverableById(deliverableId)) return false
+  return hasConfirmedSale(email)
 }

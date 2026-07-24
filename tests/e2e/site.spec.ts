@@ -31,7 +31,6 @@ test.describe('Core pages', () => {
     { path: '/personnel',  title: /Personnel|Hamzah/i },
     { path: '/services',   title: /Services/i },
     { path: '/signal',     title: /Signal|Intelligence/i },
-    { path: '/signal',     title: /Signal/i },
     { path: '/deployments',title: /Deployments/i },
     { path: '/contact',    title: /Contact/i },
     { path: '/horus',      title: /Horus/i },
@@ -172,7 +171,7 @@ test.describe('Mobile (iPhone 14)', () => {
   test.use({ viewport: { width: 390, height: 844 }, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' })
 
   test('Homepage loads without globe canvas on mobile', async ({ page }) => {
-    await gotoSafe(page, '', { waitUntil: 'networkidle' })
+    await gotoSafe(page, '', { waitUntil: 'load' })
     // Globe canvas should NOT be present on mobile (we skip WebGL < 768px)
     const canvas = await page.locator('canvas').count()
     expect(canvas).toBe(0)
@@ -188,7 +187,7 @@ test.describe('Mobile (iPhone 14)', () => {
   test('/signal page loads on mobile without WebGL crash', async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', (e) => errors.push(e.message))
-    await gotoSafe(page, '/signal', { waitUntil: 'networkidle' })
+    await gotoSafe(page, '/signal', { waitUntil: 'load' })
     const fatalErrors = errors.filter((e) =>
       e.toLowerCase().includes('webgl') || e.toLowerCase().includes('three') || e.toLowerCase().includes('canvas')
     )
@@ -212,7 +211,7 @@ test.describe('Performance', () => {
   })
 
   test('Images have width/height to prevent CLS', async ({ page }) => {
-    await gotoSafe(page, '/personnel', { waitUntil: 'networkidle' })
+    await gotoSafe(page, '/personnel', { waitUntil: 'load' })
     const images = await page.locator('img').all()
     for (const img of images.slice(0, 10)) {
       const w = await img.getAttribute('width')
